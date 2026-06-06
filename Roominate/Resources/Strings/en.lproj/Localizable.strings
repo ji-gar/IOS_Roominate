@@ -1,0 +1,85 @@
+/* App */
+"app.name" = "Roominate";
+
+/* Splash */
+"splash.title" = "Roominate";
+
+/* Onboarding */
+"onboarding.title" = "Find your kind of people";
+"onboarding.subtitle" = "Post your flat or find a flatmate in under a minute. Connect with someone who truly fits your lifestyle — let's get you Roomy-ing.";
+"onboarding.signUp" = "Sign Up";
+"onboarding.signIn" = "Sign In";
+
+/* Sign Up */
+"signup.title" = "Sign Up";
+"signup.subtitle" = "Enter Your IIM email Address";
+"signup.emailPlaceholder" = "Example@iim.com";
+"signup.passwordPlaceholder" = "Password";
+"signup.alreadyHaveAccount" = "Already have an account?";
+"signup.signInLink" = "Sign In";
+"signup.button" = "Sign Up";
+"signup.emailError" = "Invalid Email";
+
+/* Set Password */
+"setPassword.title" = "Set Password";
+"setPassword.subtitle" = "Create a secure password for your account";
+"setPassword.passwordPlaceholder" = "Enter Password";
+"setPassword.confirmPasswordPlaceholder" = "Confirm Password";
+"setPassword.requirementsTitle" = "Password must contain:";
+"setPassword.requirementLength" = "At least 8 characters";
+"setPassword.passwordMismatch" = "Passwords do not match";
+"setPassword.button" = "Set Password";
+
+/* Sign In */
+"signin.title" = "Sign In";
+"signin.subtitle" = "Enter Your IIM email Address";
+"signin.emailPlaceholder" = "Example@iim.com";
+"signin.passwordPlaceholder" = "Password";
+"signin.or" = "Or";
+"signin.otpButton" = "Sign In using OTP";
+"signin.newUser" = "New to Roominate?";
+"signin.signUpLink" = "Sign Up";
+"signin.button" = "Sign In";
+
+/* OTP - Sign Up Verification */
+"otp.enterCode.title" = "Enter Code";
+"otp.enterCode.subtitle" = "We've sent a 4-digit code to your email.";
+"otp.verifyButton" = "Verify";
+
+/* OTP - Sign In */
+"otp.enterOTP.title" = "Enter OTP";
+"otp.enterOTP.subtitle" = "We've sent a 4-digit code to your email.";
+"otp.signInButton" = "Sign In";
+
+/* OTP Common */
+"otp.resendPrefix" = "Resend code in";
+"otp.resendAction" = "Resend Code";
+
+/* Add Profile */
+"profile.title" = "Add Profile";
+"profile.fullName" = "Full Name";
+"profile.fullNamePlaceholder" = "Full Name";
+"profile.gender" = "Gender";
+"profile.gender.male" = "Male";
+"profile.gender.female" = "Female";
+"profile.gender.other" = "Other";
+"profile.areaCity" = "Current Area & City";
+"profile.areaPlaceholder" = "Ahmedabad";
+"profile.birthYear" = "Birth Year";
+"profile.profession" = "Profession";
+"profile.profession.student" = "Student";
+"profile.profession.working" = "Working";
+"profile.aboutYou" = "About You";
+"profile.aboutPlaceholder" = "Short Description";
+"profile.next" = "Next";
+"profile.finish" = "Finish";
+"profile.required" = "*";
+
+/* Common */
+"common.back" = "Back";
+"common.loading" = "Loading...";
+
+/* Errors */
+"error.generic" = "Something went wrong. Please try again.";
+"error.invalidEmail" = "Please enter a valid IIM email address.";
+"error.network" = "Network error. Please check your connection.";
