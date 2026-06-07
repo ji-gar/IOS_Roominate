@@ -30,14 +30,14 @@ struct AddProfileStep1View: View {
                     HStack(spacing: 12) {
                         SelectionCard(
                             title: Strings.Profile.genderMale,
-                            systemImage: "person.fill",
+                            systemImage: "figure.stand",
                             isSelected: viewModel.draft.gender == .male
                         ) {
                             viewModel.draft.gender = .male
                         }
                         SelectionCard(
                             title: Strings.Profile.genderFemale,
-                            systemImage: "person.fill",
+                            systemImage: "figure.stand.dress",
                             isSelected: viewModel.draft.gender == .female
                         ) {
                             viewModel.draft.gender = .female

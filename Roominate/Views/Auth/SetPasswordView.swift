@@ -1,11 +1,17 @@
 import SwiftUI
 
 struct SetPasswordView: View {
-    @StateObject private var viewModel = SetPasswordViewModel()
+    @StateObject private var viewModel: SetPasswordViewModel
     @FocusState private var focusedField: Field?
 
     let onBack: () -> Void
     let onSuccess: () -> Void
+
+    init(email: String, otp: String? = nil, onBack: @escaping () -> Void, onSuccess: @escaping () -> Void) {
+        _viewModel = StateObject(wrappedValue: SetPasswordViewModel(email: email, otp: otp))
+        self.onBack = onBack
+        self.onSuccess = onSuccess
+    }
 
     private enum Field {
         case password
@@ -17,12 +23,7 @@ struct SetPasswordView: View {
             AuthBackgroundView()
 
             VStack(spacing: 0) {
-                HStack {
-                    BackButton(action: onBack)
-                    Spacer()
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+                AuthScreenHeader(onBack: onBack)
 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -111,5 +112,5 @@ struct SetPasswordView: View {
 }
 
 #Preview {
-    SetPasswordView(onBack: {}, onSuccess: {})
+    SetPasswordView(email: "test@iim.com", otp: "1234", onBack: {}, onSuccess: {})
 }

@@ -13,89 +13,86 @@ struct SignUpView: View {
             AuthBackgroundView()
 
             VStack(spacing: 0) {
-                HStack {
-                    BackButton(action: onBack)
-                    Spacer()
+                AuthScreenHeader(onBack: onBack)
+
+                VStack(spacing: 8) {
+                    Text(Strings.SignUp.title)
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppTheme.primaryBlue)
+
+                    Text(Strings.SignUp.subtitle)
+                        .font(.system(size: 15))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+                .padding(.horizontal, AppTheme.horizontalPadding)
+                .padding(.top, 32)
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        VStack(spacing: 8) {
-                            Text(Strings.SignUp.title)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(AppTheme.primaryBlue)
+                Spacer()
 
-                            Text(Strings.SignUp.subtitle)
-                                .font(.system(size: 15))
-                                .foregroundStyle(AppTheme.textPrimary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, 24)
+                VStack(spacing: 16) {
+                    AuthTextField(
+                        placeholder: Strings.SignUp.emailPlaceholder,
+                        text: $viewModel.email,
+                        state: mapFieldState(viewModel.emailFieldState)
+                    )
+                    .focused($isEmailFocused)
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .onChange(of: viewModel.email) { _, _ in
+                        viewModel.validateEmail()
+                    }
 
-                        AuthTextField(
-                            placeholder: Strings.SignUp.emailPlaceholder,
-                            text: $viewModel.email,
-                            state: mapFieldState(viewModel.emailFieldState)
-                        )
-                        .focused($isEmailFocused)
-                        .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .onChange(of: viewModel.email) { _, _ in
-                            viewModel.validateEmail()
-                        }
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.errorRed)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(.horizontal, AppTheme.horizontalPadding)
 
-                        TextLinkButton(
-                            prefix: Strings.SignUp.alreadyHaveAccount,
-                            linkText: Strings.SignUp.signInLink,
-                            action: {
-                                // #region agent log
-                                DebugLog.write(
-                                    location: "SignUpView.swift:onSignIn",
-                                    message: "Sign In link tapped",
-                                    hypothesisId: "E"
-                                )
-                                // #endregion
-                                onSignIn()
-                            }
-                        )
+                Spacer()
 
-                        if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
-                                .font(.system(size: 13))
-                                .foregroundStyle(AppTheme.errorRed)
-                                .multilineTextAlignment(.center)
-                        }
-
-                        PrimaryButton(
-                            title: Strings.SignUp.button,
-                            isEnabled: viewModel.isFormValid,
-                            isLoading: viewModel.isLoading
-                        ) {
-                            // #region agent log
+                VStack(spacing: 16) {
+                    TextLinkButton(
+                        prefix: Strings.SignUp.alreadyHaveAccount,
+                        linkText: Strings.SignUp.signInLink,
+                        action: {
                             DebugLog.write(
-                                location: "SignUpView.swift:signUpButton",
-                                message: "Sign Up button tapped",
-                                data: [
-                                    "isFormValid": String(viewModel.isFormValid),
-                                    "isLoading": String(viewModel.isLoading)
-                                ],
-                                hypothesisId: "C"
+                                location: "SignUpView.swift:onSignIn",
+                                message: "Sign In link tapped",
+                                hypothesisId: "E"
                             )
-                            // #endregion
-                            Task {
-                                if await viewModel.signUp() {
-                                    onSuccess(viewModel.email)
-                                }
+                            onSignIn()
+                        }
+                    )
+
+                    PrimaryButton(
+                        title: Strings.SignUp.button,
+                        isEnabled: viewModel.isFormValid,
+                        isLoading: viewModel.isLoading
+                    ) {
+                        DebugLog.write(
+                            location: "SignUpView.swift:signUpButton",
+                            message: "Sign Up button tapped",
+                            data: [
+                                "isFormValid": String(viewModel.isFormValid),
+                                "isLoading": String(viewModel.isLoading)
+                            ],
+                            hypothesisId: "C"
+                        )
+                        Task {
+                            if let normalizedEmail = await viewModel.signUp() {
+                                onSuccess(normalizedEmail)
                             }
                         }
                     }
-                    .padding(.horizontal, AppTheme.horizontalPadding)
-                    .padding(.bottom, 32)
                 }
+                .padding(.horizontal, AppTheme.horizontalPadding)
+                .padding(.bottom, 36)
             }
         }
         .navigationBarHidden(true)

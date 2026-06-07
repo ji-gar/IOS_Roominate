@@ -44,7 +44,7 @@ final class SignUpViewModel: ObservableObject {
         }
     }
 
-    func signUp() async -> Bool {
+    func signUp() async -> String? {
         validateEmail()
         guard isFormValid else {
             // #region agent log
@@ -55,7 +55,7 @@ final class SignUpViewModel: ObservableObject {
                 hypothesisId: "C"
             )
             // #endregion
-            return false
+            return nil
         }
 
         isLoading = true
@@ -65,7 +65,7 @@ final class SignUpViewModel: ObservableObject {
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
         do {
-            _ = try await authService.sendOTP(email: normalizedEmail)
+            _ = try await authService.requestOTPForSignUp(email: normalizedEmail)
             // #region agent log
             DebugLog.write(
                 location: "SignUpViewModel.swift:signUp",
@@ -74,7 +74,7 @@ final class SignUpViewModel: ObservableObject {
                 hypothesisId: "D"
             )
             // #endregion
-            return true
+            return normalizedEmail
         } catch {
             errorMessage = error.localizedDescription
             // #region agent log
@@ -85,7 +85,7 @@ final class SignUpViewModel: ObservableObject {
                 hypothesisId: "D"
             )
             // #endregion
-            return false
+            return nil
         }
     }
 }

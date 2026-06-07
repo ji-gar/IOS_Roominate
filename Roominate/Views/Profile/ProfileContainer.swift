@@ -15,8 +15,8 @@ func profileContainer<Content: View>(
             Spacer()
             Color.clear.frame(width: 44, height: 44)
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
+        .padding(.horizontal, AppTheme.horizontalPadding)
+        .frame(minHeight: 44)
 
         ScrollView {
             content()

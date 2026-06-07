@@ -13,11 +13,17 @@ final class UserService: UserServiceProtocol {
 
     func updateProfile(_ draft: ProfileDraft) async throws -> UserResponse {
         var fields: [MultipartFormData.Field] = [
+            .init(name: "name", value: draft.fullName),
             .init(name: "fullname", value: draft.fullName),
+            .init(name: "current_city", value: draft.area),
             .init(name: "area", value: draft.area),
-            .init(name: "birthyear", value: draft.birthYear),
             .init(name: "about", value: draft.about)
         ]
+
+        if !draft.organization.isEmpty {
+            fields.append(.init(name: "organization_name", value: draft.organization))
+            fields.append(.init(name: "organization", value: draft.organization))
+        }
 
         if let gender = draft.gender {
             fields.append(.init(name: "gender", value: gender.rawValue))

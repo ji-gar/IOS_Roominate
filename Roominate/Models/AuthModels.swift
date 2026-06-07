@@ -29,6 +29,20 @@ struct SetPasswordRequest: Encodable {
     }
 }
 
+struct ResetPasswordRequest: Encodable {
+    let email: String
+    let token: String
+    let password: String
+    let passwordConfirmation: String
+
+    enum CodingKeys: String, CodingKey {
+        case email
+        case token
+        case password
+        case passwordConfirmation = "password_confirmation"
+    }
+}
+
 struct AuthResponse: Decodable {
     let success: Bool?
     let token: String?
@@ -51,8 +65,10 @@ struct AuthResponse: Decodable {
 struct UserResponse: Decodable {
     let id: String?
     let email: String?
+    let name: String?
     let fullname: String?
     let area: String?
+    let currentCity: String?
     let birthyear: String?
     let profession: String?
     let gender: String?
@@ -61,15 +77,54 @@ struct UserResponse: Decodable {
     let isVerified: Bool?
 
     var isProfileComplete: Bool {
-        guard let fullname, !fullname.isEmpty else { return false }
-        guard let area, !area.isEmpty else { return false }
-        guard let about, !about.isEmpty else { return false }
-        return true
+        ProfileResponse(
+            id: nil,
+            name: name ?? fullname,
+            currentCity: currentCity ?? area,
+            about: about,
+            gender: gender,
+            profession: profession,
+            organizationName: nil,
+            profileImageUrl: profilePic
+        ).isComplete
+    }
+}
+
+struct ProfileResponse: Decodable {
+    let id: Int?
+    let name: String?
+    let currentCity: String?
+    let about: String?
+    let gender: String?
+    let profession: String?
+    let organizationName: String?
+    let profileImageUrl: String?
+
+    var isComplete: Bool {
+        if let about, !about.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return true
+        }
+
+        let resolvedName = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let resolvedCity = currentCity?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !resolvedName.isEmpty, !resolvedCity.isEmpty {
+            return true
+        }
+
+        if id != nil, gender != nil || profession != nil {
+            return true
+        }
+
+        return false
     }
 }
 
 private struct UserEnvelope: Decodable {
     let data: UserResponse?
+}
+
+private struct ProfileEnvelope: Decodable {
+    let data: ProfileResponse?
 }
 
 extension UserResponse {
@@ -81,10 +136,19 @@ extension UserResponse {
     }
 }
 
+extension ProfileResponse {
+    static func decode(from data: Data, using decoder: JSONDecoder) throws -> ProfileResponse {
+        if let wrapped = try? decoder.decode(ProfileEnvelope.self, from: data), let profile = wrapped.data {
+            return profile
+        }
+        return try decoder.decode(ProfileResponse.self, from: data)
+    }
+}
+
 enum Gender: String, CaseIterable, Identifiable {
-    case male = "MALE"
-    case female = "FEMALE"
-    case other = "OTHER"
+    case male = "male"
+    case female = "female"
+    case other = "other"
 
     var id: String { rawValue }
 
@@ -115,8 +179,8 @@ struct ProfileDraft {
     var fullName: String = ""
     var gender: Gender?
     var area: String = ""
-    var birthYear: String = "2003"
     var profession: Profession?
+    var organization: String = ""
     var about: String = ""
     var profileImageData: Data?
 }

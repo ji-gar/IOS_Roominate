@@ -9,9 +9,17 @@ final class SetPasswordViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var confirmPasswordError: String?
 
+    let email: String
+    let otp: String?
     private let authService: AuthServiceProtocol
 
-    init(authService: AuthServiceProtocol = AuthService()) {
+    init(
+        email: String,
+        otp: String? = nil,
+        authService: AuthServiceProtocol = AuthService()
+    ) {
+        self.email = email
+        self.otp = otp
         self.authService = authService
     }
 
@@ -36,7 +44,12 @@ final class SetPasswordViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            _ = try await authService.setPassword(password: password, confirmation: confirmPassword)
+            _ = try await authService.setPassword(
+                email: email,
+                otp: otp,
+                password: password,
+                confirmation: confirmPassword
+            )
             return true
         } catch {
             errorMessage = error.localizedDescription

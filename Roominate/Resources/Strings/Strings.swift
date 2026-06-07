@@ -79,6 +79,10 @@ enum Strings {
         static var profession: String { localized("profile.profession") }
         static var professionStudent: String { localized("profile.profession.student") }
         static var professionWorking: String { localized("profile.profession.working") }
+        static var instituteLabel: String { localized("profile.institute.label") }
+        static var institutePlaceholder: String { localized("profile.institute.placeholder") }
+        static var organizationLabel: String { localized("profile.organization.label") }
+        static var organizationPlaceholder: String { localized("profile.organization.placeholder") }
         static var aboutYou: String { localized("profile.aboutYou") }
         static var aboutPlaceholder: String { localized("profile.aboutPlaceholder") }
         static var next: String { localized("profile.next") }
@@ -88,6 +92,7 @@ enum Strings {
 
     enum Error {
         static var generic: String { localized("error.generic") }
+        static var invalidCredentials: String { localized("error.invalidCredentials") }
         static var invalidEmail: String { localized("error.invalidEmail") }
         static var network: String { localized("error.network") }
     }

@@ -11,28 +11,28 @@ struct OnboardingView: View {
             Image("OnboardingIllustration")
                 .resizable()
                 .scaledToFit()
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 24)
 
-            Spacer().frame(height: 32)
+            Spacer().frame(height: 36)
 
             Text(Strings.Onboarding.title)
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(AppTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppTheme.horizontalPadding)
 
-            Spacer().frame(height: 16)
+            Spacer().frame(height: 14)
 
             Text(Strings.Onboarding.subtitle)
-                .font(.system(size: 15))
+                .font(.system(size: 16))
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
+                .lineSpacing(5)
                 .padding(.horizontal, AppTheme.horizontalPadding)
 
             Spacer()
 
-            HStack(spacing: 16) {
+            VStack(spacing: 12) {
                 PrimaryButton(title: Strings.Onboarding.signUp) {
                     // #region agent log
                     DebugLog.write(
@@ -43,7 +43,8 @@ struct OnboardingView: View {
                     // #endregion
                     onSignUp()
                 }
-                Button(action: {
+
+                OutlineButton(title: Strings.Onboarding.signIn) {
                     // #region agent log
                     DebugLog.write(
                         location: "OnboardingView.swift:signIn",
@@ -52,16 +53,10 @@ struct OnboardingView: View {
                     )
                     // #endregion
                     onSignIn()
-                }) {
-                    Text(Strings.Onboarding.signIn)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(AppTheme.primaryBlue)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: AppTheme.buttonHeight)
                 }
             }
             .padding(.horizontal, AppTheme.horizontalPadding)
-            .padding(.bottom, 40)
+            .padding(.bottom, 44)
         }
         .background(Color.white.ignoresSafeArea())
     }

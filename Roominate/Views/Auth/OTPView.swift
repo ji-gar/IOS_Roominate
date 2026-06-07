@@ -21,12 +21,7 @@ struct OTPView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                BackButton(action: onBack)
-                Spacer()
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
+            AuthScreenHeader(onBack: onBack)
 
             VStack(spacing: 24) {
                 VStack(spacing: 12) {
@@ -45,10 +40,7 @@ struct OTPView: View {
                 OTPInputView(code: viewModel.code, length: 4)
                     .padding(.top, 8)
 
-                HStack(spacing: 4) {
-                    Text(Strings.OTP.resendPrefix)
-                        .foregroundStyle(AppTheme.textSecondary)
-
+                Group {
                     if viewModel.canResend {
                         Button(Strings.OTP.resendAction) {
                             Task { await viewModel.resendCode() }
@@ -56,9 +48,8 @@ struct OTPView: View {
                         .foregroundStyle(AppTheme.primaryBlue)
                         .fontWeight(.semibold)
                     } else {
-                        Text(viewModel.formattedTimer)
-                            .foregroundStyle(AppTheme.primaryBlue)
-                            .fontWeight(.semibold)
+                        Text("\(Strings.OTP.resendPrefix) \(viewModel.formattedTimer)")
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
                 }
                 .font(.system(size: 14))

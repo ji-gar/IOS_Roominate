@@ -7,7 +7,7 @@ enum AppRoute: Hashable {
     case signIn
     case signUpVerification(email: String)
     case signInOTP(email: String)
-    case setPassword
+    case setPassword(email: String, otp: String?)
     case addProfileStep1
     case addProfileStep2
     case addProfileStep3
@@ -92,9 +92,8 @@ final class AppRouter: ObservableObject {
         }
 
         do {
-            let user = try await authService.fetchCurrentUser()
             isAuthenticated = true
-            if user.isProfileComplete {
+            if try await authService.resolveProfileCompletion() {
                 return .home
             }
             return .addProfileStep1

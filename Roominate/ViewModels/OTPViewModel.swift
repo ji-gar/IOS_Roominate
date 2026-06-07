@@ -47,8 +47,20 @@ final class OTPViewModel: ObservableObject {
         authService: AuthServiceProtocol = AuthService()
     ) {
         self.flowType = flowType
-        self.email = email
+        self.email = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         self.authService = authService
+        // #region agent log
+        DebugLog.write(
+            location: "OTPViewModel.swift:init",
+            message: "OTP screen opened",
+            data: [
+                "flowType": String(describing: flowType),
+                "emailDomain": String(self.email.split(separator: "@").last ?? "")
+            ],
+            hypothesisId: "E"
+        )
+        print("[RoominateAuth] OTPView opened flow=\(flowType) email=\(self.email)")
+        // #endregion
         startTimer()
     }
 
@@ -90,16 +102,32 @@ final class OTPViewModel: ObservableObject {
         do {
             switch flowType {
             case .signUpVerification:
-                _ = try await authService.verifyOTP(email: email, otp: code)
-                return .needsSetPassword
+                // #region agent log
+                DebugLog.write(
+                    location: "OTPViewModel.swift:verify",
+                    message: "Sign-up OTP captured; deferring verify-otp until password is set",
+                    data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
+                    hypothesisId: "A"
+                )
+                // #endregion
+                return .needsSetPassword(otp: code)
 
             case .signIn:
-                _ = try await authService.loginWithOTP(email: email, otp: code)
-                let user = try await authService.fetchCurrentUser()
-                return user.isProfileComplete ? .authenticatedComplete : .authenticatedNeedsProfile
+                return try await completeSignInWithOTP()
             }
         } catch {
             errorMessage = error.localizedDescription
+            // #region agent log
+            DebugLog.write(
+                location: "OTPViewModel.swift:verify",
+                message: "OTP verification failed",
+                data: [
+                    "flowType": String(describing: flowType),
+                    "error": error.localizedDescription
+                ],
+                hypothesisId: "E"
+            )
+            // #endregion
             return .failure
         }
     }
@@ -110,10 +138,37 @@ final class OTPViewModel: ObservableObject {
         startTimer()
 
         do {
-            _ = try await authService.sendOTP(email: email)
+            switch flowType {
+            case .signUpVerification:
+                _ = try await authService.resendOTP(email: email)
+            case .signIn:
+                _ = try await authService.requestOTPForSignIn(email: email)
+            }
+            // #region agent log
+            DebugLog.write(
+                location: "OTPViewModel.swift:resendCode",
+                message: "OTP resent successfully",
+                data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
+                hypothesisId: "B"
+            )
+            // #endregion
         } catch {
             errorMessage = error.localizedDescription
+            // #region agent log
+            DebugLog.write(
+                location: "OTPViewModel.swift:resendCode",
+                message: "OTP resend failed",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "B"
+            )
+            // #endregion
         }
+    }
+
+    private func completeSignInWithOTP() async throws -> OTPResult {
+        _ = try await authService.verifyOTP(email: email, otp: code)
+        let isComplete = try await authService.resolveProfileCompletion()
+        return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
     }
 
     private func startTimer() {
@@ -126,10 +181,10 @@ final class OTPViewModel: ObservableObject {
         }
     }
 
-    enum OTPResult {
+    enum OTPResult: Equatable {
         case authenticatedComplete
         case authenticatedNeedsProfile
-        case needsSetPassword
+        case needsSetPassword(otp: String)
         case failure
     }
 }

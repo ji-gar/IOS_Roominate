@@ -64,11 +64,15 @@
 "profile.gender.female" = "Female";
 "profile.gender.other" = "Other";
 "profile.areaCity" = "Current Area & City";
-"profile.areaPlaceholder" = "Ahmedabad";
+"profile.areaPlaceholder" = "Search city or area...";
 "profile.birthYear" = "Birth Year";
 "profile.profession" = "Profession";
 "profile.profession.student" = "Student";
 "profile.profession.working" = "Working";
+"profile.institute.label" = "Institute Name";
+"profile.institute.placeholder" = "Enter institute name";
+"profile.organization.label" = "Organization Name";
+"profile.organization.placeholder" = "Enter organization name";
 "profile.aboutYou" = "About You";
 "profile.aboutPlaceholder" = "Short Description";
 "profile.next" = "Next";
@@ -81,5 +85,6 @@
 
 /* Errors */
 "error.generic" = "Something went wrong. Please try again.";
+"error.invalidCredentials" = "Invalid credentials. Try Sign In using OTP if you have not set a password yet.";
 "error.invalidEmail" = "Please enter a valid IIM email address.";
 "error.network" = "Network error. Please check your connection.";

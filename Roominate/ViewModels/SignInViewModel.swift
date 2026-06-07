@@ -24,10 +24,26 @@ final class SignInViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            _ = try await authService.sendOTP(email: email)
+            _ = try await authService.requestOTPForSignIn(email: email)
+            // #region agent log
+            DebugLog.write(
+                location: "SignInViewModel.swift:sendOTPForLogin",
+                message: "OTP requested for sign-in",
+                data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
+                hypothesisId: "B"
+            )
+            // #endregion
             return true
         } catch {
             errorMessage = error.localizedDescription
+            // #region agent log
+            DebugLog.write(
+                location: "SignInViewModel.swift:sendOTPForLogin",
+                message: "OTP request for sign-in failed",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "B"
+            )
+            // #endregion
             return false
         }
     }
@@ -54,8 +70,40 @@ final class SignInViewModel: ObservableObject {
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
                 password: password
             )
-            let user = try await authService.fetchCurrentUser()
-            return user.isProfileComplete ? .authenticatedComplete : .authenticatedNeedsProfile
+            let isComplete = try await authService.resolveProfileCompletion()
+            return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
+        } catch let error as NetworkError {
+            if case .httpError(let statusCode, let message) = error,
+               statusCode == 403,
+               message?.lowercased().contains("verify your email") == true {
+                let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                errorMessage = message
+                // #region agent log
+                DebugLog.write(
+                    location: "SignInViewModel.swift:signIn",
+                    message: "Sign in requires email verification",
+                    data: ["emailDomain": String(normalizedEmail.split(separator: "@").last ?? "")],
+                    hypothesisId: "D"
+                )
+                // #endregion
+                return .needsEmailVerification(email: normalizedEmail)
+            }
+
+            if case .httpError(401, let message) = error,
+               message?.lowercased().contains("invalid credentials") == true {
+                errorMessage = Strings.Error.invalidCredentials
+            } else {
+                errorMessage = error.localizedDescription
+            }
+            // #region agent log
+            DebugLog.write(
+                location: "SignInViewModel.swift:signIn",
+                message: "Sign in failed",
+                data: ["error": errorMessage ?? error.localizedDescription],
+                hypothesisId: "D"
+            )
+            // #endregion
+            return .failure
         } catch {
             errorMessage = error.localizedDescription
             // #region agent log
@@ -73,6 +121,7 @@ final class SignInViewModel: ObservableObject {
     enum SignInResult {
         case authenticatedComplete
         case authenticatedNeedsProfile
+        case needsEmailVerification(email: String)
         case failure
     }
 }

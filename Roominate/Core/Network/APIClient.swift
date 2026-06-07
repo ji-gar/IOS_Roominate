@@ -117,11 +117,37 @@ final class APIClient {
             throw NetworkError.invalidResponse
         }
 
+        // #region agent log
+        let responsePreview = String(data: data.prefix(300), encoding: .utf8) ?? ""
+        DebugLog.write(
+            location: "APIClient.swift:requestData",
+            message: "HTTP response received",
+            data: [
+                "path": path,
+                "method": method.rawValue,
+                "statusCode": String(httpResponse.statusCode),
+                "responsePreview": responsePreview
+            ],
+            hypothesisId: "A"
+        )
+        print("[RoominateAuth][API] \(method.rawValue) \(path) -> \(httpResponse.statusCode)")
+        // #endregion
+
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = parseErrorMessage(from: data)
-            if httpResponse.statusCode == 401 {
-                throw NetworkError.unauthorized
-            }
+            // #region agent log
+            DebugLog.write(
+                location: "APIClient.swift:requestData",
+                message: "HTTP error",
+                data: [
+                    "path": path,
+                    "statusCode": String(httpResponse.statusCode),
+                    "errorMessage": message ?? "nil"
+                ],
+                hypothesisId: "A"
+            )
+            print("[RoominateAuth][API][ERROR] \(path) \(httpResponse.statusCode): \(message ?? "unknown")")
+            // #endregion
             throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
 

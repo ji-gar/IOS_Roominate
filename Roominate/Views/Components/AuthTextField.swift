@@ -33,14 +33,19 @@ struct AuthTextField: View {
         }
     }
 
+    private var placeholderPrompt: Text {
+        Text(placeholder)
+            .foregroundStyle(AppTheme.textSecondary)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Group {
                     if isSecure && !isPasswordVisible {
-                        SecureField(placeholder, text: $text)
+                        SecureField("", text: $text, prompt: placeholderPrompt)
                     } else {
-                        TextField(placeholder, text: $text)
+                        TextField("", text: $text, prompt: placeholderPrompt)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                     }

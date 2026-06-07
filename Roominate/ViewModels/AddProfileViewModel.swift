@@ -15,13 +15,14 @@ final class AddProfileViewModel: ObservableObject {
     }
 
     var isStep1Valid: Bool {
-        !draft.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && draft.gender != nil
+        !draft.fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        draft.gender != nil
     }
 
     var isStep2Valid: Bool {
         !draft.area.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !draft.birthYear.isEmpty &&
-        draft.profession != nil
+        draft.profession != nil &&
+        !draft.organization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     var isStep3Valid: Bool {
@@ -31,11 +32,6 @@ final class AddProfileViewModel: ObservableObject {
 
     var aboutCharacterCount: Int {
         draft.about.count
-    }
-
-    var birthYears: [String] {
-        let currentYear = Calendar.current.component(.year, from: Date())
-        return (1950...currentYear).reversed().map(String.init)
     }
 
     func setProfileImage(_ image: UIImage?) {

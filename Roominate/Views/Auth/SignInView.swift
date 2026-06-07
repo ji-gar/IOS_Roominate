@@ -19,115 +19,123 @@ struct SignInView: View {
             AuthBackgroundView()
 
             VStack(spacing: 0) {
-                HStack {
-                    BackButton(action: onBack)
-                    Spacer()
+                AuthScreenHeader(onBack: onBack)
+
+                VStack(spacing: 8) {
+                    Text(Strings.SignIn.title)
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppTheme.primaryBlue)
+
+                    Text(Strings.SignIn.subtitle)
+                        .font(.system(size: 15))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+                .padding(.horizontal, AppTheme.horizontalPadding)
+                .padding(.top, 32)
 
-                ScrollView {
-                    VStack(spacing: 24) {
-                        VStack(spacing: 8) {
-                            Text(Strings.SignIn.title)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundStyle(AppTheme.primaryBlue)
+                Spacer()
 
-                            Text(Strings.SignIn.subtitle)
-                                .font(.system(size: 15))
-                                .foregroundStyle(AppTheme.textPrimary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .padding(.top, 24)
+                VStack(spacing: 16) {
+                    AuthTextField(
+                        placeholder: Strings.SignIn.emailPlaceholder,
+                        text: $viewModel.email,
+                        state: focusedField == .email ? .focused : .normal
+                    )
+                    .focused($focusedField, equals: .email)
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
 
-                        VStack(spacing: 16) {
-                            AuthTextField(
-                                placeholder: Strings.SignIn.emailPlaceholder,
-                                text: $viewModel.email,
-                                state: focusedField == .email ? .focused : .normal
-                            )
-                            .focused($focusedField, equals: .email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
+                    AuthTextField(
+                        placeholder: Strings.SignIn.passwordPlaceholder,
+                        text: $viewModel.password,
+                        isSecure: true,
+                        state: focusedField == .password ? .focused : .normal
+                    )
+                    .focused($focusedField, equals: .password)
 
-                            AuthTextField(
-                                placeholder: Strings.SignIn.passwordPlaceholder,
-                                text: $viewModel.password,
-                                isSecure: true,
-                                state: focusedField == .password ? .focused : .normal
-                            )
-                            .focused($focusedField, equals: .password)
-                        }
-
+                    HStack {
+                        Rectangle()
+                            .fill(AppTheme.fieldBorder)
+                            .frame(height: 1)
                         Text(Strings.SignIn.or)
-                            .font(.system(size: 14))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(AppTheme.textSecondary)
+                            .padding(.horizontal, 8)
+                        Rectangle()
+                            .fill(AppTheme.fieldBorder)
+                            .frame(height: 1)
+                    }
 
-                        OutlineButton(title: Strings.SignIn.otpButton) {
-                            guard EmailValidator.isValidIIMEmail(viewModel.email) else { return }
-                            let normalizedEmail = viewModel.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-                            Task {
-                                if await viewModel.sendOTPForLogin(email: normalizedEmail) {
-                                    onOTP(normalizedEmail)
-                                }
-                            }
-                        }
-
-                        TextLinkButton(
-                            prefix: Strings.SignIn.newUser,
-                            linkText: Strings.SignIn.signUpLink,
-                            action: {
-                                // #region agent log
-                                DebugLog.write(
-                                    location: "SignInView.swift:onSignUp",
-                                    message: "Sign Up link tapped",
-                                    hypothesisId: "E"
-                                )
-                                // #endregion
-                                onSignUp()
-                            }
-                        )
-
-                        if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
-                                .font(.system(size: 13))
-                                .foregroundStyle(AppTheme.errorRed)
-                                .multilineTextAlignment(.center)
-                        }
-
-                        PrimaryButton(
-                            title: Strings.SignIn.button,
-                            isEnabled: viewModel.isFormValid,
-                            isLoading: viewModel.isLoading
-                        ) {
-                            // #region agent log
-                            DebugLog.write(
-                                location: "SignInView.swift:signInButton",
-                                message: "Sign In button tapped",
-                                data: [
-                                    "isFormValid": String(viewModel.isFormValid),
-                                    "isLoading": String(viewModel.isLoading)
-                                ],
-                                hypothesisId: "C"
-                            )
-                            // #endregion
-                            Task {
-                                switch await viewModel.signIn() {
-                                case .authenticatedComplete:
-                                    onAuthenticated(true)
-                                case .authenticatedNeedsProfile:
-                                    onAuthenticated(false)
-                                case .failure:
-                                    break
-                                }
+                    OutlineButton(title: Strings.SignIn.otpButton) {
+                        guard EmailValidator.isValidIIMEmail(viewModel.email) else { return }
+                        let normalizedEmail = viewModel.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        Task {
+                            if await viewModel.sendOTPForLogin(email: normalizedEmail) {
+                                onOTP(normalizedEmail)
                             }
                         }
                     }
-                    .padding(.horizontal, AppTheme.horizontalPadding)
-                    .padding(.bottom, 32)
+
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.errorRed)
+                            .multilineTextAlignment(.center)
+                    }
                 }
+                .padding(.horizontal, AppTheme.horizontalPadding)
+
+                Spacer()
+
+                VStack(spacing: 16) {
+                    TextLinkButton(
+                        prefix: Strings.SignIn.newUser,
+                        linkText: Strings.SignIn.signUpLink,
+                        action: {
+                            DebugLog.write(
+                                location: "SignInView.swift:onSignUp",
+                                message: "Sign Up link tapped",
+                                hypothesisId: "E"
+                            )
+                            onSignUp()
+                        }
+                    )
+
+                    PrimaryButton(
+                        title: Strings.SignIn.button,
+                        isEnabled: viewModel.isFormValid,
+                        isLoading: viewModel.isLoading
+                    ) {
+                        DebugLog.write(
+                            location: "SignInView.swift:signInButton",
+                            message: "Sign In button tapped",
+                            data: [
+                                "isFormValid": String(viewModel.isFormValid),
+                                "isLoading": String(viewModel.isLoading)
+                            ],
+                            hypothesisId: "C"
+                        )
+                        Task {
+                            switch await viewModel.signIn() {
+                            case .authenticatedComplete:
+                                onAuthenticated(true)
+                            case .authenticatedNeedsProfile:
+                                onAuthenticated(false)
+                            case .needsEmailVerification(let email):
+                                if await viewModel.sendOTPForLogin(email: email) {
+                                    onOTP(email)
+                                }
+                            case .failure:
+                                break
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, AppTheme.horizontalPadding)
+                .padding(.bottom, 36)
             }
         }
         .navigationBarHidden(true)

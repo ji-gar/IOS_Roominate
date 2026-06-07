@@ -91,8 +91,8 @@ struct RootView: View {
                 onBack: { router.pop() },
                 onSuccess: { result in
                     switch result {
-                    case .needsSetPassword:
-                        router.navigate(to: .setPassword)
+                    case .needsSetPassword(let otp):
+                        router.navigate(to: .setPassword(email: email, otp: otp))
                     case .authenticatedComplete:
                         router.popToRoot()
                         router.isAuthenticated = true
@@ -121,13 +121,17 @@ struct RootView: View {
                         router.popToRoot()
                         router.isAuthenticated = true
                         router.rootRoute = .addProfileStep1
-                    case .needsSetPassword, .failure:
+                    case .needsSetPassword(let otp):
+                        router.navigate(to: .setPassword(email: email, otp: otp))
+                    case .failure:
                         break
                     }
                 }
             )
-        case .setPassword:
+        case .setPassword(let email, let otp):
             SetPasswordView(
+                email: email,
+                otp: otp,
                 onBack: { router.pop() },
                 onSuccess: {
                     router.popToRoot()

@@ -6,50 +6,20 @@ struct AddProfileStep2View: View {
     let onBack: () -> Void
     let onNext: () -> Void
 
+    private var organizationPlaceholder: String {
+        viewModel.draft.profession == .student
+            ? Strings.Profile.institutePlaceholder
+            : Strings.Profile.organizationPlaceholder
+    }
+
     var body: some View {
         profileContainer(onBack: onBack) {
             VStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     RequiredLabel(title: Strings.Profile.areaCity)
-                    HStack {
-                        Image(systemName: "mappin.and.ellipse")
-                            .foregroundStyle(AppTheme.textSecondary)
-                        TextField(Strings.Profile.areaPlaceholder, text: $viewModel.draft.area)
-                            .font(.system(size: 16))
-                    }
-                    .padding(.horizontal, 16)
-                    .frame(height: 52)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                            .stroke(AppTheme.fieldBorder, lineWidth: 1)
-                    )
+                    PlacesSearchTextField(selectedText: $viewModel.draft.area)
                 }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    RequiredLabel(title: Strings.Profile.birthYear)
-                    Menu {
-                        ForEach(viewModel.birthYears, id: \.self) { year in
-                            Button(year) {
-                                viewModel.draft.birthYear = year
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(viewModel.draft.birthYear)
-                                .font(.system(size: 16))
-                                .foregroundStyle(AppTheme.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
-                        .padding(.horizontal, 16)
-                        .frame(height: 52)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                                .stroke(AppTheme.fieldBorder, lineWidth: 1)
-                        )
-                    }
-                }
+                .zIndex(1)
 
                 VStack(alignment: .leading, spacing: 12) {
                     RequiredLabel(title: Strings.Profile.profession)
@@ -60,6 +30,7 @@ struct AddProfileStep2View: View {
                             isSelected: viewModel.draft.profession == .student
                         ) {
                             viewModel.draft.profession = .student
+                            viewModel.draft.organization = ""
                         }
                         SelectionCard(
                             title: Strings.Profile.professionWorking,
@@ -67,8 +38,34 @@ struct AddProfileStep2View: View {
                             isSelected: viewModel.draft.profession == .working
                         ) {
                             viewModel.draft.profession = .working
+                            viewModel.draft.organization = ""
                         }
                     }
+                }
+
+                if viewModel.draft.profession != nil {
+                    VStack(alignment: .leading, spacing: 8) {
+                        RequiredLabel(
+                            title: viewModel.draft.profession == .student
+                                ? Strings.Profile.instituteLabel
+                                : Strings.Profile.organizationLabel
+                        )
+                        HStack(spacing: 10) {
+                            Image(systemName: viewModel.draft.profession == .student ? "building.columns" : "building.2")
+                                .font(.system(size: 16))
+                                .foregroundStyle(AppTheme.textSecondary)
+                            TextField(organizationPlaceholder, text: $viewModel.draft.organization)
+                                .font(.system(size: 16))
+                                .autocorrectionDisabled()
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(height: 52)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
+                                .stroke(AppTheme.fieldBorder, lineWidth: 1)
+                        )
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
                 PrimaryButton(
@@ -78,6 +75,7 @@ struct AddProfileStep2View: View {
                     onNext()
                 }
             }
+            .animation(.easeInOut(duration: 0.25), value: viewModel.draft.profession)
         }
     }
 }
