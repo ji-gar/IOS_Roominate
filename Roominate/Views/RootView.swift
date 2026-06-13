@@ -51,7 +51,7 @@ struct RootView: View {
                 onNext: { router.navigate(to: .addProfileStep2) }
             )
         case .home:
-            HomeView(onSignOut: { router.resetToOnboarding() })
+            MainTabView(onSignOut: { router.resetToOnboarding() })
         default:
             OnboardingView(
                 onSignUp: { router.navigate(to: .signUp) },
