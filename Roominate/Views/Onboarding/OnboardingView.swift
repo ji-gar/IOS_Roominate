@@ -33,27 +33,9 @@ struct OnboardingView: View {
             Spacer()
 
             VStack(spacing: 12) {
-                PrimaryButton(title: Strings.Onboarding.signUp) {
-                    // #region agent log
-                    DebugLog.write(
-                        location: "OnboardingView.swift:signUp",
-                        message: "Onboarding Sign Up tapped",
-                        hypothesisId: "A"
-                    )
-                    // #endregion
-                    onSignUp()
-                }
+                PrimaryButton(title: Strings.Onboarding.signUp, action: onSignUp)
 
-                OutlineButton(title: Strings.Onboarding.signIn) {
-                    // #region agent log
-                    DebugLog.write(
-                        location: "OnboardingView.swift:signIn",
-                        message: "Onboarding Sign In tapped",
-                        hypothesisId: "A"
-                    )
-                    // #endregion
-                    onSignIn()
-                }
+                OutlineButton(title: Strings.Onboarding.signIn, action: onSignIn)
             }
             .padding(.horizontal, AppTheme.horizontalPadding)
             .padding(.bottom, 44)

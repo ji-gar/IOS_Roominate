@@ -16,9 +16,11 @@ struct RootView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.white.ignoresSafeArea())
+            } else if router.rootRoute == .home {
+                MainTabView(onSignOut: { router.resetToOnboarding() })
             } else {
                 NavigationStack(path: $router.path) {
-                    rootContent
+                    authRootContent
                         .navigationDestination(for: AppRoute.self) { route in
                             destination(for: route)
                         }
@@ -37,7 +39,7 @@ struct RootView: View {
     }
 
     @ViewBuilder
-    private var rootContent: some View {
+    private var authRootContent: some View {
         switch router.rootRoute {
         case .onboarding:
             OnboardingView(
@@ -50,8 +52,6 @@ struct RootView: View {
                 onBack: { router.resetToOnboarding() },
                 onNext: { router.navigate(to: .addProfileStep2) }
             )
-        case .home:
-            MainTabView(onSignOut: { router.resetToOnboarding() })
         default:
             OnboardingView(
                 onSignUp: { router.navigate(to: .signUp) },
@@ -68,7 +68,7 @@ struct RootView: View {
                 onBack: { router.pop() },
                 onSignIn: { router.replaceLast(with: .signIn) },
                 onSuccess: { email in
-                    router.navigate(to: .signUpVerification(email: email))
+                    router.navigate(to: .setPassword(email: email, otp: nil))
                 }
             )
         case .signIn:
@@ -84,15 +84,14 @@ struct RootView: View {
                     router.rootRoute = isComplete ? .home : .addProfileStep1
                 }
             )
-        case .signUpVerification(let email):
+        case .signUpVerification(let email, let password):
             OTPView(
                 flowType: .signUpVerification,
                 email: email,
+                password: password,
                 onBack: { router.pop() },
                 onSuccess: { result in
                     switch result {
-                    case .needsSetPassword(let otp):
-                        router.navigate(to: .setPassword(email: email, otp: otp))
                     case .authenticatedComplete:
                         router.popToRoot()
                         router.isAuthenticated = true
@@ -101,7 +100,7 @@ struct RootView: View {
                         router.popToRoot()
                         router.isAuthenticated = true
                         router.rootRoute = .addProfileStep1
-                    case .failure:
+                    case .needsSetPassword, .failure:
                         break
                     }
                 }
@@ -133,10 +132,14 @@ struct RootView: View {
                 email: email,
                 otp: otp,
                 onBack: { router.pop() },
-                onSuccess: {
-                    router.popToRoot()
-                    router.isAuthenticated = true
-                    router.rootRoute = .addProfileStep1
+                onSuccess: { password in
+                    if let password {
+                        router.navigate(to: .signUpVerification(email: email, password: password))
+                    } else {
+                        router.popToRoot()
+                        router.isAuthenticated = true
+                        router.rootRoute = .addProfileStep1
+                    }
                 }
             )
         case .addProfileStep2:

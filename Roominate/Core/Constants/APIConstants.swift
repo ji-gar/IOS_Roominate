@@ -2,6 +2,7 @@ import Foundation
 
 enum APIConstants {
     static let baseURL = "https://roominate.laravel.cloud/api"
+    static let storageBaseURL = "https://roominate.laravel.cloud/storage/"
     // Replace with your actual Google Places API key
     static let googlePlacesAPIKey = ""
 
@@ -19,5 +20,10 @@ enum APIConstants {
     enum User {
         static let me = "/user"
         static let profile = "/profile"
+    }
+
+    enum Posts {
+        static let posts = "/posts"
+        static func report(postId: Int) -> String { "/posts/\(postId)/report" }
     }
 }

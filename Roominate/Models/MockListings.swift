@@ -10,6 +10,7 @@ enum MockListings {
 
     static let flats: [FlatListing] = [
         FlatListing(
+            id: 1,
             author: author,
             imageURLs: [
                 "https://picsum.photos/seed/room11/800/600",
@@ -39,6 +40,7 @@ enum MockListings {
             occupation: "Working Proffessional"
         ),
         FlatListing(
+            id: 2,
             author: author,
             imageURLs: [
                 "https://picsum.photos/seed/room21/800/600",
@@ -69,6 +71,7 @@ enum MockListings {
             occupation: "Working Proffessional"
         ),
         FlatListing(
+            id: 3,
             author: author,
             imageURLs: [
                 "https://picsum.photos/seed/room31/800/600"
@@ -100,6 +103,7 @@ enum MockListings {
 
     static let flatmates: [FlatmateListing] = [
         FlatmateListing(
+            id: 101,
             author: author,
             title: "Female Flatmate Needed Bagmane Tech Park",
             location: "Maninagar, Ahmedabad",
@@ -127,6 +131,7 @@ enum MockListings {
             aboutMe: "I'm a product analyst working at Flipkart. I work from 9 to 6 on weekdays and occasionally work from home. I'm a clean and organized person who respects privacy. I enjoy cooking on weekends and occasionally invite friends over. I'm looking for a like-minded female flatmate who is professional and easy-going. I prefer someone who is vegetarian and non-smoker."
         ),
         FlatmateListing(
+            id: 102,
             author: author,
             title: "Female Flatmate Needed Bagmane Tech Park",
             location: "Maninagar, Ahmedabad",

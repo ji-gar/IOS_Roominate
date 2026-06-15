@@ -65,6 +65,7 @@ final class APIClient {
     func request<T: Decodable>(
         path: String,
         method: HTTPMethod,
+        queryItems: [URLQueryItem]? = nil,
         body: Encodable? = nil,
         multipart: MultipartFormData? = nil,
         requiresAuth: Bool = false
@@ -72,12 +73,18 @@ final class APIClient {
         let data = try await requestData(
             path: path,
             method: method,
+            queryItems: queryItems,
             body: body,
             multipart: multipart,
             requiresAuth: requiresAuth
         )
         do {
             return try decoder.decode(T.self, from: data)
+        } catch let error as DecodingError {
+            #if DEBUG
+            print("API decode failed for \(path): \(error)")
+            #endif
+            throw NetworkError.decodingError
         } catch {
             throw NetworkError.decodingError
         }
@@ -86,11 +93,16 @@ final class APIClient {
     func requestData(
         path: String,
         method: HTTPMethod,
+        queryItems: [URLQueryItem]? = nil,
         body: Encodable? = nil,
         multipart: MultipartFormData? = nil,
         requiresAuth: Bool = false
     ) async throws -> Data {
-        guard let url = URL(string: APIConstants.baseURL + path) else {
+        var components = URLComponents(string: APIConstants.baseURL + path)
+        if let queryItems, !queryItems.isEmpty {
+            components?.queryItems = queryItems
+        }
+        guard let url = components?.url else {
             throw NetworkError.invalidURL
         }
 
@@ -98,7 +110,10 @@ final class APIClient {
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        if requiresAuth, let token = TokenStorage.shared.token {
+        if requiresAuth {
+            guard let token = TokenStorage.shared.token else {
+                throw NetworkError.unauthorized
+            }
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -118,36 +133,43 @@ final class APIClient {
         }
 
         // #region agent log
-        let responsePreview = String(data: data.prefix(300), encoding: .utf8) ?? ""
-        DebugLog.write(
-            location: "APIClient.swift:requestData",
-            message: "HTTP response received",
-            data: [
-                "path": path,
-                "method": method.rawValue,
-                "statusCode": String(httpResponse.statusCode),
-                "responsePreview": responsePreview
-            ],
-            hypothesisId: "A"
-        )
-        print("[RoominateAuth][API] \(method.rawValue) \(path) -> \(httpResponse.statusCode)")
+        if path.contains("/report") {
+            let requestBodyPreview = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "none"
+            let responsePreview = String(data: data.prefix(500), encoding: .utf8) ?? "unreadable"
+            DebugLog.write(
+                location: "APIClient.swift:requestData",
+                message: "Report HTTP response received",
+                data: [
+                    "path": path,
+                    "method": method.rawValue,
+                    "statusCode": String(httpResponse.statusCode),
+                    "requestBody": requestBodyPreview,
+                    "responsePreview": responsePreview
+                ],
+                hypothesisId: "H4"
+            )
+        }
         // #endregion
 
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = parseErrorMessage(from: data)
             // #region agent log
-            DebugLog.write(
-                location: "APIClient.swift:requestData",
-                message: "HTTP error",
-                data: [
-                    "path": path,
-                    "statusCode": String(httpResponse.statusCode),
-                    "errorMessage": message ?? "nil"
-                ],
-                hypothesisId: "A"
-            )
-            print("[RoominateAuth][API][ERROR] \(path) \(httpResponse.statusCode): \(message ?? "unknown")")
+            if path.contains("/report") {
+                DebugLog.write(
+                    location: "APIClient.swift:requestData",
+                    message: "Report HTTP error",
+                    data: [
+                        "path": path,
+                        "statusCode": String(httpResponse.statusCode),
+                        "errorMessage": message ?? "none"
+                    ],
+                    hypothesisId: "H5"
+                )
+            }
             // #endregion
+            if httpResponse.statusCode == 401 {
+                throw NetworkError.httpError(statusCode: 401, message: message ?? "Unauthenticated.")
+            }
             throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
 

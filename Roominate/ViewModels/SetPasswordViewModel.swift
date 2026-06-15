@@ -13,6 +13,10 @@ final class SetPasswordViewModel: ObservableObject {
     let otp: String?
     private let authService: AuthServiceProtocol
 
+    var signupPassword: String? {
+        otp == nil ? password : nil
+    }
+
     init(
         email: String,
         otp: String? = nil,

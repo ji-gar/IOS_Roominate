@@ -5,9 +5,9 @@ struct SetPasswordView: View {
     @FocusState private var focusedField: Field?
 
     let onBack: () -> Void
-    let onSuccess: () -> Void
+    let onSuccess: (String?) -> Void
 
-    init(email: String, otp: String? = nil, onBack: @escaping () -> Void, onSuccess: @escaping () -> Void) {
+    init(email: String, otp: String? = nil, onBack: @escaping () -> Void, onSuccess: @escaping (String?) -> Void) {
         _viewModel = StateObject(wrappedValue: SetPasswordViewModel(email: email, otp: otp))
         self.onBack = onBack
         self.onSuccess = onSuccess
@@ -90,7 +90,7 @@ struct SetPasswordView: View {
                         ) {
                             Task {
                                 if await viewModel.setPassword() {
-                                    onSuccess()
+                                    onSuccess(viewModel.signupPassword)
                                 }
                             }
                         }
@@ -112,5 +112,5 @@ struct SetPasswordView: View {
 }
 
 #Preview {
-    SetPasswordView(email: "test@iim.com", otp: "1234", onBack: {}, onSuccess: {})
+    SetPasswordView(email: "test@iim.com", otp: "1234", onBack: {}, onSuccess: { _ in })
 }

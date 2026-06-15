@@ -9,11 +9,12 @@ struct OTPView: View {
     init(
         flowType: OTPFlowType,
         email: String,
+        password: String? = nil,
         onBack: @escaping () -> Void,
         onSuccess: @escaping (OTPViewModel.OTPResult) -> Void
     ) {
         _viewModel = StateObject(
-            wrappedValue: OTPViewModel(flowType: flowType, email: email)
+            wrappedValue: OTPViewModel(flowType: flowType, email: email, password: password)
         )
         self.onBack = onBack
         self.onSuccess = onSuccess

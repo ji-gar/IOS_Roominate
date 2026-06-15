@@ -36,6 +36,7 @@ final class OTPViewModel: ObservableObject {
 
     let flowType: OTPFlowType
     let email: String
+    let password: String?
     private let authService: AuthServiceProtocol
     private var timerTask: Task<Void, Never>?
 
@@ -44,23 +45,13 @@ final class OTPViewModel: ObservableObject {
     init(
         flowType: OTPFlowType,
         email: String,
+        password: String? = nil,
         authService: AuthServiceProtocol = AuthService()
     ) {
         self.flowType = flowType
         self.email = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        self.password = password
         self.authService = authService
-        // #region agent log
-        DebugLog.write(
-            location: "OTPViewModel.swift:init",
-            message: "OTP screen opened",
-            data: [
-                "flowType": String(describing: flowType),
-                "emailDomain": String(self.email.split(separator: "@").last ?? "")
-            ],
-            hypothesisId: "E"
-        )
-        print("[RoominateAuth] OTPView opened flow=\(flowType) email=\(self.email)")
-        // #endregion
         startTimer()
     }
 
@@ -102,32 +93,18 @@ final class OTPViewModel: ObservableObject {
         do {
             switch flowType {
             case .signUpVerification:
-                // #region agent log
-                DebugLog.write(
-                    location: "OTPViewModel.swift:verify",
-                    message: "Sign-up OTP captured; deferring verify-otp until password is set",
-                    data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
-                    hypothesisId: "A"
-                )
-                // #endregion
-                return .needsSetPassword(otp: code)
+                _ = try await authService.verifyOTP(email: email, otp: code)
+                if let password {
+                    _ = try await authService.login(email: email, password: password)
+                }
+                let isComplete = try await authService.resolveProfileCompletion()
+                return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
 
             case .signIn:
                 return try await completeSignInWithOTP()
             }
         } catch {
             errorMessage = error.localizedDescription
-            // #region agent log
-            DebugLog.write(
-                location: "OTPViewModel.swift:verify",
-                message: "OTP verification failed",
-                data: [
-                    "flowType": String(describing: flowType),
-                    "error": error.localizedDescription
-                ],
-                hypothesisId: "E"
-            )
-            // #endregion
             return .failure
         }
     }
@@ -144,24 +121,8 @@ final class OTPViewModel: ObservableObject {
             case .signIn:
                 _ = try await authService.requestOTPForSignIn(email: email)
             }
-            // #region agent log
-            DebugLog.write(
-                location: "OTPViewModel.swift:resendCode",
-                message: "OTP resent successfully",
-                data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
-                hypothesisId: "B"
-            )
-            // #endregion
         } catch {
             errorMessage = error.localizedDescription
-            // #region agent log
-            DebugLog.write(
-                location: "OTPViewModel.swift:resendCode",
-                message: "OTP resend failed",
-                data: ["error": error.localizedDescription],
-                hypothesisId: "B"
-            )
-            // #endregion
         }
     }
 

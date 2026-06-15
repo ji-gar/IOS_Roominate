@@ -94,14 +94,7 @@ struct SignInView: View {
                     TextLinkButton(
                         prefix: Strings.SignIn.newUser,
                         linkText: Strings.SignIn.signUpLink,
-                        action: {
-                            DebugLog.write(
-                                location: "SignInView.swift:onSignUp",
-                                message: "Sign Up link tapped",
-                                hypothesisId: "E"
-                            )
-                            onSignUp()
-                        }
+                        action: onSignUp
                     )
 
                     PrimaryButton(
@@ -109,15 +102,6 @@ struct SignInView: View {
                         isEnabled: viewModel.isFormValid,
                         isLoading: viewModel.isLoading
                     ) {
-                        DebugLog.write(
-                            location: "SignInView.swift:signInButton",
-                            message: "Sign In button tapped",
-                            data: [
-                                "isFormValid": String(viewModel.isFormValid),
-                                "isLoading": String(viewModel.isLoading)
-                            ],
-                            hypothesisId: "C"
-                        )
                         Task {
                             switch await viewModel.signIn() {
                             case .authenticatedComplete:

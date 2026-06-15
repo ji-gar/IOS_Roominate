@@ -5,7 +5,7 @@ enum AppRoute: Hashable {
     case onboarding
     case signUp
     case signIn
-    case signUpVerification(email: String)
+    case signUpVerification(email: String, password: String)
     case signInOTP(email: String)
     case setPassword(email: String, otp: String?)
     case addProfileStep1
@@ -28,40 +28,10 @@ final class AppRouter: ObservableObject {
     }
 
     func navigate(to route: AppRoute) {
-        // #region agent log
-        DebugLog.write(
-            location: "AppRouter.swift:navigate",
-            message: "Navigating to route",
-            data: [
-                "route": String(describing: route),
-                "pathCountBefore": String(path.count)
-            ],
-            hypothesisId: "B"
-        )
-        // #endregion
         path.append(route)
-        // #region agent log
-        DebugLog.write(
-            location: "AppRouter.swift:navigate",
-            message: "Navigation path updated",
-            data: ["pathCountAfter": String(path.count)],
-            hypothesisId: "B"
-        )
-        // #endregion
     }
 
     func replaceLast(with route: AppRoute) {
-        // #region agent log
-        DebugLog.write(
-            location: "AppRouter.swift:replaceLast",
-            message: "Replacing last route",
-            data: [
-                "route": String(describing: route),
-                "pathCountBefore": String(path.count)
-            ],
-            hypothesisId: "E"
-        )
-        // #endregion
         if path.isEmpty {
             path.append(route)
         } else {

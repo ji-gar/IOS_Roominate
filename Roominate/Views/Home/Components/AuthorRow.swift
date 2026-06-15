@@ -4,6 +4,7 @@ import SwiftUI
 struct AuthorRow: View {
     let author: ListingAuthor
     var showsMenu: Bool = true
+    var onMenuTap: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 10) {
@@ -21,10 +22,14 @@ struct AuthorRow: View {
             Spacer(minLength: 0)
 
             if showsMenu {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .frame(width: 24, height: 24)
+                Button(action: { onMenuTap?() }) {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
     }

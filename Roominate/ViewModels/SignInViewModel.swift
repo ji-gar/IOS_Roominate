@@ -25,41 +25,15 @@ final class SignInViewModel: ObservableObject {
 
         do {
             _ = try await authService.requestOTPForSignIn(email: email)
-            // #region agent log
-            DebugLog.write(
-                location: "SignInViewModel.swift:sendOTPForLogin",
-                message: "OTP requested for sign-in",
-                data: ["emailDomain": String(email.split(separator: "@").last ?? "")],
-                hypothesisId: "B"
-            )
-            // #endregion
             return true
         } catch {
             errorMessage = error.localizedDescription
-            // #region agent log
-            DebugLog.write(
-                location: "SignInViewModel.swift:sendOTPForLogin",
-                message: "OTP request for sign-in failed",
-                data: ["error": error.localizedDescription],
-                hypothesisId: "B"
-            )
-            // #endregion
             return false
         }
     }
 
     func signIn() async -> SignInResult {
-        guard isFormValid else {
-            // #region agent log
-            DebugLog.write(
-                location: "SignInViewModel.swift:signIn",
-                message: "Sign in blocked by validation",
-                data: ["isFormValid": "false"],
-                hypothesisId: "C"
-            )
-            // #endregion
-            return .failure
-        }
+        guard isFormValid else { return .failure }
 
         isLoading = true
         errorMessage = nil
@@ -78,14 +52,6 @@ final class SignInViewModel: ObservableObject {
                message?.lowercased().contains("verify your email") == true {
                 let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
                 errorMessage = message
-                // #region agent log
-                DebugLog.write(
-                    location: "SignInViewModel.swift:signIn",
-                    message: "Sign in requires email verification",
-                    data: ["emailDomain": String(normalizedEmail.split(separator: "@").last ?? "")],
-                    hypothesisId: "D"
-                )
-                // #endregion
                 return .needsEmailVerification(email: normalizedEmail)
             }
 
@@ -95,25 +61,9 @@ final class SignInViewModel: ObservableObject {
             } else {
                 errorMessage = error.localizedDescription
             }
-            // #region agent log
-            DebugLog.write(
-                location: "SignInViewModel.swift:signIn",
-                message: "Sign in failed",
-                data: ["error": errorMessage ?? error.localizedDescription],
-                hypothesisId: "D"
-            )
-            // #endregion
             return .failure
         } catch {
             errorMessage = error.localizedDescription
-            // #region agent log
-            DebugLog.write(
-                location: "SignInViewModel.swift:signIn",
-                message: "Sign in failed",
-                data: ["error": error.localizedDescription],
-                hypothesisId: "D"
-            )
-            // #endregion
             return .failure
         }
     }

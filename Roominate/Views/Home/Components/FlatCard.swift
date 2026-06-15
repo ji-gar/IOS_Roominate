@@ -5,12 +5,14 @@ struct FlatCard: View {
     let listing: FlatListing
     let isFavorite: Bool
     let onToggleFavorite: () -> Void
+    var onReport: (() -> Void)? = nil
 
     @State private var currentImage = 0
+    @State private var showCardMenu = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            AuthorRow(author: listing.author)
+            AuthorRow(author: listing.author, onMenuTap: { showCardMenu.toggle() })
 
             imageCarousel
 
@@ -51,6 +53,53 @@ struct FlatCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(AppTheme.infoCardBorder, lineWidth: listing.isFeatured ? 0 : 1)
         )
+        .overlay(alignment: .topTrailing) {
+            if showCardMenu {
+                cardContextMenu
+                    .padding(.top, 44)
+                    .padding(.trailing, 10)
+                    .zIndex(10)
+            }
+        }
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded {
+            if showCardMenu { showCardMenu = false }
+        })
+    }
+
+    private var cardContextMenu: some View {
+        VStack(spacing: 0) {
+            contextMenuRow(systemIcon: "flag", title: "Report") {
+                showCardMenu = false
+                onReport?()
+            }
+            Divider()
+                .padding(.horizontal, 12)
+            contextMenuRow(systemIcon: "square.and.arrow.up", title: "Share") {
+                showCardMenu = false
+            }
+        }
+        .frame(width: 130)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(color: .black.opacity(0.14), radius: 12, x: 0, y: 4)
+    }
+
+    private func contextMenuRow(systemIcon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: systemIcon)
+                    .font(.system(size: 13))
+                    .frame(width: 16)
+                Text(title)
+                    .font(.system(size: 14))
+            }
+            .foregroundStyle(AppTheme.textPrimary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
     }
 
     private var imageCarousel: some View {

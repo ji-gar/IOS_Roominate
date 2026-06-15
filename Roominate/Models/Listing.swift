@@ -15,7 +15,7 @@ struct ListingAuthor: Hashable {
 
 /// A "Flat" listing: someone offering a flat / room and looking for a flatmate.
 struct FlatListing: Identifiable, Hashable {
-    let id = UUID()
+    let id: Int
     let author: ListingAuthor
     let imageURLs: [String]
     let title: String
@@ -46,7 +46,7 @@ struct FlatListing: Identifiable, Hashable {
 
 /// A "Flat-mate" listing: someone looking for a flat / room to join.
 struct FlatmateListing: Identifiable, Hashable {
-    let id = UUID()
+    let id: Int
     let author: ListingAuthor
     let title: String
     let location: String

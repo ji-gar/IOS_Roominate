@@ -21,7 +21,7 @@ enum NetworkError: LocalizedError {
         case .noData:
             return Strings.Error.generic
         case .unauthorized:
-            return Strings.Error.generic
+            return "Please sign in again."
         }
     }
 }

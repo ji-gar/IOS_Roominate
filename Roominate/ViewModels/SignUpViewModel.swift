@@ -9,12 +9,6 @@ final class SignUpViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var didValidateEmail = false
 
-    private let authService: AuthServiceProtocol
-
-    init(authService: AuthServiceProtocol = AuthService()) {
-        self.authService = authService
-    }
-
     var isFormValid: Bool {
         EmailValidator.isValidIIMEmail(email)
     }
@@ -46,46 +40,12 @@ final class SignUpViewModel: ObservableObject {
 
     func signUp() async -> String? {
         validateEmail()
-        guard isFormValid else {
-            // #region agent log
-            DebugLog.write(
-                location: "SignUpViewModel.swift:signUp",
-                message: "Sign up blocked by validation",
-                data: ["isFormValid": "false", "emailEmpty": String(email.isEmpty)],
-                hypothesisId: "C"
-            )
-            // #endregion
-            return nil
-        }
+        guard isFormValid else { return nil }
 
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
-        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
-        do {
-            _ = try await authService.requestOTPForSignUp(email: normalizedEmail)
-            // #region agent log
-            DebugLog.write(
-                location: "SignUpViewModel.swift:signUp",
-                message: "OTP sent successfully",
-                data: ["emailDomain": String(normalizedEmail.split(separator: "@").last ?? "")],
-                hypothesisId: "D"
-            )
-            // #endregion
-            return normalizedEmail
-        } catch {
-            errorMessage = error.localizedDescription
-            // #region agent log
-            DebugLog.write(
-                location: "SignUpViewModel.swift:signUp",
-                message: "OTP send failed",
-                data: ["error": error.localizedDescription],
-                hypothesisId: "D"
-            )
-            // #endregion
-            return nil
-        }
+        return email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 }

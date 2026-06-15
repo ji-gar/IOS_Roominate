@@ -60,14 +60,7 @@ struct SignUpView: View {
                     TextLinkButton(
                         prefix: Strings.SignUp.alreadyHaveAccount,
                         linkText: Strings.SignUp.signInLink,
-                        action: {
-                            DebugLog.write(
-                                location: "SignUpView.swift:onSignIn",
-                                message: "Sign In link tapped",
-                                hypothesisId: "E"
-                            )
-                            onSignIn()
-                        }
+                        action: onSignIn
                     )
 
                     PrimaryButton(
@@ -75,15 +68,6 @@ struct SignUpView: View {
                         isEnabled: viewModel.isFormValid,
                         isLoading: viewModel.isLoading
                     ) {
-                        DebugLog.write(
-                            location: "SignUpView.swift:signUpButton",
-                            message: "Sign Up button tapped",
-                            data: [
-                                "isFormValid": String(viewModel.isFormValid),
-                                "isLoading": String(viewModel.isLoading)
-                            ],
-                            hypothesisId: "C"
-                        )
                         Task {
                             if let normalizedEmail = await viewModel.signUp() {
                                 onSuccess(normalizedEmail)
