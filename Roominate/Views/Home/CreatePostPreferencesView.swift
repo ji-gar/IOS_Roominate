@@ -20,7 +20,6 @@ struct CreatePostPreferencesView: View {
                         .lineSpacing(3)
                         .padding(.top, 8)
 
-                    // Flatmate preference
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Flatmate Preference")
                         LazyVGrid(columns: threeColumns, spacing: 10) {
@@ -28,15 +27,20 @@ struct CreatePostPreferencesView: View {
                                 IconChoiceChip(
                                     title: option.rawValue,
                                     icon: option.icon,
-                                    isSelected: viewModel.draft.flatmatePreference == option.rawValue
+                                    isSelected: viewModel.isPreferenceSelected(
+                                        option.rawValue,
+                                        in: viewModel.draft.flatmatePreference
+                                    )
                                 ) {
-                                    viewModel.draft.flatmatePreference = option.rawValue
+                                    viewModel.togglePreference(
+                                        option.rawValue,
+                                        in: \.flatmatePreference
+                                    )
                                 }
                             }
                         }
                     }
 
-                    // Food preference
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Food Preference")
                         LazyVGrid(columns: twoColumns, spacing: 10) {
@@ -44,15 +48,20 @@ struct CreatePostPreferencesView: View {
                                 IconChoiceChip(
                                     title: option.rawValue,
                                     icon: option.icon,
-                                    isSelected: viewModel.draft.foodPreference == option.rawValue
+                                    isSelected: viewModel.isPreferenceSelected(
+                                        option.rawValue,
+                                        in: viewModel.draft.foodPreference
+                                    )
                                 ) {
-                                    viewModel.draft.foodPreference = option.rawValue
+                                    viewModel.togglePreference(
+                                        option.rawValue,
+                                        in: \.foodPreference
+                                    )
                                 }
                             }
                         }
                     }
 
-                    // Smoking
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Smoking")
                         LazyVGrid(columns: twoColumns, spacing: 10) {
@@ -60,15 +69,20 @@ struct CreatePostPreferencesView: View {
                                 IconChoiceChip(
                                     title: option.rawValue,
                                     icon: option.icon,
-                                    isSelected: viewModel.draft.smoking == option.apiValue
+                                    isSelected: viewModel.isPreferenceSelected(
+                                        option.apiValue,
+                                        in: viewModel.draft.smoking
+                                    )
                                 ) {
-                                    viewModel.draft.smoking = option.apiValue
+                                    viewModel.togglePreference(
+                                        option.apiValue,
+                                        in: \.smoking
+                                    )
                                 }
                             }
                         }
                     }
 
-                    // Profession
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Profession")
                         LazyVGrid(columns: twoColumns, spacing: 10) {
@@ -76,9 +90,15 @@ struct CreatePostPreferencesView: View {
                                 IconChoiceChip(
                                     title: option.rawValue,
                                     icon: option.icon,
-                                    isSelected: viewModel.draft.profession == option.rawValue
+                                    isSelected: viewModel.isPreferenceSelected(
+                                        option.rawValue,
+                                        in: viewModel.draft.profession
+                                    )
                                 ) {
-                                    viewModel.draft.profession = option.rawValue
+                                    viewModel.togglePreference(
+                                        option.rawValue,
+                                        in: \.profession
+                                    )
                                 }
                             }
                         }

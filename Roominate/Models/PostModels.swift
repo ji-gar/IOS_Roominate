@@ -466,6 +466,7 @@ struct PostDraft {
     var foodPreference: String = ""
     var smoking: String = ""
     var profession: String = ""
+    var preferedLocation: String = ""
     var imageData: [Data] = []
 }
 

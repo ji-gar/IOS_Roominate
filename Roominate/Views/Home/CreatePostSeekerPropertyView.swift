@@ -1,48 +1,53 @@
-import CoreLocation
 import SwiftUI
 
-struct CreatePostPropertyDetailsView: View {
+struct CreatePostSeekerPropertyView: View {
     @ObservedObject var viewModel: CreatePostViewModel
     let currentStep: Int
     let totalSteps: Int
     let onBack: () -> Void
     let onNext: () -> Void
 
-    private let propertyTypes = ["3BHK", "2BHK", "1BHK", "Other"]
+    private let propertyTypes = ["1BHK", "2BHK", "3BHK", "Other"]
     private let spaceTypes = ["Shared Room", "Private Room"]
-    private let furnishings = ["Ful Furn.", "Half", "Non furn."]
+    private let furnishings = ["Fully Furnished", "Semi Furnished", "Unfurnished"]
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    Text("Share Property Details\nwith Roomy")
+                    Text("Select Your Preferred\nProperty Type")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineSpacing(3)
                         .padding(.top, 8)
 
-                    PlacesSearchTextField(
-                        selectedText: $viewModel.draft.city,
-                        mode: .cities,
-                        placeholder: "Search city or area"
-                    ) { details in
-                        let city = details.city.isEmpty
-                            ? IndianLocationsService.normalizedCityName(details.formattedAddress)
-                            : details.city
-                        viewModel.draft.city = city
-                        if !details.state.isEmpty, details.state.lowercased() != "india" {
-                            viewModel.draft.state = details.state
+                    VStack(alignment: .leading, spacing: 10) {
+                        CreatePostSectionLabel(title: "Location", isRequired: false)
+                        HStack(spacing: 10) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.system(size: 15))
+                                .foregroundStyle(AppTheme.textSecondary)
+                            Text(viewModel.draft.city.isEmpty ? "Select city in previous step" : viewModel.draft.city)
+                                .font(.system(size: 15))
+                                .foregroundStyle(
+                                    viewModel.draft.city.isEmpty
+                                    ? AppTheme.textSecondary
+                                    : AppTheme.textPrimary
+                                )
+                            Spacer()
                         }
-                        if IndianLocationsService.isValidCoordinate(details.coordinate) {
-                            viewModel.updateMapCenter(details.coordinate)
-                        }
+                        .padding(.horizontal, 14)
+                        .frame(height: 52)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(AppTheme.fieldBorder, lineWidth: 1)
+                        )
                     }
-                    .zIndex(1)
 
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Property Type")
-
                         LazyVGrid(
                             columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4),
                             spacing: 10
@@ -62,8 +67,7 @@ struct CreatePostPropertyDetailsView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
-                        CreatePostSectionLabel(title: "Type of Space")
-
+                        CreatePostSectionLabel(title: "Room Type")
                         PostSpaceTypePicker(
                             options: spaceTypes,
                             selected: $viewModel.draft.typeOfSpace
@@ -73,8 +77,10 @@ struct CreatePostPropertyDetailsView: View {
 
                     VStack(alignment: .leading, spacing: 12) {
                         CreatePostSectionLabel(title: "Home Furnishing")
-
-                        HStack(spacing: 10) {
+                        LazyVGrid(
+                            columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2),
+                            spacing: 10
+                        ) {
                             ForEach(furnishings, id: \.self) { item in
                                 PostOptionChip(
                                     title: item,
@@ -99,7 +105,7 @@ struct CreatePostPropertyDetailsView: View {
             CreatePostBottomBar(
                 currentStep: currentStep,
                 totalSteps: totalSteps,
-                isNextEnabled: viewModel.isPropertyDetailsValid,
+                isNextEnabled: viewModel.isSeekerPropertyValid,
                 onBack: onBack,
                 onNext: onNext
             )
@@ -108,18 +114,6 @@ struct CreatePostPropertyDetailsView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Create Post")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBack) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Create Post")
-                            .font(.system(size: 16))
-                    }
-                    .foregroundStyle(AppTheme.primaryBlue)
-                }
-            }
-        }
+        .toolbar { createPostBackToolbar(action: onBack) }
     }
 }

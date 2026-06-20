@@ -9,7 +9,6 @@ enum HomeAssets {
 
 struct HomeEmptyStateView: View {
     let segment: ListingSegment
-    let isCreatingPost: Bool
     let onAddPost: () -> Void
 
     var body: some View {
@@ -32,15 +31,10 @@ struct HomeEmptyStateView: View {
 
             Button(action: onAddPost) {
                 HStack(spacing: 8) {
-                    if isCreatingPost {
-                        ProgressView()
-                            .tint(.white)
-                    } else {
-                        Image(systemName: "plus")
-                            .font(.system(size: 15, weight: .semibold))
-                        Text("Add post")
-                            .font(.system(size: 16, weight: .semibold))
-                    }
+                    Image(systemName: "plus")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("Add post")
+                        .font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
@@ -48,7 +42,6 @@ struct HomeEmptyStateView: View {
                 .background(AppTheme.primaryBlue)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .disabled(isCreatingPost)
             .padding(.horizontal, 48)
             .padding(.top, 4)
         }

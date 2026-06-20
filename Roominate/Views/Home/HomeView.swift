@@ -10,10 +10,10 @@ private struct ReportTarget: Identifiable {
 }
 
 struct HomeView: View {
+    @EnvironmentObject private var tabState: MainTabState
     @StateObject private var viewModel = HomeViewModel()
     @State private var path: [HomeRoute] = []
     @State private var showFilters = false
-    @State private var showCreatePost = false
     @State private var reportTarget: ReportTarget?
 
     var body: some View {
@@ -39,6 +39,9 @@ struct HomeView: View {
             .task {
                 await viewModel.loadPosts()
             }
+            .onChange(of: tabState.homeRefreshID) { _, _ in
+                Task { await viewModel.refreshPosts() }
+            }
             .onChange(of: viewModel.searchText) { _, _ in
                 viewModel.onSearchTextChanged()
             }
@@ -51,15 +54,6 @@ struct HomeView: View {
             }
             .sheet(item: $reportTarget) { target in
                 ReportPostSheet(postId: target.id)
-            }
-            .sheet(isPresented: $showCreatePost) {
-                CreatePostFlowView(
-                    onDismiss: { showCreatePost = false },
-                    onSuccess: {
-                        showCreatePost = false
-                        Task { await viewModel.refreshPosts() }
-                    }
-                )
             }
         }
     }
@@ -258,8 +252,7 @@ struct HomeView: View {
         } else {
             HomeEmptyStateView(
                 segment: viewModel.segment,
-                isCreatingPost: viewModel.isCreatingPost,
-                onAddPost: { showCreatePost = true }
+                onAddPost: { tabState.openAddTab() }
             )
         }
     }
@@ -283,4 +276,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
+        .environmentObject(MainTabState())
 }

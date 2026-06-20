@@ -7,62 +7,67 @@ struct CreatePostAvailabilityView: View {
     let onBack: () -> Void
     let onNext: () -> Void
 
+    private var lookingForShortTerm: Binding<Bool> {
+        Binding(
+            get: { !viewModel.draft.lookingForLongTerm },
+            set: { viewModel.draft.lookingForLongTerm = !$0 }
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
-                    Text("Add Rent & Availability\nDetails")
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundStyle(AppTheme.textPrimary)
-                        .lineSpacing(3)
-                        .padding(.top, 8)
-
-                    // Monthly Rent
                     VStack(alignment: .leading, spacing: 10) {
                         CreatePostSectionLabel(title: "Monthly Rent")
-                        CreatePostCurrencyField(amount: $viewModel.draft.monthlyRent, placeholder: "10,000")
+                        CreatePostCurrencyField(amount: $viewModel.draft.monthlyRent, placeholder: "5,000")
                     }
 
-                    // Deposit
                     VStack(alignment: .leading, spacing: 10) {
                         CreatePostSectionLabel(title: "Deposit")
-                        CreatePostCurrencyField(amount: $viewModel.draft.deposit, placeholder: "20,000")
+                        CreatePostCurrencyField(amount: $viewModel.draft.deposit, placeholder: "2,000")
                     }
 
-                    // Extra cost
                     VStack(alignment: .leading, spacing: 10) {
-                        CreatePostSectionLabel(title: "Extra Cost (Maintenance, etc.)", isRequired: false)
-                        CreatePostCurrencyField(amount: $viewModel.draft.extraCost, placeholder: "0")
+                        CreatePostSectionLabel(title: "Extra Cost")
+                        OutlinedInputField(label: "Extra Cost", text: $viewModel.draft.extraCost)
                     }
 
-                    // Stay duration
-                    VStack(alignment: .leading, spacing: 12) {
-                        CreatePostSectionLabel(title: "Stay Duration")
-                        CreatePostToggleRow(
-                            title: "Looking for Long Term",
-                            subtitle: viewModel.draft.lookingForLongTerm
-                                ? "Open to a long term stay"
-                                : "Short term / temporary stay only",
-                            isOn: $viewModel.draft.lookingForLongTerm
-                        )
-                    }
-
-                    // Available from
                     VStack(alignment: .leading, spacing: 10) {
                         CreatePostSectionLabel(title: "Available From")
                         CreatePostDateField(
-                            placeholder: "Select start date",
+                            placeholder: "DD/MM/YY",
                             displayValue: viewModel.displayDate(for: viewModel.draft.availableFrom),
                             date: $viewModel.availableFromDate
                         )
                     }
 
-                    // Available to (short term only)
-                    if !viewModel.draft.lookingForLongTerm {
+                    Button {
+                        lookingForShortTerm.wrappedValue.toggle()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: lookingForShortTerm.wrappedValue ? "checkmark.square.fill" : "square")
+                                .font(.system(size: 22))
+                                .foregroundStyle(
+                                    lookingForShortTerm.wrappedValue
+                                    ? AppTheme.primaryBlue
+                                    : AppTheme.fieldBorder
+                                )
+
+                            Text("Looking for Short-term")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(AppTheme.textPrimary)
+
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if lookingForShortTerm.wrappedValue {
                         VStack(alignment: .leading, spacing: 10) {
-                            CreatePostSectionLabel(title: "Available To")
+                            CreatePostSectionLabel(title: "Available Till")
                             CreatePostDateField(
-                                placeholder: "Select end date",
+                                placeholder: "DD/MM/YY",
                                 displayValue: viewModel.displayDate(for: viewModel.draft.availableTo),
                                 date: $viewModel.availableToDate,
                                 minimumDate: viewModel.availableFromDate
@@ -73,8 +78,9 @@ struct CreatePostAvailabilityView: View {
                     Spacer(minLength: 24)
                 }
                 .padding(.horizontal, 20)
+                .padding(.top, 8)
                 .padding(.bottom, 24)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.draft.lookingForLongTerm)
+                .animation(.easeInOut(duration: 0.2), value: lookingForShortTerm.wrappedValue)
             }
 
             CreatePostBottomBar(

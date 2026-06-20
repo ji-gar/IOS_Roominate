@@ -264,11 +264,17 @@ struct CreatePostPreviewView: View {
     }
 
     private var smokingDisplay: String {
-        switch draft.smoking {
-        case "Yes": return "Smoker"
-        case "No": return "Non Smoker"
-        default: return "—"
-        }
+        let formatted = draft.smoking
+            .split(separator: ",")
+            .map { part in
+                switch part.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+                case "yes": return "Smoker"
+                case "no": return "Non Smoker"
+                default: return part.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            }
+            .joined(separator: ", ")
+        return formatted.isEmpty ? "—" : formatted
     }
 
     private var amenityLabels: [String] {

@@ -1,5 +1,22 @@
 import SwiftUI
 
+// MARK: - Shared Create Post Toolbar
+
+@ToolbarContentBuilder
+func createPostBackToolbar(action: @escaping () -> Void) -> some ToolbarContent {
+    ToolbarItem(placement: .topBarLeading) {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Create Post")
+                    .font(.system(size: 16))
+            }
+            .foregroundStyle(AppTheme.primaryBlue)
+        }
+    }
+}
+
 // MARK: - Bottom Navigation Bar
 
 struct CreatePostBottomBar: View {

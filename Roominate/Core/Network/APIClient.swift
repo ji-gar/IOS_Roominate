@@ -148,8 +148,14 @@ final class APIClient {
             let success: Bool?
             let message: String?
             let error: String?
+            let errors: [String: [String]]?
         }
         guard let decoded = try? decoder.decode(ErrorResponse.self, from: data) else { return nil }
+
+        if let validationMessages = decoded.errors?.values.flatMap({ $0 }), !validationMessages.isEmpty {
+            return validationMessages.joined(separator: "\n")
+        }
+
         if decoded.success == false {
             return decoded.message ?? decoded.error
         }

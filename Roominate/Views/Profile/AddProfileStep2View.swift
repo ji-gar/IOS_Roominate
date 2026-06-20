@@ -17,7 +17,10 @@ struct AddProfileStep2View: View {
             VStack(spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
                     RequiredLabel(title: Strings.Profile.areaCity)
-                    PlacesSearchTextField(selectedText: $viewModel.draft.area)
+                    PlacesSearchTextField(
+                        selectedText: $viewModel.draft.area,
+                        placeholder: Strings.Profile.areaPlaceholder
+                    )
                 }
                 .zIndex(1)
 

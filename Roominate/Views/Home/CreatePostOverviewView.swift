@@ -1,43 +1,29 @@
 import SwiftUI
 
 struct CreatePostOverviewView: View {
+    let isSeekerFlow: Bool
     let onStart: () -> Void
     let onDismiss: () -> Void
+
+    init(
+        isSeekerFlow: Bool = false,
+        onStart: @escaping () -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.isSeekerFlow = isSeekerFlow
+        self.onStart = onStart
+        self.onDismiss = onDismiss
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 0) {
-                    stepRow(
-                        number: 1,
-                        title: "Home & Amenities",
-                        description: "Tell us about your place — number of rooms, type of furnishing, and included amenities.",
-                        systemImage: "sofa.fill",
-                        iconColor: Color(red: 0.91, green: 0.68, blue: 0.22),
-                        iconBg: Color(red: 0.97, green: 0.93, blue: 0.83)
-                    )
-
-                    separator
-
-                    stepRow(
-                        number: 2,
-                        title: "Availability & Price",
-                        description: "Let others know when the place is available and how much the rent is.",
-                        systemImage: "calendar.badge.clock",
-                        iconColor: Color(red: 0.20, green: 0.53, blue: 0.96),
-                        iconBg: Color(red: 0.86, green: 0.92, blue: 0.99)
-                    )
-
-                    separator
-
-                    stepRow(
-                        number: 3,
-                        title: "Location & Photos",
-                        description: "Share the location and upload clear photos to help others picture the space.",
-                        systemImage: "house.fill",
-                        iconColor: Color(red: 0.82, green: 0.38, blue: 0.22),
-                        iconBg: Color(red: 0.99, green: 0.90, blue: 0.86)
-                    )
+                    if isSeekerFlow {
+                        seekerSteps
+                    } else {
+                        offerSteps
+                    }
                 }
                 .padding(.top, 8)
                 .padding(.bottom, 24)
@@ -57,6 +43,76 @@ struct CreatePostOverviewView: View {
                         .foregroundStyle(AppTheme.textPrimary)
                 }
             }
+        }
+    }
+
+    private var offerSteps: some View {
+        Group {
+            stepRow(
+                number: 1,
+                title: "Home & Amenities",
+                description: "Tell us about your place — number of rooms, type of furnishing, and included amenities.",
+                systemImage: "sofa.fill",
+                iconColor: Color(red: 0.91, green: 0.68, blue: 0.22),
+                iconBg: Color(red: 0.97, green: 0.93, blue: 0.83)
+            )
+
+            separator
+
+            stepRow(
+                number: 2,
+                title: "Availability & Price",
+                description: "Let others know when the place is available and how much the rent is.",
+                systemImage: "calendar.badge.clock",
+                iconColor: Color(red: 0.20, green: 0.53, blue: 0.96),
+                iconBg: Color(red: 0.86, green: 0.92, blue: 0.99)
+            )
+
+            separator
+
+            stepRow(
+                number: 3,
+                title: "Location & Photos",
+                description: "Share the location and upload clear photos to help others picture the space.",
+                systemImage: "house.fill",
+                iconColor: Color(red: 0.82, green: 0.38, blue: 0.22),
+                iconBg: Color(red: 0.99, green: 0.90, blue: 0.86)
+            )
+        }
+    }
+
+    private var seekerSteps: some View {
+        Group {
+            stepRow(
+                number: 1,
+                title: "Location Preference",
+                description: "Enter your preferred city and areas where you'd like to stay.",
+                systemImage: "mappin.and.ellipse",
+                iconColor: Color(red: 0.20, green: 0.53, blue: 0.96),
+                iconBg: Color(red: 0.86, green: 0.92, blue: 0.99)
+            )
+
+            separator
+
+            stepRow(
+                number: 2,
+                title: "Budget & Duration",
+                description: "Share your monthly budget, move-in timing, and preferred property type.",
+                systemImage: "calendar.badge.clock",
+                iconColor: Color(red: 0.91, green: 0.68, blue: 0.22),
+                iconBg: Color(red: 0.97, green: 0.93, blue: 0.83)
+            )
+
+            separator
+
+            stepRow(
+                number: 3,
+                title: "Roommate Preferences",
+                description: "Mention your preferences for gender, profession, and lifestyle habits.",
+                systemImage: "person.2.fill",
+                iconColor: Color(red: 0.82, green: 0.38, blue: 0.22),
+                iconBg: Color(red: 0.99, green: 0.90, blue: 0.86)
+            )
         }
     }
 
@@ -110,7 +166,7 @@ struct CreatePostOverviewView: View {
     private var bottomBar: some View {
         VStack(spacing: 0) {
             Divider()
-            PrimaryButton(title: "Create Post", isEnabled: true, action: onStart)
+            PrimaryButton(title: isSeekerFlow ? "Get Started" : "Create Post", isEnabled: true, action: onStart)
                 .padding(.horizontal, 20)
                 .padding(.top, 14)
                 .padding(.bottom, 20)

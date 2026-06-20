@@ -3,8 +3,14 @@ import Foundation
 enum APIConstants {
     static let baseURL = "https://roominate.laravel.cloud/api"
     static let storageBaseURL = "https://roominate.laravel.cloud/storage/"
-    // Replace with your actual Google Places API key
-    static let googlePlacesAPIKey = ""
+    /// Set `GOOGLE_PLACES_API_KEY` in the target Info.plist for live Google suggestions.
+    static let googlePlacesAPIKey: String = {
+        if let key = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String,
+           !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return key
+        }
+        return ""
+    }()
 
     enum Auth {
         static let login = "/login"

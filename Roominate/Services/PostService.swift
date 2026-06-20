@@ -46,23 +46,32 @@ final class PostService: PostServiceProtocol {
         ]
 
         appendIfNotEmpty(&fields, name: "description", value: draft.description)
-        appendIfNotEmpty(&fields, name: "property_type", value: draft.propertyType)
-        appendIfNotEmpty(&fields, name: "type_of_space", value: draft.typeOfSpace)
-        appendIfNotEmpty(&fields, name: "home_furnishing", value: draft.homeFurnishing)
+        appendIfNotEmpty(&fields, name: "property_type", value: PostDraftAPI.propertyType(draft.propertyType))
+        appendIfNotEmpty(&fields, name: "type_of_space", value: PostDraftAPI.typeOfSpace(draft.typeOfSpace))
+        appendIfNotEmpty(&fields, name: "home_furnishing", value: PostDraftAPI.homeFurnishing(draft.homeFurnishing))
         appendIfNotEmpty(&fields, name: "landmark", value: draft.landmark)
         appendIfNotEmpty(&fields, name: "area", value: draft.area)
-        appendIfNotEmpty(&fields, name: "city", value: draft.city)
+        appendIfNotEmpty(&fields, name: "city", value: PostDraftAPI.city(draft.city))
         appendIfNotEmpty(&fields, name: "state", value: draft.state)
         appendIfNotEmpty(&fields, name: "pincode", value: draft.pincode)
+        appendIfNotEmpty(&fields, name: "prefered_location", value: draft.preferedLocation)
         appendIfNotEmpty(&fields, name: "monthly_rent", value: draft.monthlyRent)
         appendIfNotEmpty(&fields, name: "deposit", value: draft.deposit)
         appendIfNotEmpty(&fields, name: "extra_cost", value: draft.extraCost)
         appendIfNotEmpty(&fields, name: "available_from", value: draft.availableFrom)
         appendIfNotEmpty(&fields, name: "available_to", value: draft.availableTo)
-        appendIfNotEmpty(&fields, name: "flatmate_preference", value: draft.flatmatePreference)
-        appendIfNotEmpty(&fields, name: "food_preference", value: draft.foodPreference)
-        appendIfNotEmpty(&fields, name: "smoking", value: draft.smoking)
-        appendIfNotEmpty(&fields, name: "profession", value: draft.profession)
+        appendIfNotEmpty(
+            &fields,
+            name: "flatmate_preference",
+            value: PostDraftAPI.flatmatePreference(draft.flatmatePreference)
+        )
+        appendIfNotEmpty(
+            &fields,
+            name: "food_preference",
+            value: PostDraftAPI.foodPreference(draft.foodPreference)
+        )
+        appendIfNotEmpty(&fields, name: "smoking", value: PostDraftAPI.smoking(draft.smoking))
+        appendIfNotEmpty(&fields, name: "profession", value: PostDraftAPI.profession(draft.profession))
 
         fields.append(.init(name: "looking_for_long_term", value: draft.lookingForLongTerm ? "1" : "0"))
 

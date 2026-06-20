@@ -15,6 +15,31 @@ struct TagChip: View {
     }
 }
 
+/// Removable tag chip used when users pick multiple preferred areas.
+struct RemovableTagChip: View {
+    let text: String
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(text)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(AppTheme.textPrimary)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(AppTheme.chipBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
 /// Blue "Short Stay" badge.
 struct ShortStayBadge: View {
     var title: String = "Short Stay"
