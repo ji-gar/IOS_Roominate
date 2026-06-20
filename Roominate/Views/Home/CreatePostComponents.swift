@@ -290,6 +290,192 @@ struct CreatePostSectionLabel: View {
     }
 }
 
+// MARK: - Currency Input Field
+
+struct CreatePostCurrencyField: View {
+    @Binding var amount: String
+    var placeholder: String = "0"
+
+    private var isFilled: Bool { !amount.isEmpty }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text("₹")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(isFilled ? AppTheme.textPrimary : AppTheme.textSecondary)
+
+            TextField(placeholder, text: $amount)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(AppTheme.textPrimary)
+                .keyboardType(.numberPad)
+                .onChange(of: amount) { _, newValue in
+                    let digits = newValue.filter(\.isNumber)
+                    if digits != newValue { amount = digits }
+                }
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 54)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isFilled ? AppTheme.primaryBlue.opacity(0.5) : AppTheme.fieldBorder, lineWidth: 1)
+        )
+    }
+}
+
+// MARK: - Date Selection Field (presents a date picker dialog)
+
+struct CreatePostDateField: View {
+    let placeholder: String
+    let displayValue: String
+    @Binding var date: Date?
+    var minimumDate: Date? = nil
+
+    @State private var showPicker = false
+    @State private var tempDate = Date()
+
+    private var isFilled: Bool { !displayValue.isEmpty }
+
+    var body: some View {
+        Button {
+            tempDate = date ?? max(minimumDate ?? Date(), Date())
+            showPicker = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 15))
+                    .foregroundStyle(isFilled ? AppTheme.primaryBlue : AppTheme.textSecondary)
+
+                Text(isFilled ? displayValue : placeholder)
+                    .font(.system(size: 15, weight: isFilled ? .medium : .regular))
+                    .foregroundStyle(isFilled ? AppTheme.textPrimary : AppTheme.textSecondary)
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 52)
+            .background(Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isFilled ? AppTheme.primaryBlue.opacity(0.5) : AppTheme.fieldBorder, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showPicker) {
+            datePickerSheet
+        }
+    }
+
+    private var datePickerSheet: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button("Cancel") { showPicker = false }
+                    .font(.system(size: 16))
+                    .foregroundStyle(AppTheme.textSecondary)
+                Spacer()
+                Text(placeholder)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                Spacer()
+                Button("Update") {
+                    date = tempDate
+                    showPicker = false
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(AppTheme.primaryBlue)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+
+            Divider()
+
+            DatePicker(
+                "",
+                selection: $tempDate,
+                in: (minimumDate ?? Date.distantPast)...,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .tint(AppTheme.primaryBlue)
+            .padding(.horizontal, 12)
+
+            Spacer()
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Icon Choice Chip (Preferences)
+
+struct IconChoiceChip: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 15))
+                Text(title)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundStyle(isSelected ? Color.white : AppTheme.textPrimary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(isSelected ? AppTheme.textPrimary : Color.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.clear : AppTheme.fieldBorder, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isSelected)
+    }
+}
+
+// MARK: - Toggle Row (e.g. Looking for long term)
+
+struct CreatePostToggleRow: View {
+    let title: String
+    let subtitle: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppTheme.textPrimary)
+                Text(subtitle)
+                    .font(.system(size: 13))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .tint(AppTheme.primaryBlue)
+        }
+        .padding(14)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(AppTheme.fieldBorder, lineWidth: 1)
+        )
+    }
+}
+
 // MARK: - Create Post Illustration (Step Intro)
 
 struct CreatePostIllustration: View {

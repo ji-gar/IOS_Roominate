@@ -24,6 +24,8 @@ enum APIConstants {
 
     enum Posts {
         static let posts = "/posts"
+        static let myAll = "/posts/my/all"
+        static let search = "/posts/search"
         static func report(postId: Int) -> String { "/posts/\(postId)/report" }
     }
 }

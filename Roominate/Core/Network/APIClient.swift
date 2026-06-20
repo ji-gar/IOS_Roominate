@@ -132,41 +132,8 @@ final class APIClient {
             throw NetworkError.invalidResponse
         }
 
-        // #region agent log
-        if path.contains("/report") {
-            let requestBodyPreview = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "none"
-            let responsePreview = String(data: data.prefix(500), encoding: .utf8) ?? "unreadable"
-            DebugLog.write(
-                location: "APIClient.swift:requestData",
-                message: "Report HTTP response received",
-                data: [
-                    "path": path,
-                    "method": method.rawValue,
-                    "statusCode": String(httpResponse.statusCode),
-                    "requestBody": requestBodyPreview,
-                    "responsePreview": responsePreview
-                ],
-                hypothesisId: "H4"
-            )
-        }
-        // #endregion
-
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = parseErrorMessage(from: data)
-            // #region agent log
-            if path.contains("/report") {
-                DebugLog.write(
-                    location: "APIClient.swift:requestData",
-                    message: "Report HTTP error",
-                    data: [
-                        "path": path,
-                        "statusCode": String(httpResponse.statusCode),
-                        "errorMessage": message ?? "none"
-                    ],
-                    hypothesisId: "H5"
-                )
-            }
-            // #endregion
             if httpResponse.statusCode == 401 {
                 throw NetworkError.httpError(statusCode: 401, message: message ?? "Unauthenticated.")
             }

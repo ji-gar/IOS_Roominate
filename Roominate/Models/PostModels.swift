@@ -122,9 +122,16 @@ struct PaginatedPosts: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         currentPage = try container.decodeFlexibleInt(forKey: .currentPage, default: 1)
         data = try container.decodeIfPresent([Post].self, forKey: .data) ?? []
-        lastPage = try container.decodeFlexibleInt(forKey: .lastPage, default: 1)
         perPage = try container.decodeFlexibleInt(forKey: .perPage, default: 15)
         total = try container.decodeFlexibleInt(forKey: .total, default: data.count)
+
+        let decodedLastPage = try container.decodeFlexibleIntIfPresent(forKey: .lastPage)
+        if let decodedLastPage {
+            lastPage = decodedLastPage
+        } else {
+            let pageSize = max(perPage, 1)
+            lastPage = max(1, Int(ceil(Double(total) / Double(pageSize))))
+        }
     }
 
     init(currentPage: Int, data: [Post], lastPage: Int, perPage: Int, total: Int) {
@@ -223,6 +230,37 @@ private struct CreatePostEnvelope: Decodable {
     let success: Bool?
     let message: String?
     let data: Post?
+}
+
+enum PostReportReason: String, CaseIterable, Identifiable {
+    case inappropriate = "Inappropriate or abusive content"
+    case spam = "Spam or misleading information"
+    case fake = "Fake listing or scam"
+    case offensive = "Offensive photos or language"
+    case harassment = "Personal attack or harassment"
+    case illegal = "Promoting illegal activity"
+    case irrelevant = "Not relevant to Roominate"
+    case other = "Other"
+
+    var id: String { rawValue }
+
+    var displayTitle: String { rawValue }
+
+    /// Values accepted by `POST /posts/:id/report`.
+    /// Confirmed valid via API probing. The backend enum only exposes 5 distinct values;
+    /// offensive, illegal, and irrelevant fall back to "Others".
+    var apiValue: String {
+        switch self {
+        case .inappropriate: return "Inappropriate content"
+        case .spam:          return "Spam"
+        case .fake:          return "Fake Info"
+        case .offensive:     return "Others"
+        case .harassment:    return "Harassment"
+        case .illegal:       return "Others"
+        case .irrelevant:    return "Others"
+        case .other:         return "Others"
+        }
+    }
 }
 
 struct ReportRequest: Encodable {
@@ -366,6 +404,43 @@ struct PostQuery {
 
         return items
     }
+
+    /// Query items for `GET /posts/search` (city/area text search).
+    var searchQueryItems: [URLQueryItem] {
+        var items: [URLQueryItem] = []
+
+        if let city, !city.isEmpty {
+            items.append(.init(name: "city", value: city))
+        }
+        if let postType {
+            items.append(.init(name: "post_type", value: postType ? "true" : "false"))
+        }
+
+        items.append(.init(name: "per_page", value: String(perPage)))
+        items.append(.init(name: "page", value: String(page)))
+
+        return items
+    }
+
+    /// Query items for `GET /posts/my/all` (unfiltered feed).
+    var allPostsQueryItems: [URLQueryItem] {
+        var items: [URLQueryItem] = []
+
+        if let postType {
+            items.append(.init(name: "post_type", value: postType ? "true" : "false"))
+        }
+
+        items.append(.init(name: "per_page", value: String(perPage)))
+        items.append(.init(name: "page", value: String(page)))
+
+        return items
+    }
+}
+
+enum PostFetchMode: Equatable {
+    case all
+    case filtered
+    case search
 }
 
 struct PostDraft {

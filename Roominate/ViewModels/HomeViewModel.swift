@@ -119,10 +119,11 @@ final class HomeViewModel: ObservableObject {
             postType: segment == .flat,
             page: 1,
             perPage: 1,
-            filters: candidateFilters
+            filters: candidateFilters,
+            mode: .filtered
         )
         do {
-            let response = try await postService.fetchPosts(query: query)
+            let response = try await postService.fetchPosts(mode: .filtered, query: query)
             return response.total
         } catch {
             return nil
@@ -204,8 +205,15 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func fetchPosts(postType: Bool, page: Int) async throws -> FetchedPostsPage {
-        let query = makeQuery(postType: postType, page: page, perPage: 15, filters: filters)
-        let response = try await postService.fetchPosts(query: query)
+        let mode = fetchMode()
+        let query = makeQuery(
+            postType: postType,
+            page: page,
+            perPage: 15,
+            filters: filters,
+            mode: mode
+        )
+        let response = try await postService.fetchPosts(mode: mode, query: query)
         return FetchedPostsPage(
             posts: response.data,
             currentPage: response.currentPage,
@@ -213,17 +221,30 @@ final class HomeViewModel: ObservableObject {
         )
     }
 
+    /// Routes to the correct posts endpoint based on active search text and filters.
+    private func fetchMode() -> PostFetchMode {
+        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedSearch.isEmpty {
+            return .search
+        }
+        if !filters.isDefault {
+            return .filtered
+        }
+        return .all
+    }
+
     /// Builds a `PostQuery` combining the free-text search bar and the structured filters.
     private func makeQuery(
         postType: Bool,
         page: Int,
         perPage: Int,
-        filters: ListingFilters
+        filters: ListingFilters,
+        mode: PostFetchMode
     ) -> PostQuery {
-        let trimmedCity = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
 
         var query = PostQuery(
-            city: trimmedCity.isEmpty ? nil : trimmedCity,
+            city: mode == .search && !trimmedSearch.isEmpty ? trimmedSearch : nil,
             postType: postType,
             sortBy: "monthly_rent",
             sortOrder: "asc",
@@ -231,8 +252,10 @@ final class HomeViewModel: ObservableObject {
             page: page
         )
 
-        // Structured filters take precedence (e.g. a selected city chip overrides the search text).
-        filters.apply(to: &query)
+        if mode == .filtered {
+            filters.apply(to: &query)
+        }
+
         return query
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 protocol PostServiceProtocol {
-    func fetchPosts(query: PostQuery) async throws -> PaginatedPosts
+    func fetchPosts(mode: PostFetchMode, query: PostQuery) async throws -> PaginatedPosts
     func createPost(_ draft: PostDraft) async throws -> Post
     func reportPost(postId: Int, reason: String, description: String) async throws
 }
@@ -13,11 +13,26 @@ final class PostService: PostServiceProtocol {
         self.client = client
     }
 
-    func fetchPosts(query: PostQuery) async throws -> PaginatedPosts {
+    func fetchPosts(mode: PostFetchMode, query: PostQuery) async throws -> PaginatedPosts {
+        let path: String
+        let queryItems: [URLQueryItem]
+
+        switch mode {
+        case .all:
+            path = APIConstants.Posts.myAll
+            queryItems = query.allPostsQueryItems
+        case .filtered:
+            path = APIConstants.Posts.posts
+            queryItems = query.queryItems
+        case .search:
+            path = APIConstants.Posts.search
+            queryItems = query.searchQueryItems
+        }
+
         let data = try await client.requestData(
-            path: APIConstants.Posts.posts,
+            path: path,
             method: .get,
-            queryItems: query.queryItems,
+            queryItems: queryItems,
             requiresAuth: true
         )
         let response = try PostsListResponse.decode(from: data, using: client.decoder)
@@ -51,8 +66,8 @@ final class PostService: PostServiceProtocol {
 
         fields.append(.init(name: "looking_for_long_term", value: draft.lookingForLongTerm ? "1" : "0"))
 
-        if !draft.amenities.isEmpty {
-            fields.append(.init(name: "amenities", value: draft.amenities.joined(separator: ",")))
+        for amenity in draft.amenities {
+            fields.append(.init(name: "amenities[]", value: amenity))
         }
 
         var files: [MultipartFormData.FileField] = []
@@ -79,19 +94,6 @@ final class PostService: PostServiceProtocol {
 
     func reportPost(postId: Int, reason: String, description: String) async throws {
         let body = ReportRequest(reason: reason, description: description)
-        // #region agent log
-        let encodedBody = (try? JSONEncoder().encode(body)).flatMap { String(data: $0, encoding: .utf8) } ?? "encode-failed"
-        DebugLog.write(
-            location: "PostService.swift:reportPost",
-            message: "Report request payload",
-            data: [
-                "postId": String(postId),
-                "path": APIConstants.Posts.report(postId: postId),
-                "encodedBody": encodedBody
-            ],
-            hypothesisId: "H3"
-        )
-        // #endregion
         let _: ReportResponse = try await client.request(
             path: APIConstants.Posts.report(postId: postId),
             method: .post,

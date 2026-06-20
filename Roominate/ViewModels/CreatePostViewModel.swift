@@ -30,6 +30,77 @@ enum AmenityRoom: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+// MARK: - Draft Image
+
+struct DraftImage: Identifiable, Hashable {
+    let id = UUID()
+    let data: Data
+    let image: UIImage
+}
+
+// MARK: - Preference Options
+
+enum FlatmatePreferenceOption: String, CaseIterable, Identifiable {
+    case male = "Male"
+    case female = "Female"
+    case any = "Any"
+
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .male: return "person.fill"
+        case .female: return "person.fill"
+        case .any: return "person.2.fill"
+        }
+    }
+}
+
+enum FoodPreferenceOption: String, CaseIterable, Identifiable {
+    case veg = "Veg"
+    case nonVeg = "Non Veg"
+
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .veg: return "leaf.fill"
+        case .nonVeg: return "fork.knife"
+        }
+    }
+}
+
+enum SmokingOption: String, CaseIterable, Identifiable {
+    case smoker = "Smoker"
+    case nonSmoker = "Non Smoker"
+
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .smoker: return "smoke.fill"
+        case .nonSmoker: return "nosign"
+        }
+    }
+    /// Value sent to the API `smoking` field.
+    var apiValue: String {
+        switch self {
+        case .smoker: return "Yes"
+        case .nonSmoker: return "No"
+        }
+    }
+}
+
+enum ProfessionOption: String, CaseIterable, Identifiable {
+    case student = "Student"
+    case working = "Working"
+
+    var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .student: return "graduationcap.fill"
+        case .working: return "briefcase.fill"
+        }
+    }
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -39,6 +110,16 @@ final class CreatePostViewModel: ObservableObject {
     @Published var selectedAmenities: [String: Set<String>] = [:]
     @Published var isSubmitting = false
     @Published var errorMessage: String?
+
+    @Published var availableFromDate: Date? {
+        didSet { draft.availableFrom = Self.apiDateString(availableFromDate) }
+    }
+    @Published var availableToDate: Date? {
+        didSet { draft.availableTo = Self.apiDateString(availableToDate) }
+    }
+    @Published var images: [DraftImage] = [] {
+        didSet { draft.imageData = images.map(\.data) }
+    }
 
     // Map state (default: Ahmedabad)
     @Published var mapRegion = MKCoordinateRegion(
@@ -65,6 +146,63 @@ final class CreatePostViewModel: ObservableObject {
         !draft.area.isEmpty && !draft.city.isEmpty
     }
 
+    var isAvailabilityValid: Bool {
+        !draft.monthlyRent.isEmpty &&
+        !draft.deposit.isEmpty &&
+        !draft.availableFrom.isEmpty &&
+        (draft.lookingForLongTerm || !draft.availableTo.isEmpty)
+    }
+
+    var isPreferencesValid: Bool {
+        !draft.flatmatePreference.isEmpty &&
+        !draft.foodPreference.isEmpty &&
+        !draft.smoking.isEmpty &&
+        !draft.profession.isEmpty
+    }
+
+    var isDescriptionValid: Bool {
+        !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    // MARK: Image helpers
+
+    func addImages(_ datas: [Data]) {
+        for data in datas {
+            guard let image = UIImage(data: data) else { continue }
+            images.append(DraftImage(data: data, image: image))
+        }
+    }
+
+    func removeImage(_ id: UUID) {
+        images.removeAll { $0.id == id }
+    }
+
+    // MARK: Date helpers
+
+    func displayDate(for value: String) -> String {
+        guard !value.isEmpty, let date = Self.apiDateFormatter.date(from: value) else { return "" }
+        return Self.displayDateFormatter.string(from: date)
+    }
+
+    static func apiDateString(_ date: Date?) -> String {
+        guard let date else { return "" }
+        return apiDateFormatter.string(from: date)
+    }
+
+    static let apiDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+
+    static let displayDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d MMM yyyy"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
+
     // MARK: Amenity helpers
 
     func isAmenitySelected(room: AmenityRoom, amenity: AmenityItem) -> Bool {
@@ -88,7 +226,9 @@ final class CreatePostViewModel: ObservableObject {
         for items in selectedAmenities.values {
             flat.append(contentsOf: items)
         }
-        draft.amenities = Array(Set(flat))
+        draft.amenities = Array(Set(flat)).compactMap { id in
+            AmenityItem.all.first(where: { $0.id == id })?.label
+        }
     }
 
     // MARK: Submit

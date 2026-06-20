@@ -1,6 +1,16 @@
 import SwiftUI
 
-struct CreatePostStep1IntroView: View {
+/// Intro screen shown before each major step of the create-post flow
+/// (e.g. "Home & Amenities", "Get Availability & Rent", "Add Location & Photos").
+struct CreatePostStepIntroView: View {
+    let stepIndex: Int          // zero-based index of the step (0, 1, 2)
+    let totalSteps: Int
+    let stepLabel: String       // e.g. "Step 1"
+    let title: String
+    let subtitle: String
+    let systemImage: String
+    let tint: Color
+    let bgColor: Color
     let onBack: () -> Void
     let onNext: () -> Void
 
@@ -8,27 +18,26 @@ struct CreatePostStep1IntroView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Illustration
                     CreatePostIllustration(
-                        systemImage: "sofa.fill",
-                        tint: Color(red: 0.91, green: 0.68, blue: 0.22),
-                        bgColor: Color(red: 0.96, green: 0.92, blue: 0.84)
+                        systemImage: systemImage,
+                        tint: tint,
+                        bgColor: bgColor
                     )
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .padding(.bottom, 36)
 
-                    // Text content
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Step 1")
+                        Text(stepLabel)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(AppTheme.textSecondary)
 
-                        Text("Home & Amenities")
+                        Text(title)
                             .font(.system(size: 28, weight: .bold))
                             .foregroundStyle(AppTheme.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                        Text("Tell us about your place — number of rooms, type of furnishing, and included amenities.")
+                        Text(subtitle)
                             .font(.system(size: 15))
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineSpacing(4)
@@ -40,9 +49,8 @@ struct CreatePostStep1IntroView: View {
                 }
             }
 
-            // Bottom: dots + nav
             VStack(spacing: 0) {
-                CreatePostPageDots(count: 4, current: 0)
+                CreatePostPageDots(count: totalSteps, current: stepIndex)
                     .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
 

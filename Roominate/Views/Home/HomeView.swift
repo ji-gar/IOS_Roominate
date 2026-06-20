@@ -54,7 +54,6 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showCreatePost) {
                 CreatePostFlowView(
-                    postType: viewModel.segment == .flat,
                     onDismiss: { showCreatePost = false },
                     onSuccess: {
                         showCreatePost = false

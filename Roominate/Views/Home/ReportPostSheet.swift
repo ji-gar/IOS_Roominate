@@ -1,19 +1,8 @@
 import SwiftUI
 
-private let reportReasons: [String] = [
-    "Inappropriate or abusive content",
-    "Spam or misleading information",
-    "Fake listing or scam",
-    "Offensive photos or language",
-    "Personal attack or harassment",
-    "Promoting illegal activity",
-    "Not relevant to Roominate",
-    "Other"
-]
-
 private enum ReportStep: Equatable {
     case reasonPicker
-    case descriptionInput(reason: String)
+    case descriptionInput(reason: PostReportReason)
     case success
 }
 
@@ -73,7 +62,7 @@ struct ReportPostSheet: View {
 
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(reportReasons, id: \.self) { reason in
+                    ForEach(PostReportReason.allCases) { reason in
                         Button {
                             descriptionText = ""
                             errorMessage = nil
@@ -82,7 +71,7 @@ struct ReportPostSheet: View {
                             }
                         } label: {
                             HStack {
-                                Text(reason)
+                                Text(reason.displayTitle)
                                     .font(.system(size: 15))
                                     .foregroundStyle(AppTheme.textPrimary)
                                     .multilineTextAlignment(.leading)
@@ -107,7 +96,7 @@ struct ReportPostSheet: View {
 
     // MARK: - Screen 2: Description Input
 
-    private func descriptionInputView(reason: String) -> some View {
+    private func descriptionInputView(reason: PostReportReason) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
                 withAnimation(.easeInOut(duration: 0.22)) {
@@ -250,48 +239,19 @@ struct ReportPostSheet: View {
 
     // MARK: - API
 
-    private func submitReport(reason: String) async {
+    private func submitReport(reason: PostReportReason) async {
         isSubmitting = true
         errorMessage = nil
-        // #region agent log
-        DebugLog.write(
-            location: "ReportPostSheet.swift:submitReport",
-            message: "Submitting report",
-            data: [
-                "postId": String(postId),
-                "reason": reason,
-                "descriptionLength": String(descriptionText.count),
-                "reasonIsEmpty": reason.isEmpty ? "true" : "false"
-            ],
-            hypothesisId: "H1"
-        )
-        // #endregion
         do {
-            try await service.reportPost(postId: postId, reason: reason, description: descriptionText)
-            // #region agent log
-            DebugLog.write(
-                location: "ReportPostSheet.swift:submitReport",
-                message: "Report submitted successfully",
-                data: ["postId": String(postId)],
-                hypothesisId: "H5"
+            try await service.reportPost(
+                postId: postId,
+                reason: reason.apiValue,
+                description: descriptionText
             )
-            // #endregion
             withAnimation(.easeInOut(duration: 0.28)) {
                 step = .success
             }
         } catch {
-            // #region agent log
-            DebugLog.write(
-                location: "ReportPostSheet.swift:submitReport",
-                message: "Report submission failed",
-                data: [
-                    "postId": String(postId),
-                    "reason": reason,
-                    "error": error.localizedDescription
-                ],
-                hypothesisId: "H1"
-            )
-            // #endregion
             errorMessage = error.localizedDescription
         }
         isSubmitting = false
