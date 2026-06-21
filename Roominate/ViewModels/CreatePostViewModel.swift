@@ -417,6 +417,8 @@ final class CreatePostViewModel: ObservableObject {
     func prepareDraftForSubmit() {
         buildAutoTitle()
         if !draft.postType {
+            if draft.deposit.isEmpty { draft.deposit = "0" }
+            if draft.extraCost.isEmpty { draft.extraCost = "0" }
             if moveInImmediately, draft.availableFrom.isEmpty {
                 availableFromDate = Date()
             }
@@ -431,6 +433,20 @@ final class CreatePostViewModel: ObservableObject {
             recompressImagesForUpload()
         }
         draft.city = IndianLocationsService.normalizedCityName(draft.city)
+    }
+
+    private func resolvePincodeIfNeeded() async {
+        guard draft.pincode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        let addressParts = [draft.area, draft.landmark, draft.city, draft.state]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !addressParts.isEmpty else { return }
+
+        if let pincode = await GeocodingService.pincode(forAddress: addressParts.joined(separator: ", ")),
+           !pincode.isEmpty {
+            draft.pincode = pincode
+        }
     }
 
     private func syncAmenities() {
@@ -449,84 +465,15 @@ final class CreatePostViewModel: ObservableObject {
     // MARK: Submit
 
     func submit(postService: PostServiceProtocol) async -> Bool {
+        await resolvePincodeIfNeeded()
         prepareDraftForSubmit()
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }
-        // #region agent log
-        DebugSessionLog.write(
-            location: "CreatePostViewModel.swift:submit",
-            message: "submit started",
-            data: [
-                "postType": draft.postType ? "offer" : "seeker",
-                "title": draft.title,
-                "city": draft.city,
-                "area": draft.area,
-                "landmark": draft.landmark,
-                "preferedLocation": draft.preferedLocation,
-                "deposit": draft.deposit.isEmpty ? "(empty)" : draft.deposit,
-                "extraCost": draft.extraCost.isEmpty ? "(empty)" : draft.extraCost,
-                "profession": draft.profession,
-                "smoking": draft.smoking,
-                "availableFrom": draft.availableFrom,
-                "imageCount": String(draft.imageData.count)
-            ],
-            hypothesisId: "A"
-        )
-        // #endregion
         do {
             _ = try await postService.createPost(draft)
-            // #region agent log
-            DebugSessionLog.write(
-                location: "CreatePostViewModel.swift:submit",
-                message: "submit succeeded",
-                hypothesisId: "E"
-            )
-            // #endregion
             return true
         } catch {
-            // #region agent log
-            let errorKind: String
-            if let networkError = error as? NetworkError {
-                switch networkError {
-                case .httpError(let code, let message):
-                    errorKind = "httpError(\(code))"
-                    DebugSessionLog.write(
-                        location: "CreatePostViewModel.swift:submit",
-                        message: "submit failed",
-                        data: [
-                            "errorKind": errorKind,
-                            "statusCode": String(code),
-                            "message": message ?? "(nil)"
-                        ],
-                        hypothesisId: "A-D"
-                    )
-                case .decodingError:
-                    errorKind = "decodingError"
-                    DebugSessionLog.write(
-                        location: "CreatePostViewModel.swift:submit",
-                        message: "submit failed",
-                        data: ["errorKind": errorKind],
-                        hypothesisId: "E"
-                    )
-                default:
-                    errorKind = String(describing: networkError)
-                    DebugSessionLog.write(
-                        location: "CreatePostViewModel.swift:submit",
-                        message: "submit failed",
-                        data: ["errorKind": errorKind],
-                        hypothesisId: "A-D"
-                    )
-                }
-            } else {
-                DebugSessionLog.write(
-                    location: "CreatePostViewModel.swift:submit",
-                    message: "submit failed",
-                    data: ["errorKind": String(describing: type(of: error)), "message": error.localizedDescription],
-                    hypothesisId: "A-D"
-                )
-            }
-            // #endregion
             errorMessage = error.localizedDescription
             return false
         }

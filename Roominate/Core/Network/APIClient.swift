@@ -134,20 +134,6 @@ final class APIClient {
 
         guard (200...299).contains(httpResponse.statusCode) else {
             let message = parseErrorMessage(from: data)
-            // #region agent log
-            DebugSessionLog.write(
-                location: "APIClient.swift:requestData",
-                message: "HTTP error response",
-                data: [
-                    "path": path,
-                    "method": method.rawValue,
-                    "statusCode": String(httpResponse.statusCode),
-                    "parsedMessage": message ?? "(nil)",
-                    "bodyPreview": String(data: data.prefix(500), encoding: .utf8) ?? "(binary)"
-                ],
-                hypothesisId: "A-D"
-            )
-            // #endregion
             if httpResponse.statusCode == 401 {
                 throw NetworkError.httpError(statusCode: 401, message: message ?? "Unauthenticated.")
             }

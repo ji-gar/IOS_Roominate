@@ -31,6 +31,9 @@ struct CreatePostSeekerLocationView: View {
                             if !details.state.isEmpty, details.state.lowercased() != "india" {
                                 viewModel.draft.state = details.state
                             }
+                            if !details.pincode.isEmpty {
+                                viewModel.draft.pincode = details.pincode
+                            }
                         }
                         .zIndex(2)
                     }
@@ -47,6 +50,9 @@ struct CreatePostSeekerLocationView: View {
                             let area = details.area.isEmpty ? details.landmark : details.area
                             let label = area.isEmpty ? details.formattedAddress : area
                             viewModel.addPreferredArea(label)
+                            if !details.pincode.isEmpty {
+                                viewModel.draft.pincode = details.pincode
+                            }
                         }
                         .zIndex(1)
                         .disabled(viewModel.draft.city.isEmpty)

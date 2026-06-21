@@ -95,39 +95,12 @@ final class PostService: PostServiceProtocol {
             )
         }
 
-        // #region agent log
-        let fieldSummary = fields.map { "\($0.name)=\($0.value)" }.joined(separator: "|")
-        let totalImageBytes = draft.imageData.reduce(0) { $0 + $1.count }
-        DebugSessionLog.write(
-            location: "PostService.swift:createPost",
-            message: "request payload",
-            data: [
-                "fieldCount": String(fields.count),
-                "fields": fieldSummary,
-                "imageCount": String(files.count),
-                "totalImageBytes": String(totalImageBytes)
-            ],
-            hypothesisId: "B-C-D-F"
-        )
-        // #endregion
-
         let data = try await client.requestData(
             path: APIConstants.Posts.posts,
             method: .post,
             multipart: MultipartFormData(fields: fields, files: files),
             requiresAuth: true
         )
-        // #region agent log
-        DebugSessionLog.write(
-            location: "PostService.swift:createPost",
-            message: "response received before decode",
-            data: [
-                "byteCount": String(data.count),
-                "preview": String(data: data.prefix(300), encoding: .utf8) ?? "(binary)"
-            ],
-            hypothesisId: "E"
-        )
-        // #endregion
         let response = try CreatePostResponse.decode(from: data, using: client.decoder)
         return response.data
     }

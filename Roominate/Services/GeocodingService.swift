@@ -44,6 +44,33 @@ enum GeocodingService {
     }
   }
 
+  static func pincode(forAddress address: String) async -> String? {
+    let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+
+    let geocoder = CLGeocoder()
+    do {
+      let placemarks = try await geocoder.geocodeAddressString("\(trimmed), India")
+      return placemarks.first?.postalCode
+    } catch {
+      return nil
+    }
+  }
+
+  static func pincode(for coordinate: CLLocationCoordinate2D) async -> String? {
+    guard IndianLocationsService.isValidCoordinate(coordinate) else { return nil }
+
+    let geocoder = CLGeocoder()
+    do {
+      let placemarks = try await geocoder.reverseGeocodeLocation(
+        CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+      )
+      return placemarks.first?.postalCode
+    } catch {
+      return nil
+    }
+  }
+
   static func placeDetails(
     from suggestion: PlaceSuggestion,
     mode: PlacesSearchMode
@@ -98,13 +125,21 @@ enum GeocodingService {
       resolvedCoordinate = .init(latitude: 0, longitude: 0)
     }
 
+    var resolvedPincode = ""
+    if IndianLocationsService.isValidCoordinate(resolvedCoordinate),
+       let pincode = await pincode(for: resolvedCoordinate) {
+      resolvedPincode = pincode
+    } else if let pincode = await pincode(forAddress: geocodeQuery) {
+      resolvedPincode = pincode
+    }
+
     return PlaceDetails(
       coordinate: resolvedCoordinate,
       landmark: landmark,
       area: area.isEmpty ? landmark : area,
       city: city,
       state: state,
-      pincode: "",
+      pincode: resolvedPincode,
       formattedAddress: suggestion.fullText
     )
   }
