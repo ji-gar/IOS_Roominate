@@ -282,28 +282,13 @@ final class CreatePostViewModel: ObservableObject {
     // MARK: Date helpers
 
     func displayDate(for value: String) -> String {
-        guard !value.isEmpty, let date = Self.apiDateFormatter.date(from: value) else { return "" }
-        return Self.displayDateFormatter.string(from: date)
+        DateFormatterHelper.displayDate(from: value)
     }
 
     static func apiDateString(_ date: Date?) -> String {
         guard let date else { return "" }
-        return apiDateFormatter.string(from: date)
+        return DateFormatterHelper.apiDateString(from: date)
     }
-
-    static let apiDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
-
-    static let displayDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yy"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
 
     // MARK: Location helpers
 
@@ -432,10 +417,15 @@ final class CreatePostViewModel: ObservableObject {
     func prepareDraftForSubmit() {
         buildAutoTitle()
         if !draft.postType {
-            if draft.deposit.isEmpty { draft.deposit = "0" }
-            if draft.extraCost.isEmpty { draft.extraCost = "0" }
             if moveInImmediately, draft.availableFrom.isEmpty {
                 availableFromDate = Date()
+            }
+            let preferredAreas = PostDraftAPI.preferedLocations(draft.preferedLocation)
+            if draft.area.isEmpty, let firstArea = preferredAreas.first {
+                draft.area = firstArea
+            }
+            if draft.landmark.isEmpty, let firstArea = preferredAreas.first {
+                draft.landmark = firstArea
             }
         } else {
             recompressImagesForUpload()
@@ -463,10 +453,80 @@ final class CreatePostViewModel: ObservableObject {
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }
+        // #region agent log
+        DebugSessionLog.write(
+            location: "CreatePostViewModel.swift:submit",
+            message: "submit started",
+            data: [
+                "postType": draft.postType ? "offer" : "seeker",
+                "title": draft.title,
+                "city": draft.city,
+                "area": draft.area,
+                "landmark": draft.landmark,
+                "preferedLocation": draft.preferedLocation,
+                "deposit": draft.deposit.isEmpty ? "(empty)" : draft.deposit,
+                "extraCost": draft.extraCost.isEmpty ? "(empty)" : draft.extraCost,
+                "profession": draft.profession,
+                "smoking": draft.smoking,
+                "availableFrom": draft.availableFrom,
+                "imageCount": String(draft.imageData.count)
+            ],
+            hypothesisId: "A"
+        )
+        // #endregion
         do {
             _ = try await postService.createPost(draft)
+            // #region agent log
+            DebugSessionLog.write(
+                location: "CreatePostViewModel.swift:submit",
+                message: "submit succeeded",
+                hypothesisId: "E"
+            )
+            // #endregion
             return true
         } catch {
+            // #region agent log
+            let errorKind: String
+            if let networkError = error as? NetworkError {
+                switch networkError {
+                case .httpError(let code, let message):
+                    errorKind = "httpError(\(code))"
+                    DebugSessionLog.write(
+                        location: "CreatePostViewModel.swift:submit",
+                        message: "submit failed",
+                        data: [
+                            "errorKind": errorKind,
+                            "statusCode": String(code),
+                            "message": message ?? "(nil)"
+                        ],
+                        hypothesisId: "A-D"
+                    )
+                case .decodingError:
+                    errorKind = "decodingError"
+                    DebugSessionLog.write(
+                        location: "CreatePostViewModel.swift:submit",
+                        message: "submit failed",
+                        data: ["errorKind": errorKind],
+                        hypothesisId: "E"
+                    )
+                default:
+                    errorKind = String(describing: networkError)
+                    DebugSessionLog.write(
+                        location: "CreatePostViewModel.swift:submit",
+                        message: "submit failed",
+                        data: ["errorKind": errorKind],
+                        hypothesisId: "A-D"
+                    )
+                }
+            } else {
+                DebugSessionLog.write(
+                    location: "CreatePostViewModel.swift:submit",
+                    message: "submit failed",
+                    data: ["errorKind": String(describing: type(of: error)), "message": error.localizedDescription],
+                    hypothesisId: "A-D"
+                )
+            }
+            // #endregion
             errorMessage = error.localizedDescription
             return false
         }

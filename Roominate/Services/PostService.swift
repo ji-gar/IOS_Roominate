@@ -54,7 +54,11 @@ final class PostService: PostServiceProtocol {
         appendIfNotEmpty(&fields, name: "city", value: PostDraftAPI.city(draft.city))
         appendIfNotEmpty(&fields, name: "state", value: draft.state)
         appendIfNotEmpty(&fields, name: "pincode", value: draft.pincode)
-        appendIfNotEmpty(&fields, name: "prefered_location", value: draft.preferedLocation)
+        appendArrayFields(
+            &fields,
+            name: "prefered_location",
+            values: PostDraftAPI.preferedLocations(draft.preferedLocation)
+        )
         appendIfNotEmpty(&fields, name: "monthly_rent", value: draft.monthlyRent)
         appendIfNotEmpty(&fields, name: "deposit", value: draft.deposit)
         appendIfNotEmpty(&fields, name: "extra_cost", value: draft.extraCost)
@@ -91,12 +95,39 @@ final class PostService: PostServiceProtocol {
             )
         }
 
+        // #region agent log
+        let fieldSummary = fields.map { "\($0.name)=\($0.value)" }.joined(separator: "|")
+        let totalImageBytes = draft.imageData.reduce(0) { $0 + $1.count }
+        DebugSessionLog.write(
+            location: "PostService.swift:createPost",
+            message: "request payload",
+            data: [
+                "fieldCount": String(fields.count),
+                "fields": fieldSummary,
+                "imageCount": String(files.count),
+                "totalImageBytes": String(totalImageBytes)
+            ],
+            hypothesisId: "B-C-D-F"
+        )
+        // #endregion
+
         let data = try await client.requestData(
             path: APIConstants.Posts.posts,
             method: .post,
             multipart: MultipartFormData(fields: fields, files: files),
             requiresAuth: true
         )
+        // #region agent log
+        DebugSessionLog.write(
+            location: "PostService.swift:createPost",
+            message: "response received before decode",
+            data: [
+                "byteCount": String(data.count),
+                "preview": String(data: data.prefix(300), encoding: .utf8) ?? "(binary)"
+            ],
+            hypothesisId: "E"
+        )
+        // #endregion
         let response = try CreatePostResponse.decode(from: data, using: client.decoder)
         return response.data
     }
@@ -118,5 +149,15 @@ final class PostService: PostServiceProtocol {
     ) {
         guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         fields.append(.init(name: name, value: value))
+    }
+
+    private func appendArrayFields(
+        _ fields: inout [MultipartFormData.Field],
+        name: String,
+        values: [String]
+    ) {
+        for value in values {
+            fields.append(.init(name: "\(name)[]", value: value))
+        }
     }
 }

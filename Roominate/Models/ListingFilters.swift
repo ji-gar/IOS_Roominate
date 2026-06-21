@@ -172,10 +172,10 @@ struct ListingFilters: Equatable {
         }
 
         if let moveInFrom {
-            query.movedInFrom = Self.apiDateFormatter.string(from: moveInFrom)
+            query.movedInFrom = DateFormatterHelper.apiDateString(from: moveInFrom)
         }
         if let moveInTo {
-            query.movedInTo = Self.apiDateFormatter.string(from: moveInTo)
+            query.movedInTo = DateFormatterHelper.apiDateString(from: moveInTo)
         }
 
         if !amenities.isEmpty {
@@ -185,18 +185,4 @@ struct ListingFilters: Equatable {
                 .joined(separator: ",")
         }
     }
-
-    static let apiDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
-
-    static let displayDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM yyyy"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
 }

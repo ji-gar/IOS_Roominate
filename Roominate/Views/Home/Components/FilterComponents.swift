@@ -270,7 +270,7 @@ struct MoveInDateField: View {
                 showPicker = true
             } label: {
                 HStack {
-                    Text(date.map { ListingFilters.displayDateFormatter.string(from: $0) } ?? "Select")
+                    Text(date.map { DateFormatterHelper.displayDate(from: $0) } ?? "Select")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(date == nil ? AppTheme.textSecondary : AppTheme.textPrimary)
                     Spacer()

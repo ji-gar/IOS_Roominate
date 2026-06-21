@@ -57,9 +57,9 @@ struct Post: Decodable, Hashable {
         userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? "Untitled"
         description = try container.decodeIfPresent(String.self, forKey: .description)
-        propertyType = try container.decodeIfPresent(String.self, forKey: .propertyType)
+        propertyType = try container.decodeFlexibleJoinedString(forKey: .propertyType)
         typeOfSpace = try container.decodeIfPresent(String.self, forKey: .typeOfSpace)
-        homeFurnishing = try container.decodeIfPresent(String.self, forKey: .homeFurnishing)
+        homeFurnishing = try container.decodeFlexibleJoinedString(forKey: .homeFurnishing)
         amenities = try container.decodeFlexibleStringArray(forKey: .amenities)
         landmark = try container.decodeIfPresent(String.self, forKey: .landmark)
         area = try container.decodeIfPresent(String.self, forKey: .area)
@@ -72,12 +72,12 @@ struct Post: Decodable, Hashable {
         availableFrom = try container.decodeIfPresent(String.self, forKey: .availableFrom)
         availableTo = try container.decodeIfPresent(String.self, forKey: .availableTo)
         lookingForLongTerm = try container.decodeFlexibleBool(forKey: .lookingForLongTerm)
-        flatmatePreference = try container.decodeIfPresent(String.self, forKey: .flatmatePreference)
-        foodPreference = try container.decodeIfPresent(String.self, forKey: .foodPreference)
-        smoking = try container.decodeIfPresent(String.self, forKey: .smoking)
-        profession = try container.decodeIfPresent(String.self, forKey: .profession)
+        flatmatePreference = try container.decodeFlexibleJoinedString(forKey: .flatmatePreference)
+        foodPreference = try container.decodeFlexibleJoinedString(forKey: .foodPreference)
+        smoking = try container.decodeFlexibleJoinedString(forKey: .smoking)
+        profession = try container.decodeFlexibleJoinedString(forKey: .profession)
         images = try container.decodeFlexibleStringArray(forKey: .images)
-        preferedLocation = try container.decodeIfPresent(String.self, forKey: .preferedLocation)
+        preferedLocation = try container.decodeFlexibleJoinedString(forKey: .preferedLocation)
         postType = try container.decodeFlexibleBool(forKey: .postType)
         isHidden = try container.decodeFlexibleBool(forKey: .isHidden)
         createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
@@ -331,6 +331,13 @@ private extension KeyedDecodingContainer {
         }
         return nil
     }
+
+    func decodeFlexibleJoinedString(forKey key: Key) throws -> String? {
+        if let values = try decodeFlexibleStringArray(forKey: key) {
+            return values.joined(separator: ", ")
+        }
+        return nil
+    }
 }
 
 // MARK: - Query & Draft
@@ -492,7 +499,7 @@ enum PostMapper {
             lookingFor: formattedPreference(post.flatmatePreference),
             deposit: formattedCurrency(post.deposit),
             rent: formattedCurrency(post.monthlyRent),
-            moveIn: formattedDateRange(from: post.availableFrom, to: post.availableTo),
+            moveIn: DateFormatterHelper.displayDateRange(from: post.availableFrom, to: post.availableTo),
             amenities: post.amenities?.joined(separator: ", ") ?? "",
             isShortStay: isShortStay,
             isFeatured: false,
@@ -501,7 +508,7 @@ enum PostMapper {
             propertyType: post.propertyType ?? "",
             roomType: post.typeOfSpace ?? "",
             furnishing: post.homeFurnishing ?? "",
-            moveInDate: formattedDate(post.availableFrom),
+            moveInDate: DateFormatterHelper.displayDate(from: post.availableFrom),
             securityDeposit: formattedCurrency(post.deposit),
             brokerage: "None",
             utilities: formattedCurrency(post.extraCost, fallback: "Included"),
@@ -541,8 +548,8 @@ enum PostMapper {
             location: location,
             lookingFor: formattedPreference(post.flatmatePreference),
             maxBudget: formattedCurrency(post.monthlyRent),
-            fromDate: formattedShortDate(post.availableFrom),
-            toDate: post.availableTo.map { formattedShortDate($0) },
+            fromDate: DateFormatterHelper.displayDate(from: post.availableFrom),
+            toDate: post.availableTo.map { DateFormatterHelper.displayDate(from: $0) },
             isShortStay: isShortStay,
             isFeatured: false,
             tags: tags,
@@ -553,8 +560,8 @@ enum PostMapper {
             roomType: post.typeOfSpace ?? "",
             furnishing: post.homeFurnishing ?? "",
             duration: isShortStay ? "Temporary Stay" : "Long Term",
-            moveInDate: formattedDate(post.availableFrom),
-            moveOutDate: formattedDate(post.availableTo),
+            moveInDate: DateFormatterHelper.displayDate(from: post.availableFrom),
+            moveOutDate: DateFormatterHelper.displayDate(from: post.availableTo),
             genderPreference: formattedPreference(post.flatmatePreference),
             foodPreference: post.foodPreference ?? "",
             smokingPreference: post.smoking ?? "",
@@ -630,44 +637,4 @@ enum PostMapper {
         return "₹\(formatted)\(suffix)"
     }
 
-    private static func formattedDate(_ value: String?) -> String {
-        guard let value, !value.isEmpty else { return "" }
-        guard let date = isoDateFormatter.date(from: value) else { return value }
-        return displayDateFormatter.string(from: date)
-    }
-
-    private static func formattedShortDate(_ value: String?) -> String {
-        guard let value, !value.isEmpty else { return "" }
-        guard let date = isoDateFormatter.date(from: value) else { return value }
-        return shortDateFormatter.string(from: date)
-    }
-
-    private static func formattedDateRange(from: String?, to: String?) -> String {
-        let start = formattedShortDate(from)
-        let end = formattedShortDate(to)
-        if !start.isEmpty, !end.isEmpty {
-            return "\(start) - \(end)"
-        }
-        return start.isEmpty ? end : start
-    }
-
-    private static let isoDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
-
-    private static let displayDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }()
-
-    private static let shortDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM"
-        return formatter
-    }()
 }

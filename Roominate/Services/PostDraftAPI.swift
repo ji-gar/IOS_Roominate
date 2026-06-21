@@ -80,6 +80,17 @@ enum PostDraftAPI {
         }
     }
 
+    static func preferedLocations(_ value: String) -> [String] {
+        apiValues(from: value)
+    }
+
+    static func apiValues(from value: String) -> [String] {
+        value
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
     private static func mapCommaSeparated(_ value: String, transform: (String) -> String) -> String {
         value
             .split(separator: ",")
