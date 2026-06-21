@@ -39,10 +39,11 @@ struct CreatePostFlowView: View {
 
     init(
         postService: PostServiceProtocol = PostService(),
+        existingPost: Post? = nil,
         onDismiss: @escaping () -> Void,
         onSuccess: @escaping () -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: CreatePostViewModel())
+        _viewModel = StateObject(wrappedValue: CreatePostViewModel(existingPost: existingPost))
         self.postService = postService
         self.onDismiss = onDismiss
         self.onSuccess = onSuccess
@@ -50,10 +51,21 @@ struct CreatePostFlowView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            CreatePostTypeSelectionView(
-                onSelect: selectPostType,
-                onDismiss: onDismiss
-            )
+            Group {
+                if viewModel.editingPostId != nil {
+                    Color.clear
+                        .onAppear {
+                            if path.isEmpty {
+                                path.append(.overview)
+                            }
+                        }
+                } else {
+                    CreatePostTypeSelectionView(
+                        onSelect: selectPostType,
+                        onDismiss: onDismiss
+                    )
+                }
+            }
             .navigationDestination(for: CreatePostRoute.self) { route in
                 destinationView(for: route)
             }

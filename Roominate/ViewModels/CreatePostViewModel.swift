@@ -115,6 +115,7 @@ enum ProfessionOption: String, CaseIterable, Identifiable {
 final class CreatePostViewModel: ObservableObject {
 
     @Published var draft: PostDraft
+    @Published var editingPostId: Int?
     @Published var selectedAmenities: [String: Set<String>] = [:]
     @Published var customAmenities: [String: [String]] = [:]
     @Published var customAmenityInputs: [String: String] = [:]
@@ -148,11 +149,27 @@ final class CreatePostViewModel: ObservableObject {
         span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
     )
 
-    init(postType: Bool = true) {
-        var d = PostDraft()
-        d.postType = postType
-        d.typeOfSpace = "Shared Room"
-        self.draft = d
+    init(postType: Bool = true, existingPost: Post? = nil) {
+        if let existingPost {
+            draft = PostDraft.from(existingPost)
+            editingPostId = existingPost.id
+        } else {
+            var initialDraft = PostDraft()
+            initialDraft.postType = postType
+            initialDraft.typeOfSpace = "Shared Room"
+            draft = initialDraft
+            editingPostId = nil
+        }
+
+        if let existingPost {
+            moveInImmediately = existingPost.availableFrom?.isEmpty ?? true
+            if let from = existingPost.availableFrom {
+                availableFromDate = Self.date(fromAPI: from)
+            }
+            if let to = existingPost.availableTo {
+                availableToDate = Self.date(fromAPI: to)
+            }
+        }
     }
 
     // MARK: Validation
@@ -177,7 +194,8 @@ final class CreatePostViewModel: ObservableObject {
     }
 
     var isPhotosValid: Bool {
-        images.count >= Self.minimumPhotoCount
+        if editingPostId != nil { return true }
+        return images.count >= Self.minimumPhotoCount
     }
 
     var isPreferencesValid: Bool {
@@ -471,12 +489,25 @@ final class CreatePostViewModel: ObservableObject {
         errorMessage = nil
         defer { isSubmitting = false }
         do {
-            _ = try await postService.createPost(draft)
+            if let editingPostId {
+                _ = try await postService.updatePost(id: editingPostId, draft: draft)
+            } else {
+                _ = try await postService.createPost(draft)
+            }
             return true
         } catch {
             errorMessage = error.localizedDescription
             return false
         }
+    }
+
+    private static func date(fromAPI value: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let date = formatter.date(from: value) { return date }
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
+        return formatter.date(from: value)
     }
 
     private func buildAutoTitle() {

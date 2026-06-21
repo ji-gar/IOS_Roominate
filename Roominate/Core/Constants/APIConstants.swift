@@ -26,12 +26,16 @@ enum APIConstants {
     enum User {
         static let me = "/user"
         static let profile = "/profile"
+        static let profileImage = "/profile/image"
+        static let deleteAccount = "/profile"
+        static func socialLink(id: Int) -> String { "/profile/social-links/\(id)" }
     }
 
     enum Posts {
         static let posts = "/posts"
         static let myAll = "/posts/my/all"
         static let search = "/posts/search"
+        static func post(id: Int) -> String { "/posts/\(id)" }
         static func report(postId: Int) -> String { "/posts/\(postId)/report" }
     }
 }

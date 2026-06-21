@@ -88,6 +88,56 @@ enum Strings {
         static var next: String { localized("profile.next") }
         static var finish: String { localized("profile.finish") }
         static var required: String { localized("profile.required") }
+        static var settingsTitle: String { localized("profile.settingsTitle") }
+        static var notification: String { localized("profile.notification") }
+        static var blockedUsers: String { localized("profile.blockedUsers") }
+        static var aboutUs: String { localized("profile.aboutUs") }
+        static var contactUs: String { localized("profile.contactUs") }
+        static var reportProblem: String { localized("profile.reportProblem") }
+        static var help: String { localized("profile.help") }
+        static var shareApp: String { localized("profile.shareApp") }
+        static var logOut: String { localized("profile.logOut") }
+        static var deleteAccount: String { localized("profile.deleteAccount") }
+        static var deleteAccountTitle: String { localized("profile.deleteAccountTitle") }
+        static var deleteAccountMessage: String { localized("profile.deleteAccountMessage") }
+        static var deleteAccountConfirm: String { localized("profile.deleteAccountConfirm") }
+        static var myProfile: String { localized("profile.myProfile") }
+        static var myPreferences: String { localized("profile.myPreferences") }
+        static var favorites: String { localized("profile.favorites") }
+        static var communities: String { localized("profile.communities") }
+        static var contactSupport: String { localized("profile.contactSupport") }
+        static var privacyPolicy: String { localized("profile.privacyPolicy") }
+        static var guestUser: String { localized("profile.guestUser") }
+        static var personalInformation: String { localized("profile.personalInformation") }
+        static var contactAndPrimary: String { localized("profile.contactAndPrimary") }
+        static var age: String { localized("profile.age") }
+        static var position: String { localized("profile.position") }
+        static var positionPlaceholder: String { localized("profile.positionPlaceholder") }
+        static var email: String { localized("profile.email") }
+        static var emailVerified: String { localized("profile.emailVerified") }
+        static var socialLinks: String { localized("profile.socialLinks") }
+        static var addSocialLink: String { localized("profile.addSocialLink") }
+        static var socialLinkPlaceholder: String { localized("profile.socialLinkPlaceholder") }
+        static var update: String { localized("profile.update") }
+        static var aboutEmpty: String { localized("profile.aboutEmpty") }
+        static var birthYearPlaceholder: String { localized("profile.birthYearPlaceholder") }
+        static var removePhoto: String { localized("profile.removePhoto") }
+        static var removePhotoTitle: String { localized("profile.removePhotoTitle") }
+        static var basicInformation: String { localized("profile.basicInformation") }
+        static var contactAndPrivacy: String { localized("profile.contactAndPrivacy") }
+        static var currentCity: String { localized("profile.currentCity") }
+        static var listing: String { localized("profile.listing") }
+        static var noListingYet: String { localized("profile.noListingYet") }
+        static var addPost: String { localized("profile.addPost") }
+        static var lifestyleNotes: String { localized("profile.lifestyleNotes") }
+        static var editListing: String { localized("profile.editListing") }
+        static var deleteListing: String { localized("profile.deleteListing") }
+        static var deleteListingTitle: String { localized("profile.deleteListingTitle") }
+        static var deleteListingMessage: String { localized("profile.deleteListingMessage") }
+    }
+
+    enum Common {
+        static var loading: String { localized("common.loading") }
     }
 
     enum Error {

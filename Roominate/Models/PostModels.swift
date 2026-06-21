@@ -477,6 +477,66 @@ struct PostDraft {
     var imageData: [Data] = []
 }
 
+extension PostDraft {
+    static func from(_ post: Post) -> PostDraft {
+        var draft = PostDraft()
+        draft.postType = post.postType ?? true
+        draft.title = post.title
+        draft.description = post.description ?? ""
+        draft.propertyType = post.propertyType ?? ""
+        draft.typeOfSpace = uiTypeOfSpace(from: post.typeOfSpace)
+        draft.homeFurnishing = post.homeFurnishing ?? ""
+        draft.amenities = post.amenities ?? []
+        draft.landmark = post.landmark ?? ""
+        draft.area = post.area ?? ""
+        draft.city = post.city ?? ""
+        draft.state = post.state ?? ""
+        draft.pincode = post.pincode ?? ""
+        draft.monthlyRent = post.monthlyRent ?? ""
+        draft.deposit = post.deposit ?? ""
+        draft.extraCost = post.extraCost ?? ""
+        draft.availableFrom = post.availableFrom ?? ""
+        draft.availableTo = post.availableTo ?? ""
+        draft.lookingForLongTerm = post.lookingForLongTerm ?? true
+        draft.flatmatePreference = post.flatmatePreference ?? ""
+        draft.foodPreference = post.foodPreference ?? ""
+        draft.smoking = post.smoking ?? ""
+        draft.profession = post.profession ?? ""
+        draft.preferedLocation = post.preferedLocation ?? ""
+        return draft
+    }
+
+    private static func uiTypeOfSpace(from value: String?) -> String {
+        switch value?.lowercased() {
+        case "sharing", "shared room":
+            return "Shared Room"
+        case "private", "private room":
+            return "Private Room"
+        default:
+            return value ?? "Shared Room"
+        }
+    }
+}
+
+struct UserListing: Identifiable, Hashable {
+    let id: Int
+    let post: Post
+    let flatListing: FlatListing?
+    let flatmateListing: FlatmateListing?
+
+    init(post: Post) {
+        id = post.id
+        self.post = post
+        if post.postType ?? true {
+            flatListing = PostMapper.flatListing(from: post)
+            flatmateListing = nil
+        } else {
+            flatListing = nil
+            flatmateListing = PostMapper.flatmateListing(from: post)
+        }
+    }
+}
+
 // MARK: - Mapping to UI Models
 
 enum PostMapper {

@@ -3,6 +3,8 @@ import Foundation
 protocol PostServiceProtocol {
     func fetchPosts(mode: PostFetchMode, query: PostQuery) async throws -> PaginatedPosts
     func createPost(_ draft: PostDraft) async throws -> Post
+    func updatePost(id: Int, draft: PostDraft) async throws -> Post
+    func deletePost(id: Int) async throws
     func reportPost(postId: Int, reason: String, description: String) async throws
 }
 
@@ -40,6 +42,48 @@ final class PostService: PostServiceProtocol {
     }
 
     func createPost(_ draft: PostDraft) async throws -> Post {
+        let payload = multipartPayload(for: draft)
+        let data = try await client.requestData(
+            path: APIConstants.Posts.posts,
+            method: .post,
+            multipart: payload,
+            requiresAuth: true
+        )
+        let response = try CreatePostResponse.decode(from: data, using: client.decoder)
+        return response.data
+    }
+
+    func updatePost(id: Int, draft: PostDraft) async throws -> Post {
+        let payload = multipartPayload(for: draft)
+        let data = try await client.requestData(
+            path: APIConstants.Posts.post(id: id),
+            method: .post,
+            multipart: payload,
+            requiresAuth: true
+        )
+        let response = try CreatePostResponse.decode(from: data, using: client.decoder)
+        return response.data
+    }
+
+    func deletePost(id: Int) async throws {
+        _ = try await client.requestData(
+            path: APIConstants.Posts.post(id: id),
+            method: .delete,
+            requiresAuth: true
+        )
+    }
+
+    func reportPost(postId: Int, reason: String, description: String) async throws {
+        let body = ReportRequest(reason: reason, description: description)
+        let _: ReportResponse = try await client.request(
+            path: APIConstants.Posts.report(postId: postId),
+            method: .post,
+            body: body,
+            requiresAuth: true
+        )
+    }
+
+    private func multipartPayload(for draft: PostDraft) -> MultipartFormData {
         var fields: [MultipartFormData.Field] = [
             .init(name: "post_type", value: draft.postType ? "1" : "0"),
             .init(name: "title", value: draft.title)
@@ -95,24 +139,7 @@ final class PostService: PostServiceProtocol {
             )
         }
 
-        let data = try await client.requestData(
-            path: APIConstants.Posts.posts,
-            method: .post,
-            multipart: MultipartFormData(fields: fields, files: files),
-            requiresAuth: true
-        )
-        let response = try CreatePostResponse.decode(from: data, using: client.decoder)
-        return response.data
-    }
-
-    func reportPost(postId: Int, reason: String, description: String) async throws {
-        let body = ReportRequest(reason: reason, description: description)
-        let _: ReportResponse = try await client.request(
-            path: APIConstants.Posts.report(postId: postId),
-            method: .post,
-            body: body,
-            requiresAuth: true
-        )
+        return MultipartFormData(fields: fields, files: files)
     }
 
     private func appendIfNotEmpty(

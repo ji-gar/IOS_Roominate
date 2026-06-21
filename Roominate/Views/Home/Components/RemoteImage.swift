@@ -37,16 +37,36 @@ struct RemoteImage: View {
 struct AvatarView: View {
     let urlString: String?
     var size: CGFloat = 40
+    var fallbackInitials: String = ""
+    var style: ProfileAvatarView.ProfileAvatarStyle = .standard
 
     var body: some View {
-        RemoteImage(urlString: urlString)
-            .frame(width: size, height: size)
-            .clipShape(Circle())
-            .overlay {
-                if urlString == nil {
-                    Image(systemName: "person.fill")
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
+        Group {
+            if let urlString, !urlString.isEmpty {
+                RemoteImage(urlString: urlString)
+            } else {
+                initialsFallback
             }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+    }
+
+    @ViewBuilder
+    private var initialsFallback: some View {
+        ZStack {
+            Circle()
+                .fill(style == .settings
+                    ? Color(red: 0.90, green: 0.91, blue: 0.93)
+                    : Color(red: 0.88, green: 0.93, blue: 0.98))
+            if !fallbackInitials.isEmpty {
+                Text(String(fallbackInitials.prefix(1)))
+                    .font(.system(size: size * 0.38, weight: .medium))
+                    .foregroundStyle(style == .settings ? AppTheme.textPrimary : AppTheme.primaryBlue)
+            } else {
+                Image(systemName: "person.fill")
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+        }
     }
 }
