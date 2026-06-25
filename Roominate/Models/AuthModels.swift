@@ -69,6 +69,21 @@ struct AuthResponse: Decodable {
         let accessToken: String?
         let userId: Int?
         let email: String?
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            token = try container.decodeIfPresent(String.self, forKey: .token)
+            accessToken = try container.decodeIfPresent(String.self, forKey: .accessToken)
+            userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
+            email = try container.decodeIfPresent(String.self, forKey: .email)
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case token
+            case accessToken = "access_token"
+            case userId = "user_id"
+            case email
+        }
     }
 
     var resolvedToken: String? {
@@ -172,6 +187,7 @@ enum SocialLinkType: String, CaseIterable, Identifiable {
 
 struct ProfileResponse: Decodable {
     let id: Int?
+    let userId: Int?
     let name: String?
     let email: String?
     let currentCity: String?
@@ -187,12 +203,92 @@ struct ProfileResponse: Decodable {
     let socialLinks: [SocialLink]?
     let lifestyleNotes: [String]?
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case name
+        case email
+        case currentCity = "current_city"
+        case about
+        case gender
+        case profession
+        case instituteName = "institute_name"
+        case organizationName = "organization_name"
+        case position
+        case birthYear = "birth_year"
+        case profileImageUrl = "profile_image_url"
+        case profileImage = "profile_image"
+        case isVerified = "is_verified"
+        case socialLinks = "social_links"
+        case lifestyleNotes = "lifestyle_notes"
+    }
+
+    init(
+        id: Int? = nil,
+        userId: Int? = nil,
+        name: String? = nil,
+        email: String? = nil,
+        currentCity: String? = nil,
+        about: String? = nil,
+        gender: String? = nil,
+        profession: String? = nil,
+        instituteName: String? = nil,
+        organizationName: String? = nil,
+        position: String? = nil,
+        birthYear: Int? = nil,
+        profileImageUrl: String? = nil,
+        isVerified: Bool? = nil,
+        socialLinks: [SocialLink]? = nil,
+        lifestyleNotes: [String]? = nil
+    ) {
+        self.id = id
+        self.userId = userId
+        self.name = name
+        self.email = email
+        self.currentCity = currentCity
+        self.about = about
+        self.gender = gender
+        self.profession = profession
+        self.instituteName = instituteName
+        self.organizationName = organizationName
+        self.position = position
+        self.birthYear = birthYear
+        self.profileImageUrl = profileImageUrl
+        self.isVerified = isVerified
+        self.socialLinks = socialLinks
+        self.lifestyleNotes = lifestyleNotes
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeFlexibleIntIfPresent(forKey: .id)
+        userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        currentCity = try container.decodeIfPresent(String.self, forKey: .currentCity)
+        about = try container.decodeIfPresent(String.self, forKey: .about)
+        gender = try container.decodeIfPresent(String.self, forKey: .gender)
+        profession = try container.decodeIfPresent(String.self, forKey: .profession)
+        instituteName = try container.decodeIfPresent(String.self, forKey: .instituteName)
+        organizationName = try container.decodeIfPresent(String.self, forKey: .organizationName)
+        position = try container.decodeIfPresent(String.self, forKey: .position)
+        birthYear = try container.decodeFlexibleIntIfPresent(forKey: .birthYear)
+        profileImageUrl = try container.decodeIfPresent(String.self, forKey: .profileImageUrl)
+            ?? (try container.decodeIfPresent(String.self, forKey: .profileImage))
+        isVerified = try container.decodeIfPresent(Bool.self, forKey: .isVerified)
+        socialLinks = try container.decodeIfPresent([SocialLink].self, forKey: .socialLinks)
+        lifestyleNotes = try container.decodeIfPresent([String].self, forKey: .lifestyleNotes)
+    }
+
+    var resolvedUserId: Int? {
+        if let userId, userId > 0 { return userId }
+        if let id, id > 0 { return id }
+        return nil
+    }
+
     var resolvedProfileImageURL: String? {
         guard let profileImageUrl, !profileImageUrl.isEmpty else { return nil }
-        if profileImageUrl.hasPrefix("http://") || profileImageUrl.hasPrefix("https://") {
-            return profileImageUrl
-        }
-        return APIConstants.storageBaseURL + profileImageUrl
+        return APIConstants.resolveMediaURL(profileImageUrl)
     }
 
     var resolvedGender: Gender? {

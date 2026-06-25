@@ -2,8 +2,10 @@ import SwiftUI
 
 struct FlatDetailView: View {
     let listing: FlatListing
+    var onStartChat: ((Int, String, Int?, Int?) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var startChatVM = StartChatViewModel()
     @State private var isFavorite = false
 
     var body: some View {
@@ -31,8 +33,15 @@ struct FlatDetailView: View {
 
             DetailBottomBar(
                 isFavorite: isFavorite,
+                isLoading: startChatVM.isLoading,
                 onToggleFavorite: { isFavorite.toggle() },
-                onInterested: {}
+                onInterested: {
+                    Task {
+                        await startChatVM.startChat(postId: listing.id, receiverName: listing.author.name) { id, name, postId, otherUserId in
+                            onStartChat?(id, name, postId, otherUserId)
+                        }
+                    }
+                }
             )
         }
         .background(AppTheme.screenBackground.ignoresSafeArea())

@@ -2,6 +2,7 @@ import Foundation
 
 protocol PostServiceProtocol {
     func fetchPosts(mode: PostFetchMode, query: PostQuery) async throws -> PaginatedPosts
+    func fetchPost(id: Int) async throws -> Post
     func createPost(_ draft: PostDraft) async throws -> Post
     func updatePost(id: Int, draft: PostDraft) async throws -> Post
     func deletePost(id: Int) async throws
@@ -37,7 +38,45 @@ final class PostService: PostServiceProtocol {
             queryItems: queryItems,
             requiresAuth: true
         )
+        // #region agent log
+        #if DEBUG
+        Self.logRawFirstPost(from: data)
+        #endif
+        // #endregion
         let response = try PostsListResponse.decode(from: data, using: client.decoder)
+        // #region agent log
+        #if DEBUG
+        if let first = response.data.data.first {
+            let mapped = PostMapper.flatListing(from: first)
+            DebugSessionLog.log(
+                location: "PostService.swift:fetchPosts",
+                message: "decoded first post mapping",
+                data: [
+                    "postId": "\(first.id)",
+                    "userId": "\(first.userId ?? 0)",
+                    "userResolvedName": first.user?.resolvedName ?? "nil",
+                    "imageUrlsCount": "\(first.imageUrls?.count ?? 0)",
+                    "firstImageUrl": first.imageUrls?.first ?? "none",
+                    "imagesCount": "\(first.images?.count ?? 0)",
+                    "firstImagePath": first.images?.first ?? "none",
+                    "firstMappedImageURL": mapped.imageURLs.first ?? "none"
+                ],
+                hypothesisId: "H",
+                runId: "post-fix-v3"
+            )
+        }
+        #endif
+        // #endregion
+        return response.data
+    }
+
+    func fetchPost(id: Int) async throws -> Post {
+        let data = try await client.requestData(
+            path: APIConstants.Posts.post(id: id),
+            method: .get,
+            requiresAuth: true
+        )
+        let response = try CreatePostResponse.decode(from: data, using: client.decoder)
         return response.data
     }
 
@@ -160,4 +199,41 @@ final class PostService: PostServiceProtocol {
             fields.append(.init(name: "\(name)[]", value: value))
         }
     }
+
+    #if DEBUG
+    private static func logRawFirstPost(from data: Data) {
+        guard let firstPost = extractFirstPostDictionary(from: data) else { return }
+        let keys = firstPost.keys.sorted().joined(separator: ",")
+        let userJSON: String = {
+            guard let user = firstPost["user"] ?? firstPost["profile"] ?? firstPost["author"] else { return "none" }
+            guard let json = try? JSONSerialization.data(withJSONObject: user),
+                  let text = String(data: json, encoding: .utf8) else { return String(describing: user) }
+            return text
+        }()
+        DebugSessionLog.log(
+            location: "PostService.swift:logRawFirstPost",
+            message: "raw first post JSON fields",
+            data: [
+                "postKeys": keys,
+                "userJSON": userJSON,
+                "images": String(describing: firstPost["images"] ?? "none"),
+                "image_urls": String(describing: firstPost["image_urls"] ?? "none")
+            ],
+            hypothesisId: "G",
+            runId: "post-fix-v2"
+        )
+    }
+
+    private static func extractFirstPostDictionary(from data: Data) -> [String: Any]? {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        let dataNode = root["data"] ?? root
+        if let page = dataNode as? [String: Any], let posts = page["data"] as? [[String: Any]] {
+            return posts.first
+        }
+        if let posts = dataNode as? [[String: Any]] {
+            return posts.first
+        }
+        return nil
+    }
+    #endif
 }

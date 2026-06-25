@@ -3,6 +3,12 @@ import SwiftUI
 enum HomeRoute: Hashable {
     case flatDetail(FlatListing)
     case flatmateDetail(FlatmateListing)
+    case chat(
+        conversationId: Int,
+        otherName: String,
+        postId: Int? = nil,
+        otherUserId: Int? = nil
+    )
 }
 
 private struct ReportTarget: Identifiable {
@@ -12,6 +18,7 @@ private struct ReportTarget: Identifiable {
 struct HomeView: View {
     @EnvironmentObject private var tabState: MainTabState
     @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var startChatVM = StartChatViewModel()
     @State private var path: [HomeRoute] = []
     @State private var showFilters = false
     @State private var reportTarget: ReportTarget?
@@ -31,15 +38,56 @@ struct HomeView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .flatDetail(let listing):
-                    FlatDetailView(listing: listing)
+                    FlatDetailView(listing: listing, onStartChat: { id, name, postId, otherUserId in
+                        path.append(.chat(
+                            conversationId: id,
+                            otherName: name,
+                            postId: postId,
+                            otherUserId: otherUserId
+                        ))
+                    })
                 case .flatmateDetail(let listing):
-                    FlatmateDetailView(listing: listing)
+                    FlatmateDetailView(listing: listing, onStartChat: { id, name, postId, otherUserId in
+                        path.append(.chat(
+                            conversationId: id,
+                            otherName: name,
+                            postId: postId,
+                            otherUserId: otherUserId
+                        ))
+                    })
+                case .chat(let id, let name, let postId, let otherUserId):
+                    ChatView(
+                        conversationId: id,
+                        otherName: name,
+                        postId: postId,
+                        otherUserId: otherUserId
+                    )
                 }
             }
             .task {
-                await viewModel.loadPosts()
+                // #region agent log
+                #if DEBUG
+                DebugSessionLog.log(
+                    location: "HomeView.swift:task",
+                    message: "view .task started loadPosts",
+                    data: [:],
+                    hypothesisId: "A"
+                )
+                #endif
+                // #endregion
+                await viewModel.loadPosts(source: "viewTask")
             }
             .onChange(of: tabState.homeRefreshID) { _, _ in
+                // #region agent log
+                #if DEBUG
+                DebugSessionLog.log(
+                    location: "HomeView.swift:homeRefreshID",
+                    message: "homeRefreshID changed, triggering refreshPosts",
+                    data: [:],
+                    hypothesisId: "A"
+                )
+                #endif
+                // #endregion
                 Task { await viewModel.refreshPosts() }
             }
             .onChange(of: viewModel.searchText) { _, _ in
@@ -64,9 +112,15 @@ struct HomeView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundStyle(AppTheme.primaryBlue)
             Spacer()
-            Image(systemName: "ellipsis.message")
-                .font(.system(size: 20))
-                .foregroundStyle(AppTheme.textPrimary)
+            Button {
+                tabState.selectedTab = .messages
+            } label: {
+                Image(systemName: "ellipsis.message")
+                    .font(.system(size: 20))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -147,6 +201,16 @@ struct HomeView: View {
         }
         .scrollIndicators(.hidden)
         .refreshable {
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "HomeView.swift:refreshable",
+                message: "pull-to-refresh triggered refreshPosts",
+                data: [:],
+                hypothesisId: "A"
+            )
+            #endif
+            // #endregion
             await viewModel.refreshPosts()
         }
     }
@@ -222,7 +286,18 @@ struct HomeView: View {
                         listing: listing,
                         isFavorite: viewModel.isFavorite(listing.id),
                         onSave: { viewModel.toggleFavorite(listing.id) },
-                        onChat: {},
+                        onChat: {
+                            Task {
+                                await startChatVM.startChat(postId: listing.id, receiverName: listing.author.name) { id, name, postId, otherUserId in
+                                    path.append(.chat(
+                                        conversationId: id,
+                                        otherName: name,
+                                        postId: postId,
+                                        otherUserId: otherUserId
+                                    ))
+                                }
+                            }
+                        },
                         onReport: { reportTarget = ReportTarget(id: listing.id) }
                     )
                 }

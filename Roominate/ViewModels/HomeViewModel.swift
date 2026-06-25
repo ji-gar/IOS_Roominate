@@ -17,14 +17,18 @@ final class HomeViewModel: ObservableObject {
     @Published private var favoriteIDs: Set<Int> = []
 
     private let postService: PostServiceProtocol
+    private let userService: UserServiceProtocol
+    private var cachedCurrentUser: PostUser?
     private var flatCurrentPage = 1
     private var flatmateCurrentPage = 1
     private var flatLastPage = 1
     private var flatmateLastPage = 1
     private var searchTask: Task<Void, Never>?
+    private var loadPostsCounter = 0
 
-    init(postService: PostServiceProtocol = PostService()) {
+    init(postService: PostServiceProtocol = PostService(), userService: UserServiceProtocol = UserService()) {
         self.postService = postService
+        self.userService = userService
     }
 
     var filteredFlats: [FlatListing] {
@@ -43,32 +47,108 @@ final class HomeViewModel: ObservableObject {
         flatmateCurrentPage < flatmateLastPage
     }
 
-    func loadPosts() async {
-        isLoading = true
+    func loadPosts(source: String = "unknown", showLoadingIndicator: Bool? = nil) async {
+        loadPostsCounter += 1
+        let loadId = loadPostsCounter
+        let shouldShowLoading = showLoadingIndicator ?? (flatListings.isEmpty && flatmateListings.isEmpty)
+        // #region agent log
+        #if DEBUG
+        DebugSessionLog.log(
+            location: "HomeViewModel.swift:loadPosts",
+            message: "loadPosts started",
+            data: [
+                "source": source,
+                "loadId": "\(loadId)",
+                "taskCancelled": "\(Task.isCancelled)",
+                "shouldShowLoading": "\(shouldShowLoading)"
+            ],
+            hypothesisId: "B"
+        )
+        #endif
+        // #endregion
+        if shouldShowLoading {
+            isLoading = true
+        }
         errorMessage = nil
-        defer { isLoading = false }
+        defer {
+            if shouldShowLoading {
+                isLoading = false
+            }
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "HomeViewModel.swift:loadPosts",
+                message: "loadPosts finished",
+                data: [
+                    "source": source,
+                    "loadId": "\(loadId)",
+                    "taskCancelled": "\(Task.isCancelled)",
+                    "flatCount": "\(flatListings.count)",
+                    "flatmateCount": "\(flatmateListings.count)",
+                    "errorMessage": errorMessage ?? "nil"
+                ],
+                hypothesisId: "B"
+            )
+            #endif
+            // #endregion
+        }
 
         flatCurrentPage = 1
         flatmateCurrentPage = 1
 
+        let currentUser = await loadCurrentPostUser()
         var errors: [String] = []
 
         do {
             let flatPage = try await fetchPosts(postType: true, page: 1)
-            flatListings = flatPage.posts.map(PostMapper.flatListing)
+            flatListings = flatPage.posts.map { PostMapper.flatListing(from: $0, currentUser: currentUser) }
             flatCurrentPage = flatPage.currentPage
             flatLastPage = flatPage.lastPage
         } catch {
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "HomeViewModel.swift:loadPosts",
+                message: "flat fetch failed",
+                data: [
+                    "source": source,
+                    "loadId": "\(loadId)",
+                    "errorType": String(describing: type(of: error)),
+                    "errorDesc": error.localizedDescription,
+                    "isCancellation": "\(error is CancellationError || (error as? URLError)?.code == .cancelled)"
+                ],
+                hypothesisId: "D"
+            )
+            #endif
+            // #endregion
+            if Self.isCancellationError(error) { return }
             flatListings = []
             errors.append(error.localizedDescription)
         }
 
         do {
             let flatmatePage = try await fetchPosts(postType: false, page: 1)
-            flatmateListings = flatmatePage.posts.map(PostMapper.flatmateListing)
+            flatmateListings = flatmatePage.posts.map { PostMapper.flatmateListing(from: $0, currentUser: currentUser) }
             flatmateCurrentPage = flatmatePage.currentPage
             flatmateLastPage = flatmatePage.lastPage
         } catch {
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "HomeViewModel.swift:loadPosts",
+                message: "flatmate fetch failed",
+                data: [
+                    "source": source,
+                    "loadId": "\(loadId)",
+                    "errorType": String(describing: type(of: error)),
+                    "errorDesc": error.localizedDescription,
+                    "isCancellation": "\(error is CancellationError || (error as? URLError)?.code == .cancelled)"
+                ],
+                hypothesisId: "D"
+            )
+            #endif
+            // #endregion
+            if Self.isCancellationError(error) { return }
             flatmateListings = []
             errors.append(error.localizedDescription)
         }
@@ -76,11 +156,29 @@ final class HomeViewModel: ObservableObject {
         if !errors.isEmpty {
             let hasAnyListings = !flatListings.isEmpty || !flatmateListings.isEmpty
             errorMessage = hasAnyListings ? nil : errors.first
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "HomeViewModel.swift:loadPosts",
+                message: "loadPosts set errorMessage",
+                data: [
+                    "source": source,
+                    "loadId": "\(loadId)",
+                    "errorMessage": errorMessage ?? "nil",
+                    "errors": errors.joined(separator: "|")
+                ],
+                hypothesisId: "D"
+            )
+            #endif
+            // #endregion
         }
     }
 
     func refreshPosts() async {
-        await loadPosts()
+        // SwiftUI `.refreshable` cancels its task quickly; detached work keeps the fetch alive.
+        await Task.detached { @MainActor in
+            await self.loadPosts(source: "refreshPosts", showLoadingIndicator: false)
+        }.value
     }
 
     func loadMoreIfNeeded(currentItem: FlatListing) async {
@@ -100,17 +198,27 @@ final class HomeViewModel: ObservableObject {
     }
 
     func onSearchTextChanged() {
+        // #region agent log
+        #if DEBUG
+        DebugSessionLog.log(
+            location: "HomeViewModel.swift:onSearchTextChanged",
+            message: "search debounce triggered, cancelling prior searchTask",
+            data: ["searchText": searchText],
+            hypothesisId: "C"
+        )
+        #endif
+        // #endregion
         searchTask?.cancel()
         searchTask = Task {
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
-            await loadPosts()
+            await loadPosts(source: "searchDebounce")
         }
     }
 
     func applyFilters(_ newFilters: ListingFilters) {
         filters = newFilters
-        Task { await loadPosts() }
+        Task { await loadPosts(source: "applyFilters") }
     }
 
     /// Total number of posts matching the given filters for the current segment, used by the filter sheet's live count.
@@ -161,7 +269,7 @@ final class HomeViewModel: ObservableObject {
         do {
             _ = try await postService.createPost(draft)
             createPostTitle = ""
-            await loadPosts()
+            await loadPosts(source: "createPost")
             return true
         } catch {
             createPostErrorMessage = error.localizedDescription
@@ -181,10 +289,11 @@ final class HomeViewModel: ObservableObject {
         do {
             let nextPage = flatCurrentPage + 1
             let page = try await fetchPosts(postType: true, page: nextPage)
-            flatListings.append(contentsOf: page.posts.map(PostMapper.flatListing))
+            flatListings.append(contentsOf: page.posts.map { PostMapper.flatListing(from: $0, currentUser: cachedCurrentUser) })
             flatCurrentPage = page.currentPage
             flatLastPage = page.lastPage
         } catch {
+            guard !Self.isCancellationError(error) else { return }
             errorMessage = error.localizedDescription
         }
     }
@@ -196,12 +305,36 @@ final class HomeViewModel: ObservableObject {
         do {
             let nextPage = flatmateCurrentPage + 1
             let page = try await fetchPosts(postType: false, page: nextPage)
-            flatmateListings.append(contentsOf: page.posts.map(PostMapper.flatmateListing))
+            flatmateListings.append(contentsOf: page.posts.map { PostMapper.flatmateListing(from: $0, currentUser: cachedCurrentUser) })
             flatmateCurrentPage = page.currentPage
             flatmateLastPage = page.lastPage
         } catch {
+            guard !Self.isCancellationError(error) else { return }
             errorMessage = error.localizedDescription
         }
+    }
+
+    private static func isCancellationError(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        return false
+    }
+
+    private func loadCurrentPostUser() async -> PostUser? {
+        if let cachedCurrentUser { return cachedCurrentUser }
+        guard let profile = try? await userService.fetchProfile() else { return nil }
+        let userId = profile.resolvedUserId ?? TokenStorage.shared.userId
+        guard userId > 0 else { return nil }
+        let user = PostUser(
+            id: userId,
+            name: profile.name ?? "",
+            fullName: profile.name,
+            email: profile.email,
+            profileImageUrl: profile.profileImageUrl,
+            profession: profile.profession
+        )
+        cachedCurrentUser = user
+        return user
     }
 
     private func fetchPosts(postType: Bool, page: Int) async throws -> FetchedPostsPage {

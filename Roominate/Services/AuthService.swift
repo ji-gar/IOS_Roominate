@@ -82,6 +82,9 @@ final class AuthService: AuthServiceProtocol {
         if let token = response.resolvedToken {
             TokenStorage.shared.token = token
         }
+        if let userId = response.data?.userId, userId > 0 {
+            TokenStorage.shared.userId = userId
+        }
         return response
     }
 
@@ -95,6 +98,9 @@ final class AuthService: AuthServiceProtocol {
         if let token = response.resolvedToken {
             TokenStorage.shared.token = token
         }
+        if let userId = response.data?.userId, userId > 0 {
+            TokenStorage.shared.userId = userId
+        }
         return response
     }
 
@@ -107,6 +113,9 @@ final class AuthService: AuthServiceProtocol {
         )
         if let token = response.resolvedToken {
             TokenStorage.shared.token = token
+        }
+        if let userId = response.data?.userId, userId > 0 {
+            TokenStorage.shared.userId = userId
         }
         return response
     }

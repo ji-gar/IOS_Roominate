@@ -5,17 +5,91 @@ import Foundation
 struct PostUser: Decodable, Hashable {
     let id: Int
     let name: String
+    let fullName: String?
     let email: String?
+    let profileImageUrl: String?
+    let profession: String?
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeFlexibleInt(forKey: .id)
-        name = try container.decodeIfPresent(String.self, forKey: .name) ?? "Unknown"
+        name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
+        fullName = try container.decodeIfPresent(String.self, forKey: .fullName)
+            ?? container.decodeIfPresent(String.self, forKey: .fullname)
         email = try container.decodeIfPresent(String.self, forKey: .email)
+        profileImageUrl = try container.decodeIfPresent(String.self, forKey: .profileImageUrl)
+            ?? container.decodeIfPresent(String.self, forKey: .profileImage)
+            ?? container.decodeIfPresent(String.self, forKey: .profilePic)
+        profession = try container.decodeFlexibleJoinedString(forKey: .profession)
+    }
+
+    init(
+        id: Int,
+        name: String,
+        fullName: String? = nil,
+        email: String?,
+        profileImageUrl: String? = nil,
+        profession: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.fullName = fullName
+        self.email = email
+        self.profileImageUrl = profileImageUrl
+        self.profession = profession
+    }
+
+    var resolvedName: String {
+        let candidates = [name, fullName ?? ""].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        return candidates.first(where: { !$0.isEmpty }) ?? "Unknown"
+    }
+
+    var resolvedProfileImageURL: String? {
+        guard let profileImageUrl, !profileImageUrl.isEmpty else { return nil }
+        return APIConstants.resolveMediaURL(profileImageUrl)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, email
+        case id, name, email, profession
+        case fullName
+        case fullname
+        case profileImageUrl
+        case profileImage
+        case profilePic
+    }
+}
+
+private struct PostProfileSummary: Decodable {
+    let id: Int?
+    let userId: Int?
+    let name: String?
+    let profileImageUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case userId
+        case profileImageUrl
+        case profileImage
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeFlexibleIntIfPresent(forKey: .id)
+        userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        profileImageUrl = try container.decodeIfPresent(String.self, forKey: .profileImageUrl)
+            ?? container.decodeIfPresent(String.self, forKey: .profileImage)
+    }
+
+    func asPostUser() -> PostUser {
+        PostUser(
+            id: userId ?? id ?? 0,
+            name: name ?? "",
+            fullName: name,
+            email: nil,
+            profileImageUrl: profileImageUrl,
+            profession: nil
+        )
     }
 }
 
@@ -43,6 +117,7 @@ struct Post: Decodable, Hashable {
     let foodPreference: String?
     let smoking: String?
     let profession: String?
+    let imageUrls: [String]?
     let images: [String]?
     let preferedLocation: String?
     let postType: Bool?
@@ -76,13 +151,48 @@ struct Post: Decodable, Hashable {
         foodPreference = try container.decodeFlexibleJoinedString(forKey: .foodPreference)
         smoking = try container.decodeFlexibleJoinedString(forKey: .smoking)
         profession = try container.decodeFlexibleJoinedString(forKey: .profession)
-        images = try container.decodeFlexibleStringArray(forKey: .images)
+        imageUrls = try container.decodeIfPresent([String].self, forKey: .imageUrls)
+        images = try container.decodeFlexibleImageURLs(forKey: .images)
         preferedLocation = try container.decodeFlexibleJoinedString(forKey: .preferedLocation)
         postType = try container.decodeFlexibleBool(forKey: .postType)
         isHidden = try container.decodeFlexibleBool(forKey: .isHidden)
         createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
-        user = try container.decodeIfPresent(PostUser.self, forKey: .user)
+        user = try Self.decodePostUser(from: container)
+    }
+
+    private static func decodePostUser(from container: KeyedDecodingContainer<CodingKeys>) throws -> PostUser? {
+        if let nestedUser = try container.decodeIfPresent(PostUser.self, forKey: .user),
+           nestedUser.resolvedName != "Unknown" {
+            return nestedUser
+        }
+        if let author = try container.decodeIfPresent(PostUser.self, forKey: .author),
+           author.resolvedName != "Unknown" {
+            return author
+        }
+        if let profile = try container.decodeIfPresent(PostProfileSummary.self, forKey: .profile) {
+            return profile.asPostUser()
+        }
+
+        let userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
+        let flatName = try container.decodeIfPresent(String.self, forKey: .userName)
+            ?? container.decodeIfPresent(String.self, forKey: .fullName)
+            ?? container.decodeIfPresent(String.self, forKey: .fullname)
+        let profileImageUrl = try container.decodeIfPresent(String.self, forKey: .profileImageUrl)
+            ?? container.decodeIfPresent(String.self, forKey: .profileImage)
+            ?? container.decodeIfPresent(String.self, forKey: .profilePic)
+        let profession = try container.decodeFlexibleJoinedString(forKey: .profession)
+
+        guard userId != nil || flatName != nil || profileImageUrl != nil else { return nil }
+
+        return PostUser(
+            id: userId ?? 0,
+            name: flatName ?? "",
+            fullName: flatName,
+            email: nil,
+            profileImageUrl: profileImageUrl,
+            profession: profession
+        )
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -101,13 +211,29 @@ struct Post: Decodable, Hashable {
         case lookingForLongTerm
         case flatmatePreference
         case foodPreference
-        case smoking, profession, images
+        case smoking, profession
+        case imageUrls
+        case images
         case preferedLocation
         case postType
         case isHidden
         case createdAt
         case updatedAt
-        case user
+        case user, author, profile
+        case userName
+        case fullName
+        case fullname
+        case profileImageUrl
+        case profileImage
+        case profilePic
+    }
+}
+
+extension Post {
+    /// Prefer CDN `image_urls` from the API; fall back to relative `images` paths.
+    var resolvedImageSources: [String] {
+        if let imageUrls, !imageUrls.isEmpty { return imageUrls }
+        return images ?? []
     }
 }
 
@@ -276,25 +402,6 @@ struct ReportResponse: Decodable {
 // MARK: - Flexible JSON helpers
 
 private extension KeyedDecodingContainer {
-    func decodeFlexibleInt(forKey key: Key) throws -> Int {
-        if let value = try? decode(Int.self, forKey: key) { return value }
-        if let value = try? decode(String.self, forKey: key), let intValue = Int(value) { return intValue }
-        if let value = try? decode(Double.self, forKey: key) { return Int(value) }
-        throw DecodingError.typeMismatch(
-            Int.self,
-            .init(codingPath: codingPath + [key], debugDescription: "Expected Int-compatible value.")
-        )
-    }
-
-    func decodeFlexibleInt(forKey key: Key, default defaultValue: Int) -> Int {
-        (try? decodeFlexibleInt(forKey: key)) ?? defaultValue
-    }
-
-    func decodeFlexibleIntIfPresent(forKey key: Key) throws -> Int? {
-        guard contains(key), !(try decodeNil(forKey: key)) else { return nil }
-        return try decodeFlexibleInt(forKey: key)
-    }
-
     func decodeFlexibleString(forKey key: Key) throws -> String? {
         guard contains(key), !(try decodeNil(forKey: key)) else { return nil }
         if let value = try? decode(String.self, forKey: key) { return value }
@@ -337,6 +444,51 @@ private extension KeyedDecodingContainer {
             return values.joined(separator: ", ")
         }
         return nil
+    }
+
+    func decodeFlexibleImageURLs(forKey key: Key) throws -> [String]? {
+        guard contains(key), !(try decodeNil(forKey: key)) else { return nil }
+        if let values = try? decode([String].self, forKey: key) {
+            let filtered = values.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            return filtered.isEmpty ? nil : filtered
+        }
+        if let value = try? decode(String.self, forKey: key) {
+            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.hasPrefix("["),
+               let data = trimmed.data(using: .utf8),
+               let decoded = try? JSONDecoder().decode([String].self, from: data) {
+                let filtered = decoded.filter { !$0.isEmpty }
+                return filtered.isEmpty ? nil : filtered
+            }
+            let parts = trimmed
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            return parts.isEmpty ? nil : parts
+        }
+        if let objects = try? decode([PostImageReference].self, forKey: key) {
+            let urls = objects.compactMap(\.resolvedPath)
+            return urls.isEmpty ? nil : urls
+        }
+        return nil
+    }
+}
+
+private struct PostImageReference: Decodable {
+    let url: String?
+    let path: String?
+    let image: String?
+    let imageUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case url, path, image
+        case imageUrl = "image_url"
+    }
+
+    var resolvedPath: String? {
+        [url, imageUrl, path, image]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first(where: { !$0.isEmpty })
     }
 }
 
@@ -540,12 +692,8 @@ struct UserListing: Identifiable, Hashable {
 // MARK: - Mapping to UI Models
 
 enum PostMapper {
-    static func flatListing(from post: Post) -> FlatListing {
-        let author = ListingAuthor(
-            name: post.user?.name ?? "Unknown",
-            role: formattedProfession(post.profession),
-            avatarURL: nil
-        )
+    static func flatListing(from post: Post, currentUser: PostUser? = nil) -> FlatListing {
+        let author = listingAuthor(from: post, currentUser: currentUser)
 
         let location = formattedLocation(area: post.area, city: post.city, landmark: post.landmark)
         let isShortStay = !(post.lookingForLongTerm ?? true) || post.availableTo != nil
@@ -553,7 +701,7 @@ enum PostMapper {
         return FlatListing(
             id: post.id,
             author: author,
-            imageURLs: resolvedImageURLs(post.images),
+            imageURLs: resolvedImageURLs(for: post),
             title: post.title,
             location: location,
             lookingFor: formattedPreference(post.flatmatePreference),
@@ -579,12 +727,8 @@ enum PostMapper {
         )
     }
 
-    static func flatmateListing(from post: Post) -> FlatmateListing {
-        let author = ListingAuthor(
-            name: post.user?.name ?? "Unknown",
-            role: formattedProfession(post.profession),
-            avatarURL: nil
-        )
+    static func flatmateListing(from post: Post, currentUser: PostUser? = nil) -> FlatmateListing {
+        let author = listingAuthor(from: post, currentUser: currentUser)
 
         let location = formattedLocation(area: post.area, city: post.city, landmark: post.landmark)
         let isShortStay = !(post.lookingForLongTerm ?? true) || post.availableTo != nil
@@ -631,14 +775,30 @@ enum PostMapper {
         )
     }
 
-    private static func resolvedImageURLs(_ paths: [String]?) -> [String] {
-        guard let paths, !paths.isEmpty else { return [] }
-        return paths.map { path in
-            if path.hasPrefix("http://") || path.hasPrefix("https://") {
-                return path
-            }
-            return APIConstants.storageBaseURL + path
+    private static func listingAuthor(from post: Post, currentUser: PostUser? = nil) -> ListingAuthor {
+        let resolvedUser = resolvedPostUser(for: post, currentUser: currentUser)
+        let role = formattedProfession(resolvedUser?.profession ?? post.profession)
+        return ListingAuthor(
+            name: resolvedUser?.resolvedName ?? "Unknown",
+            role: role,
+            avatarURL: resolvedUser?.resolvedProfileImageURL
+        )
+    }
+
+    private static func resolvedPostUser(for post: Post, currentUser: PostUser?) -> PostUser? {
+        if let user = post.user, user.resolvedName != "Unknown" { return user }
+        if let currentUser,
+           let userId = post.userId,
+           userId > 0,
+           userId == currentUser.id,
+           currentUser.resolvedName != "Unknown" {
+            return currentUser
         }
+        return post.user
+    }
+
+    private static func resolvedImageURLs(for post: Post) -> [String] {
+        post.resolvedImageSources.map { APIConstants.resolveMediaURL($0) }
     }
 
     private static func formattedLocation(area: String?, city: String?, landmark: String?) -> String {
@@ -695,6 +855,40 @@ enum PostMapper {
         formatter.groupingSeparator = ","
         let formatted = formatter.string(from: NSNumber(value: amount)) ?? String(Int(amount))
         return "₹\(formatted)\(suffix)"
+    }
+
+    // MARK: - Chat details helpers
+
+    static func chatLocation(from post: Post) -> String {
+        formattedLocation(area: post.area, city: post.city, landmark: post.landmark)
+    }
+
+    static func chatHeroImageURL(from post: Post) -> String? {
+        resolvedImageURLs(for: post).first
+    }
+
+    static func chatLookingFor(from post: Post) -> String {
+        formattedPreference(post.flatmatePreference)
+    }
+
+    static func chatCurrency(from value: String?) -> String {
+        formattedCurrency(value, fallback: "—")
+    }
+
+    static func chatMoveInDate(from post: Post) -> String {
+        let date = DateFormatterHelper.displayDate(from: post.availableFrom)
+        return date.isEmpty ? "ASAP" : date
+    }
+
+    static func chatExtras(from post: Post) -> String {
+        var parts: [String] = []
+        if let furnishing = post.homeFurnishing, !furnishing.isEmpty {
+            parts.append(furnishing.capitalized)
+        }
+        if let amenities = post.amenities, !amenities.isEmpty {
+            parts.append(amenities.joined(separator: ", "))
+        }
+        return parts.isEmpty ? "—" : parts.joined(separator: ", ")
     }
 
 }

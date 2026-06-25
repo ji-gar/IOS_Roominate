@@ -3,7 +3,7 @@ import SwiftUI
 
 enum AppTab: Hashable {
     case explore
-    case wishlist
+    case messages
     case add
     case profile
 }
@@ -52,11 +52,11 @@ struct MainTabView: View {
                 }
                 .tag(AppTab.explore)
 
-            PlaceholderTabView(title: "Wishlist", systemImage: "heart")
+            ChatListView()
                 .tabItem {
-                    Label("Wishlist", systemImage: "heart")
+                    Label("Messages", systemImage: "message")
                 }
-                .tag(AppTab.wishlist)
+                .tag(AppTab.messages)
 
             CreatePostFlowView(
                 onDismiss: { tabState.cancelAddFlow() },

@@ -8,7 +8,7 @@ struct AuthorRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            AvatarView(urlString: author.avatarURL, size: 40)
+            AvatarView(urlString: author.avatarURL, size: 40, fallbackInitials: author.name)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(author.name)

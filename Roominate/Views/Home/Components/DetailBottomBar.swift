@@ -3,6 +3,7 @@ import SwiftUI
 /// Sticky bottom bar with a square favorite button and a primary "I am Interested" CTA.
 struct DetailBottomBar: View {
     let isFavorite: Bool
+    var isLoading: Bool = false
     let onToggleFavorite: () -> Void
     let onInterested: () -> Void
 
@@ -22,17 +23,24 @@ struct DetailBottomBar: View {
 
             Button(action: onInterested) {
                 HStack(spacing: 8) {
-                    Image(systemName: "message.fill")
-                    Text("I am Interested")
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .scaleEffect(0.85)
+                    } else {
+                        Image(systemName: "message.fill")
+                        Text("I am Interested")
+                    }
                 }
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
-                .background(AppTheme.primaryBlue)
+                .background(isLoading ? AppTheme.primaryBlue.opacity(0.7) : AppTheme.primaryBlue)
                 .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
             }
             .buttonStyle(.plain)
+            .disabled(isLoading)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)

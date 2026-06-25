@@ -104,16 +104,23 @@ struct FlatCard: View {
 
     private var imageCarousel: some View {
         ZStack(alignment: .topTrailing) {
-            TabView(selection: $currentImage) {
-                ForEach(Array(listing.imageURLs.enumerated()), id: \.offset) { index, url in
-                    RemoteImage(urlString: url)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 190)
-                        .clipped()
-                        .tag(index)
+            Group {
+                if listing.imageURLs.isEmpty {
+                    RemoteImage(urlString: nil)
+                } else {
+                    TabView(selection: $currentImage) {
+                        ForEach(Array(listing.imageURLs.enumerated()), id: \.offset) { index, url in
+                            RemoteImage(urlString: url)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 190)
+                                .clipped()
+                                .tag(index)
+                        }
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: listing.imageURLs.count > 1 ? .automatic : .never))
                 }
             }
-            .tabViewStyle(.page(indexDisplayMode: listing.imageURLs.count > 1 ? .automatic : .never))
+            .frame(maxWidth: .infinity)
             .frame(height: 190)
             .clipShape(RoundedRectangle(cornerRadius: 12))
 

@@ -1,25 +1,28 @@
 import SwiftUI
 
-/// AsyncImage wrapper that shows a neutral placeholder while loading or on failure.
+/// Loads remote images with optional auth headers for protected storage URLs.
 struct RemoteImage: View {
     let urlString: String?
     var contentMode: ContentMode = .fill
 
+    @State private var loadedImage: UIImage?
+    @State private var didFail = false
+
     var body: some View {
-        AsyncImage(url: urlString.flatMap(URL.init(string:))) { phase in
-            switch phase {
-            case .success(let image):
-                image
+        Group {
+            if let loadedImage {
+                Image(uiImage: loadedImage)
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
-            case .failure:
+            } else if didFail {
                 placeholder
-            case .empty:
+            } else {
                 placeholder
                     .overlay(ProgressView())
-            @unknown default:
-                placeholder
             }
+        }
+        .task(id: urlString) {
+            await loadImage()
         }
     }
 
@@ -29,6 +32,61 @@ struct RemoteImage: View {
             Image(systemName: "photo")
                 .font(.system(size: 28))
                 .foregroundStyle(AppTheme.textSecondary.opacity(0.5))
+        }
+    }
+
+    @MainActor
+    private func loadImage() async {
+        loadedImage = nil
+        didFail = false
+
+        guard let urlString,
+              !urlString.isEmpty,
+              let url = URL(string: urlString) else {
+            didFail = true
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let token = TokenStorage.shared.token {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  (200...299).contains(http.statusCode),
+                  let image = UIImage(data: data) else {
+                didFail = true
+                // #region agent log
+                #if DEBUG
+                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+                DebugSessionLog.log(
+                    location: "RemoteImage.swift:loadImage",
+                    message: "image load failed",
+                    data: ["url": urlString, "status": "\(status)"],
+                    hypothesisId: "H",
+                    runId: "post-fix-v3"
+                )
+                #endif
+                // #endregion
+                return
+            }
+            loadedImage = image
+            // #region agent log
+            #if DEBUG
+            DebugSessionLog.log(
+                location: "RemoteImage.swift:loadImage",
+                message: "image load succeeded",
+                data: ["url": urlString, "bytes": "\(data.count)"],
+                hypothesisId: "H",
+                runId: "post-fix-v3"
+            )
+            #endif
+            // #endregion
+        } catch {
+            didFail = true
         }
     }
 }
