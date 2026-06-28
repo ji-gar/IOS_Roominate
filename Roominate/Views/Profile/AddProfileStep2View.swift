@@ -60,9 +60,11 @@ struct AddProfileStep2View: View {
                             TextField(organizationPlaceholder, text: $viewModel.draft.organization)
                                 .font(.system(size: 16))
                                 .autocorrectionDisabled()
+                                .appTextInputStyle()
                         }
                         .padding(.horizontal, 16)
                         .frame(height: 52)
+                        .background(AppTheme.fieldBackground)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                                 .stroke(AppTheme.fieldBorder, lineWidth: 1)

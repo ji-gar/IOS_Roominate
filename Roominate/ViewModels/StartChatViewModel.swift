@@ -31,7 +31,7 @@ final class StartChatViewModel: ObservableObject {
                 isLoading = false
                 return
             }
-            let myId = TokenStorage.shared.userId
+            let myId = await UserIdBackfill.ensureStored()
             var otherName = receiverName
             if let initiatorId = conversation.initiatorId, initiatorId == myId {
                 otherName = conversation.receiver?.name ?? receiverName

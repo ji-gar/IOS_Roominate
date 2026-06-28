@@ -17,8 +17,10 @@ struct AddProfileStep1View: View {
                     RequiredLabel(title: Strings.Profile.fullName)
                     TextField(Strings.Profile.fullNamePlaceholder, text: $viewModel.draft.fullName)
                         .font(.system(size: 16))
+                        .appTextInputStyle()
                         .padding(.horizontal, 16)
                         .frame(height: 52)
+                        .background(AppTheme.fieldBackground)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                                 .stroke(AppTheme.fieldBorder, lineWidth: 1)

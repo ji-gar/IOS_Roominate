@@ -129,8 +129,10 @@ struct EditContactView: View {
                 .keyboardType(.URL)
                 .autocapitalization(.none)
                 .autocorrectionDisabled()
+                .appTextInputStyle()
                 .padding(.horizontal, 16)
                 .frame(height: 52)
+                .background(AppTheme.fieldBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                         .stroke(AppTheme.fieldBorder, lineWidth: 1)

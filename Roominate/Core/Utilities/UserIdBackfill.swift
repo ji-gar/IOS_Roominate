@@ -9,15 +9,15 @@ enum UserIdBackfill {
         let stored = TokenStorage.shared.userId
         if stored > 0 { return stored }
 
-        if let profile = try? await userService.fetchProfile(),
-           let id = profile.resolvedUserId, id > 0 {
+        if let user = try? await authService.fetchCurrentUser(),
+           let idString = user.id,
+           let id = Int(idString), id > 0 {
             TokenStorage.shared.userId = id
             return id
         }
 
-        if let user = try? await authService.fetchCurrentUser(),
-           let idString = user.id,
-           let id = Int(idString), id > 0 {
+        if let profile = try? await userService.fetchProfile(),
+           let id = profile.resolvedUserId, id > 0 {
             TokenStorage.shared.userId = id
             return id
         }

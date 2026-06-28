@@ -48,7 +48,7 @@ struct RemoteImage: View {
         }
 
         var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("image/*, */*", forHTTPHeaderField: "Accept")
         if let token = TokenStorage.shared.token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }

@@ -114,6 +114,7 @@ struct HomeView: View {
                     .foregroundStyle(AppTheme.textSecondary)
                 TextField("Search City / area", text: $viewModel.searchText)
                     .font(.system(size: 15))
+                    .appTextInputStyle()
             }
             .padding(.horizontal, 14)
             .frame(height: 46)

@@ -25,7 +25,7 @@ struct CreatePostLocationSearchField: View {
                     HStack(spacing: 8) {
                         TextField("Search location", text: $query)
                             .font(.system(size: 15))
-                            .foregroundStyle(AppTheme.textPrimary)
+                            .appTextInputStyle()
                             .focused($isFocused)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.words)

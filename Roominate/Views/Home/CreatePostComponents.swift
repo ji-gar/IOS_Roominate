@@ -276,7 +276,7 @@ struct OutlinedInputField: View {
                 // Single stable TextField so focus isn't lost on first keystroke
                 TextField(label, text: $text)
                     .font(.system(size: 15))
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .appTextInputStyle()
                     .keyboardType(keyboardType)
             }
             .padding(.horizontal, 14)
@@ -323,7 +323,7 @@ struct CreatePostCurrencyField: View {
 
             TextField(placeholder, text: $amount)
                 .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(AppTheme.textPrimary)
+                .appTextInputStyle()
                 .keyboardType(.numberPad)
                 .onChange(of: amount) { _, newValue in
                     let digits = newValue.filter(\.isNumber)

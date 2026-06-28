@@ -11,20 +11,15 @@ struct MessageBubbleView: View {
     }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 0) {
-            if isSentByMe { Spacer(minLength: 60) }
+        VStack(alignment: isSentByMe ? .trailing : .leading, spacing: 3) {
+            Text(timeText)
+                .font(.system(size: 11))
+                .foregroundStyle(Color(hex: "#9EA3B0"))
 
-            VStack(alignment: isSentByMe ? .trailing : .leading, spacing: 3) {
-                Text(timeText)
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color(hex: "#9EA3B0"))
-
-                bubbleContent
-                    .frame(maxWidth: 280, alignment: isSentByMe ? .trailing : .leading)
-            }
-
-            if !isSentByMe { Spacer(minLength: 60) }
+            bubbleContent
+                .frame(maxWidth: 280, alignment: isSentByMe ? .trailing : .leading)
         }
+        .frame(maxWidth: .infinity, alignment: isSentByMe ? .trailing : .leading)
     }
 
     @ViewBuilder

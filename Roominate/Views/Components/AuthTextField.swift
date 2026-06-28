@@ -29,7 +29,7 @@ struct AuthTextField: View {
         case .focused:
             return AppTheme.activeFieldBackground
         default:
-            return .white
+            return AppTheme.fieldBackground
         }
     }
 
@@ -51,7 +51,7 @@ struct AuthTextField: View {
                     }
                 }
                 .font(.system(size: 16))
-                .foregroundStyle(AppTheme.textPrimary)
+                .appTextInputStyle()
 
                 if isSecure {
                     Button {

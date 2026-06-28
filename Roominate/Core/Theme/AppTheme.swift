@@ -9,6 +9,7 @@ enum AppTheme {
     static let fieldBorder = Color("FieldBorder")
     static let errorRed = Color("ErrorRed")
     static let activeFieldBackground = Color(red: 0.93, green: 0.96, blue: 1.0)
+    static let fieldBackground = Color.white
 
     // Home / Listing module
     static let screenBackground = Color(red: 0.96, green: 0.97, blue: 0.98)

@@ -19,8 +19,10 @@ struct AddProfileStep3View: View {
                     )
                     .lineLimit(4...6)
                     .font(.system(size: 16))
+                    .appTextInputStyle()
                     .padding(16)
                     .frame(minHeight: 120, alignment: .topLeading)
+                    .background(AppTheme.fieldBackground)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                             .stroke(AppTheme.fieldBorder, lineWidth: 1)

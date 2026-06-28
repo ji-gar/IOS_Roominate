@@ -137,7 +137,7 @@ struct ReportPostSheet: View {
 
                 TextEditor(text: $descriptionText)
                     .font(.system(size: 15))
-                    .foregroundStyle(AppTheme.textPrimary)
+                    .appTextInputStyle()
                     .scrollContentBackground(.hidden)
                     .padding(10)
                     .frame(height: 120)

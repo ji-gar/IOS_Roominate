@@ -22,6 +22,10 @@ final class PostService: PostServiceProtocol {
 
         switch mode {
         case .all:
+            // Public catalog: every listing on the server, filtered by post_type.
+            path = APIConstants.Posts.posts
+            queryItems = query.queryItems
+        case .mine:
             path = APIConstants.Posts.myAll
             queryItems = query.allPostsQueryItems
         case .filtered:

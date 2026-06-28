@@ -14,9 +14,10 @@ struct MessageItem: Decodable, Identifiable, Equatable {
     let sender: ChatSender?
 
     enum CodingKeys: String, CodingKey {
-        case id, type, body, sender
+        case id, type, body, sender, user
         case conversationId = "conversation_id"
         case senderId = "sender_id"
+        case userId = "user_id"
         case mediaPath = "media_path"
         case mediaUrl = "media_url"
         case imageUrl = "image_url"
@@ -24,6 +25,10 @@ struct MessageItem: Decodable, Identifiable, Equatable {
         case file
         case url
         case createdAt = "created_at"
+    }
+
+    var resolvedSenderId: Int? {
+        senderId ?? sender?.resolvedId
     }
 
     init(
@@ -52,7 +57,11 @@ struct MessageItem: Decodable, Identifiable, Equatable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeFlexibleIntIfPresent(forKey: .id)
         conversationId = try container.decodeFlexibleIntIfPresent(forKey: .conversationId)
+        let decodedSender = try container.decodeIfPresent(ChatSender.self, forKey: .sender)
+            ?? (try container.decodeIfPresent(ChatSender.self, forKey: .user))
         senderId = try container.decodeFlexibleIntIfPresent(forKey: .senderId)
+            ?? (try container.decodeFlexibleIntIfPresent(forKey: .userId))
+            ?? decodedSender?.resolvedId
         type = try container.decodeIfPresent(String.self, forKey: .type)
         body = try container.decodeIfPresent(String.self, forKey: .body)
         mediaPath = try container.decodeIfPresent(String.self, forKey: .mediaPath)
@@ -62,7 +71,7 @@ struct MessageItem: Decodable, Identifiable, Equatable {
             ?? (try container.decodeIfPresent(String.self, forKey: .imageUrl))
             ?? (try container.decodeIfPresent(String.self, forKey: .url))
         createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
-        sender = try container.decodeIfPresent(ChatSender.self, forKey: .sender)
+        sender = decodedSender
     }
 
     var resolvedMediaURL: String? {
@@ -91,18 +100,25 @@ struct MessageItem: Decodable, Identifiable, Equatable {
 
 struct ChatSender: Decodable {
     let id: Int?
+    let userId: Int?
     let name: String?
     let email: String?
+
+    var resolvedId: Int? {
+        id ?? userId
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeFlexibleIntIfPresent(forKey: .id)
+        userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
         name = try container.decodeIfPresent(String.self, forKey: .name)
         email = try container.decodeIfPresent(String.self, forKey: .email)
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, email
+        case userId = "user_id"
     }
 }
 
@@ -270,6 +286,7 @@ struct LatestChatMessage: Decodable {
         case id, type, body
         case conversationId = "conversation_id"
         case senderId = "sender_id"
+        case userId = "user_id"
         case mediaPath = "media_path"
         case mediaUrl = "media_url"
         case imageUrl = "image_url"
@@ -280,10 +297,14 @@ struct LatestChatMessage: Decodable {
         case updatedAt = "updated_at"
     }
 
+    var resolvedSenderId: Int? {
+        senderId
+    }
+
     init(from message: MessageItem) {
         id = message.id
         conversationId = message.conversationId
-        senderId = message.senderId ?? message.sender?.id
+        senderId = message.resolvedSenderId
         type = message.type
         body = message.body
         mediaPath = message.mediaPath
@@ -297,6 +318,7 @@ struct LatestChatMessage: Decodable {
         id = try container.decodeFlexibleIntIfPresent(forKey: .id)
         conversationId = try container.decodeFlexibleIntIfPresent(forKey: .conversationId)
         senderId = try container.decodeFlexibleIntIfPresent(forKey: .senderId)
+            ?? (try container.decodeFlexibleIntIfPresent(forKey: .userId))
         type = try container.decodeIfPresent(String.self, forKey: .type)
         body = try container.decodeIfPresent(String.self, forKey: .body)
         mediaPath = try container.decodeIfPresent(String.self, forKey: .mediaPath)

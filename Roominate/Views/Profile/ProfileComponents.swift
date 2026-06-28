@@ -29,9 +29,11 @@ struct ProfileFormTextField: View {
                     .font(.system(size: 25))
                     .keyboardType(keyboardType)
                     .autocorrectionDisabled()
+                    .appTextInputStyle()
             }
             .padding(.horizontal, 20)
             .frame(height: 70)
+            .background(AppTheme.fieldBackground)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                     .stroke(AppTheme.fieldBorder, lineWidth: 1)
@@ -51,24 +53,22 @@ struct ProfileMenuRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 25, weight: .regular))
+                    .font(.system(size: 20, weight: .regular))
                     .foregroundStyle(isDestructive ? AppTheme.errorRed : AppTheme.textPrimary)
-                    .frame(width: 22, alignment: .center)
+                    .frame(width: 24, alignment: .center)
 
                 Text(title)
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(isDestructive ? AppTheme.errorRed : AppTheme.textPrimary)
 
-                Spacer(minLength: 22)
+                Spacer(minLength: 8)
 
-                if showsChevron {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(AppTheme.textSecondary.opacity(0.45))
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(showsChevron ? AppTheme.textSecondary.opacity(0.45) : .clear)
             }
             .padding(.horizontal, 16)
-            .frame(height: 70)
+            .frame(height: 56)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -26,7 +26,7 @@ struct CreatePostDescriptionView: View {
                         CreatePostSectionLabel(title: "Title")
                         TextField("Looking for a flexible roommate", text: $viewModel.draft.title)
                             .font(.system(size: 15))
-                            .foregroundStyle(AppTheme.textPrimary)
+                            .appTextInputStyle()
                             .padding(.horizontal, 14)
                             .frame(height: 52)
                             .background(Color.white)
@@ -57,7 +57,7 @@ struct CreatePostDescriptionView: View {
 
                             TextEditor(text: $viewModel.draft.description)
                                 .font(.system(size: 15))
-                                .foregroundStyle(AppTheme.textPrimary)
+                                .appTextInputStyle()
                                 .focused($isDescriptionFocused)
                                 .scrollContentBackground(.hidden)
                                 .padding(.horizontal, 12)

@@ -56,7 +56,7 @@ final class ProfileViewModel: ObservableObject {
 
         do {
             let response = try await postService.fetchPosts(
-                mode: .all,
+                mode: .mine,
                 query: PostQuery(perPage: 50, page: 1)
             )
             listings = response.data.map(UserListing.init)

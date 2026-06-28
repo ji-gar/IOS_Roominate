@@ -113,14 +113,18 @@ struct ProfileSettingsView: View {
                 Spacer()
             } else {
                 ScrollView {
-                    VStack(spacing: 16) {
-                        profileHeader
+                    VStack(spacing: 12) {
+                        profileCard
+                        if !viewModel.profile.about.isEmpty {
+                            aboutCard
+                        }
                         settingsMenu
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                     .padding(.bottom, 32)
                 }
+                .scrollIndicators(.hidden)
             }
         }
         .background(AppTheme.screenBackground.ignoresSafeArea())
@@ -170,18 +174,27 @@ struct ProfileSettingsView: View {
         .padding(.vertical, 12)
     }
 
-    private var profileHeader: some View {
+    private var profileCard: some View {
         Button(action: onOpenProfile) {
             HStack(spacing: 14) {
-                ProfileAvatarView(profile: viewModel.profile, size: 48, style: .settings)
+                ProfileAvatarView(profile: viewModel.profile, size: 62, style: .standard)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(viewModel.profile.name.isEmpty ? Strings.Profile.guestUser : viewModel.profile.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
-                    if !viewModel.profile.email.isEmpty {
-                        Text(viewModel.profile.email)
-                            .font(.system(size: 13, weight: .regular))
+
+                    if !viewModel.profile.professionDisplay.isEmpty {
+                        Text(viewModel.profile.professionDisplay)
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .lineLimit(1)
+                    }
+
+                    let detailLine = profileDetailLine
+                    if !detailLine.isEmpty {
+                        Text(detailLine)
+                            .font(.system(size: 13))
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineLimit(1)
                     }
@@ -190,20 +203,52 @@ struct ProfileSettingsView: View {
                 Spacer(minLength: 8)
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(AppTheme.textSecondary.opacity(0.4))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppTheme.textSecondary.opacity(0.45))
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
             .background(Color.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
 
+    private var profileDetailLine: String {
+        var parts: [String] = []
+        if !viewModel.profile.currentCity.isEmpty {
+            parts.append(viewModel.profile.currentCity)
+        }
+        if let age = viewModel.profile.age {
+            parts.append("\(age) yrs")
+        }
+        if let gender = viewModel.profile.gender {
+            parts.append(gender.displayName)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private var aboutCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("About")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+            Text(viewModel.profile.about)
+                .font(.system(size: 15))
+                .foregroundStyle(AppTheme.textPrimary)
+                .lineLimit(3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     private var settingsMenu: some View {
         VStack(spacing: 0) {
             ProfileMenuSection(rows: [
+                ProfileMenuItem(title: "My Posts", systemImage: "house", showsChevron: true, action: onOpenProfile),
                 ProfileMenuItem(title: Strings.Profile.notification, systemImage: "bell", showsChevron: true),
                 ProfileMenuItem(title: Strings.Profile.blockedUsers, systemImage: "nosign", showsChevron: true)
             ])
@@ -211,22 +256,27 @@ struct ProfileSettingsView: View {
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: Strings.Profile.aboutUs, systemImage: "info.circle"),
-                ProfileMenuItem(title: Strings.Profile.contactUs, systemImage: "envelope"),
-                ProfileMenuItem(title: Strings.Profile.reportProblem, systemImage: "exclamationmark.bubble")
+                ProfileMenuItem(title: Strings.Profile.aboutUs, systemImage: "info.circle", showsChevron: true),
+                ProfileMenuItem(title: Strings.Profile.contactUs, systemImage: "envelope", showsChevron: true),
+                ProfileMenuItem(title: Strings.Profile.reportProblem, systemImage: "exclamationmark.bubble", showsChevron: true)
             ])
 
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
                 ProfileMenuItem(title: Strings.Profile.help, systemImage: "questionmark.circle", showsChevron: true),
-                ProfileMenuItem(title: Strings.Profile.shareApp, systemImage: "square.and.arrow.up", action: { showShareSheet = true })
+                ProfileMenuItem(title: Strings.Profile.shareApp, systemImage: "square.and.arrow.up", showsChevron: true, action: { showShareSheet = true })
             ])
 
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: Strings.Profile.logOut, systemImage: "rectangle.portrait.and.arrow.right", action: onSignOut),
+                ProfileMenuItem(title: Strings.Profile.logOut, systemImage: "rectangle.portrait.and.arrow.right", showsChevron: true, action: onSignOut)
+            ])
+
+            ProfileMenuSectionDivider()
+
+            ProfileMenuSection(rows: [
                 ProfileMenuItem(title: Strings.Profile.deleteAccount, systemImage: "trash", isDestructive: true, action: { showDeleteConfirmation = true })
             ])
         }

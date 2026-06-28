@@ -20,7 +20,7 @@ struct ConversationRowView: View {
             return "No messages yet"
         }
 
-        if let senderId = conversation.latestMessage?.senderId,
+        if let senderId = conversation.latestMessage?.resolvedSenderId,
            senderId == myUserId,
            myUserId > 0 {
             return "You: \(preview)"

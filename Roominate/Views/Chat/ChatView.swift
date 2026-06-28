@@ -267,7 +267,7 @@ struct ChatView: View {
                     }
                     TextField("", text: $viewModel.inputText, axis: .vertical)
                         .font(.system(size: 15))
-                        .foregroundStyle(Color(hex: "#1A1A2E"))
+                        .appTextInputStyle()
                         .lineLimit(1...5)
                         .focused($isInputFocused)
                         .padding(.horizontal, 4)

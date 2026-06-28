@@ -581,7 +581,7 @@ struct PostQuery {
         return items
     }
 
-    /// Query items for `GET /posts/my/all` (unfiltered feed).
+    /// Query items for `GET /posts/my/all` (the current user's own listings).
     var allPostsQueryItems: [URLQueryItem] {
         var items: [URLQueryItem] = []
 
@@ -597,7 +597,10 @@ struct PostQuery {
 }
 
 enum PostFetchMode: Equatable {
+    /// Public catalog of every listing on the server (`GET /posts`).
     case all
+    /// The current user's own listings (`GET /posts/my/all`).
+    case mine
     case filtered
     case search
 }

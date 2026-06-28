@@ -51,7 +51,7 @@ struct PlacesSearchTextField: View {
         HStack(spacing: 10) {
             TextField(placeholder, text: $query)
                 .font(.system(size: 16))
-                .foregroundStyle(AppTheme.textPrimary)
+                .appTextInputStyle()
                 .focused($isFocused)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.words)
@@ -64,7 +64,7 @@ struct PlacesSearchTextField: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 52)
-        .background(isFocused ? AppTheme.activeFieldBackground : Color.white)
+        .background(isFocused ? AppTheme.activeFieldBackground : AppTheme.fieldBackground)
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                 .stroke(isFocused ? AppTheme.primaryBlue : AppTheme.fieldBorder, lineWidth: 1)
@@ -86,7 +86,7 @@ struct PlacesSearchTextField: View {
                 HStack(spacing: 8) {
                     TextField(placeholder, text: $query)
                         .font(.system(size: 15))
-                        .foregroundStyle(AppTheme.textPrimary)
+                        .appTextInputStyle()
                         .focused($isFocused)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.words)

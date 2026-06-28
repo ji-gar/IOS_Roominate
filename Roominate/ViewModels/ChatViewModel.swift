@@ -174,8 +174,7 @@ final class ChatViewModel: ObservableObject {
     // MARK: - Bubble alignment
 
     func isSentByMe(_ message: MessageItem) -> Bool {
-        let resolvedSenderId = message.senderId ?? message.sender?.id
-        guard let senderId = resolvedSenderId else { return false }
+        guard let senderId = message.resolvedSenderId else { return false }
         let myId = myUserId
         return myId > 0 && senderId == myId
     }
