@@ -75,13 +75,19 @@ struct AuthResponse: Decodable {
             token = try container.decodeIfPresent(String.self, forKey: .token)
             accessToken = try container.decodeIfPresent(String.self, forKey: .accessToken)
             userId = try container.decodeFlexibleIntIfPresent(forKey: .userId)
+                ?? container.decodeFlexibleIntIfPresent(forKey: .id)
             email = try container.decodeIfPresent(String.self, forKey: .email)
         }
 
+        // Note: APIClient uses `.convertFromSnakeCase`, which converts JSON keys
+        // like `access_token` → `accessToken` BEFORE matching CodingKey raw values.
+        // Therefore CodingKey raw values must NOT be in snake_case — otherwise the
+        // match fails and the field is silently decoded as nil.
         private enum CodingKeys: String, CodingKey {
             case token
-            case accessToken = "access_token"
-            case userId = "user_id"
+            case accessToken
+            case userId
+            case id
             case email
         }
     }
@@ -104,6 +110,80 @@ struct UserResponse: Decodable {
     let about: String?
     let profilePic: String?
     let isVerified: Bool?
+
+    init(
+        id: String? = nil,
+        email: String? = nil,
+        name: String? = nil,
+        fullname: String? = nil,
+        area: String? = nil,
+        currentCity: String? = nil,
+        birthyear: String? = nil,
+        profession: String? = nil,
+        gender: String? = nil,
+        about: String? = nil,
+        profilePic: String? = nil,
+        isVerified: Bool? = nil
+    ) {
+        self.id = id
+        self.email = email
+        self.name = name
+        self.fullname = fullname
+        self.area = area
+        self.currentCity = currentCity
+        self.birthyear = birthyear
+        self.profession = profession
+        self.gender = gender
+        self.about = about
+        self.profilePic = profilePic
+        self.isVerified = isVerified
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // The backend may return `id` as either an Int (most common) or a
+        // String. Try both so we can stringify it consistently for downstream
+        // code. Using `decodeFlexibleIntIfPresent` keeps numeric ids working
+        // even when the API decides to encode them as strings.
+        if let intId = try? container.decodeFlexibleIntIfPresent(forKey: .id), intId > 0 {
+            id = String(intId)
+        } else {
+            id = try? container.decodeIfPresent(String.self, forKey: .id)
+        }
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        fullname = try container.decodeIfPresent(String.self, forKey: .fullname)
+        area = try container.decodeIfPresent(String.self, forKey: .area)
+        currentCity = try container.decodeIfPresent(String.self, forKey: .currentCity)
+        birthyear = try container.decodeIfPresent(String.self, forKey: .birthyear)
+        profession = try container.decodeIfPresent(String.self, forKey: .profession)
+        gender = try container.decodeIfPresent(String.self, forKey: .gender)
+        about = try container.decodeIfPresent(String.self, forKey: .about)
+        profilePic = try container.decodeIfPresent(String.self, forKey: .profilePic)
+        isVerified = try container.decodeIfPresent(Bool.self, forKey: .isVerified)
+    }
+
+    // CodingKey raw values must remain camelCase so that they match keys produced
+    // by APIClient.decoder's `.convertFromSnakeCase` strategy.
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case email
+        case name
+        case fullname
+        case area
+        case currentCity
+        case birthyear
+        case profession
+        case gender
+        case about
+        case profilePic
+        case isVerified
+    }
+
+    var resolvedUserId: Int? {
+        guard let id, let value = Int(id), value > 0 else { return nil }
+        return value
+    }
 
     var isProfileComplete: Bool {
         ProfileResponse(
@@ -203,24 +283,27 @@ struct ProfileResponse: Decodable {
     let socialLinks: [SocialLink]?
     let lifestyleNotes: [String]?
 
+    // NOTE: APIClient.decoder uses `.convertFromSnakeCase`, which transforms
+    // JSON snake_case keys to camelCase BEFORE matching against CodingKey
+    // raw values. CodingKey raw values must therefore stay in camelCase.
     enum CodingKeys: String, CodingKey {
         case id
-        case userId = "user_id"
+        case userId
         case name
         case email
-        case currentCity = "current_city"
+        case currentCity
         case about
         case gender
         case profession
-        case instituteName = "institute_name"
-        case organizationName = "organization_name"
+        case instituteName
+        case organizationName
         case position
-        case birthYear = "birth_year"
-        case profileImageUrl = "profile_image_url"
-        case profileImage = "profile_image"
-        case isVerified = "is_verified"
-        case socialLinks = "social_links"
-        case lifestyleNotes = "lifestyle_notes"
+        case birthYear
+        case profileImageUrl
+        case profileImage
+        case isVerified
+        case socialLinks
+        case lifestyleNotes
     }
 
     init(

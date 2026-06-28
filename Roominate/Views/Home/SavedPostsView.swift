@@ -151,7 +151,9 @@ struct SavedTabView: View {
             }
 
             ForEach(viewModel.flatListings) { listing in
-                NavigationLink(value: SavedRoute.flatDetail(listing)) {
+                Button {
+                    path.append(.flatDetail(listing))
+                } label: {
                     FlatCard(
                         listing: listing,
                         isFavorite: savedStore.isSaved(listing.id),
@@ -180,7 +182,9 @@ struct SavedTabView: View {
             }
 
             ForEach(viewModel.flatmateListings) { listing in
-                NavigationLink(value: SavedRoute.flatmateDetail(listing)) {
+                Button {
+                    path.append(.flatmateDetail(listing))
+                } label: {
                     FlatmateCard(
                         listing: listing,
                         isFavorite: savedStore.isSaved(listing.id),

@@ -173,10 +173,33 @@ final class ChatViewModel: ObservableObject {
 
     // MARK: - Bubble alignment
 
+    /// Determines whether a given message was sent by the signed-in user.
+    ///
+    /// Resolving "me" purely from `TokenStorage.userId` is fragile — older
+    /// installs may have a stale or missing value. To keep bubble alignment
+    /// correct in every case we cross-check against the other party's id (from
+    /// the conversation context). If the message's sender is unambiguously the
+    /// OTHER user, we treat the message as inbound; everything else falls back
+    /// to the stored "my id" comparison.
     func isSentByMe(_ message: MessageItem) -> Bool {
-        guard let senderId = message.resolvedSenderId else { return false }
+        guard let senderId = message.resolvedSenderId else {
+            // No sender id available: assume optimistic outbound (e.g. the
+            // locally appended echo of a just-sent message).
+            return true
+        }
+
+        if let otherId = otherUserId, otherId > 0 {
+            return senderId != otherId
+        }
+
         let myId = myUserId
-        return myId > 0 && senderId == myId
+        if myId > 0 {
+            return senderId == myId
+        }
+
+        // We know neither side — best we can do is keep messages on the left
+        // (receiver style) until context loads.
+        return false
     }
 
     // MARK: - Private helpers
@@ -189,7 +212,16 @@ final class ChatViewModel: ObservableObject {
     }
 
     private func backfillUserIdIfNeeded() async {
-        currentUserId = await UserIdBackfill.ensureStored(userService: userService)
+        // Always re-verify the signed-in user's id when opening a chat. Older
+        // builds may have persisted the wrong value (e.g. a profile row id
+        // instead of the user id), which would otherwise cause every outbound
+        // message to render on the receiver side.
+        let stored = TokenStorage.shared.userId
+        let refreshed = await UserIdBackfill.ensureStored(
+            userService: userService,
+            forceRefresh: true
+        )
+        currentUserId = refreshed > 0 ? refreshed : stored
     }
 
     private func loadConversationContext() async {

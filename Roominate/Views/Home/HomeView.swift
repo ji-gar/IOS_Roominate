@@ -238,7 +238,9 @@ struct HomeView: View {
             }
 
             ForEach(viewModel.filteredFlats) { listing in
-                NavigationLink(value: HomeRoute.flatDetail(listing)) {
+                Button {
+                    path.append(.flatDetail(listing))
+                } label: {
                     FlatCard(
                         listing: listing,
                         isFavorite: savedStore.isSaved(listing.id),
@@ -267,7 +269,9 @@ struct HomeView: View {
             }
 
             ForEach(viewModel.filteredFlatmates) { listing in
-                NavigationLink(value: HomeRoute.flatmateDetail(listing)) {
+                Button {
+                    path.append(.flatmateDetail(listing))
+                } label: {
                     FlatmateCard(
                         listing: listing,
                         isFavorite: savedStore.isSaved(listing.id),

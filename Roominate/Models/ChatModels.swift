@@ -13,18 +13,21 @@ struct MessageItem: Decodable, Identifiable, Equatable {
     let createdAt: String?
     let sender: ChatSender?
 
+    // NOTE: APIClient.decoder uses `.convertFromSnakeCase`. Snake_case JSON keys
+    // are converted to camelCase BEFORE matching CodingKey raw values, so the
+    // raw values here must stay in camelCase.
     enum CodingKeys: String, CodingKey {
         case id, type, body, sender, user
-        case conversationId = "conversation_id"
-        case senderId = "sender_id"
-        case userId = "user_id"
-        case mediaPath = "media_path"
-        case mediaUrl = "media_url"
-        case imageUrl = "image_url"
+        case conversationId
+        case senderId
+        case userId
+        case mediaPath
+        case mediaUrl
+        case imageUrl
         case image
         case file
         case url
-        case createdAt = "created_at"
+        case createdAt
     }
 
     var resolvedSenderId: Int? {
@@ -118,7 +121,7 @@ struct ChatSender: Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case id, name, email
-        case userId = "user_id"
+        case userId
     }
 }
 
@@ -139,17 +142,18 @@ struct ChatConversation: Decodable, Identifiable, Hashable {
     let createdAt: String?
     let updatedAt: String?
 
+    // Keep all CodingKey raw values in camelCase — see decoder note in MessageItem.
     enum CodingKeys: String, CodingKey {
         case id, status, initiator, receiver, post
-        case postId = "post_id"
-        case initiatorId = "initiator_id"
-        case receiverId = "receiver_id"
-        case latestMessage = "latest_message"
-        case lastMessage = "last_message"
-        case dealGrabbed = "deal_grabbed"
-        case dealGrabbedAt = "deal_grabbed_at"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
+        case postId
+        case initiatorId
+        case receiverId
+        case latestMessage
+        case lastMessage
+        case dealGrabbed
+        case dealGrabbedAt
+        case createdAt
+        case updatedAt
     }
 
     init(
@@ -257,8 +261,8 @@ struct ConversationPost: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id, title, city
-        case monthlyRent = "monthly_rent"
-        case imageUrls = "image_urls"
+        case monthlyRent
+        case imageUrls
     }
 
     init(from decoder: Decoder) throws {
@@ -284,17 +288,17 @@ struct LatestChatMessage: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id, type, body
-        case conversationId = "conversation_id"
-        case senderId = "sender_id"
-        case userId = "user_id"
-        case mediaPath = "media_path"
-        case mediaUrl = "media_url"
-        case imageUrl = "image_url"
+        case conversationId
+        case senderId
+        case userId
+        case mediaPath
+        case mediaUrl
+        case imageUrl
         case image
         case file
         case url
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
+        case createdAt
+        case updatedAt
     }
 
     var resolvedSenderId: Int? {
@@ -395,10 +399,10 @@ struct ConversationPage: Decodable {
     let data: [ChatConversation?]?
 
     enum CodingKeys: String, CodingKey {
-        case currentPage = "current_page"
-        case perPage = "per_page"
+        case currentPage
+        case perPage
         case total
-        case lastPage = "last_page"
+        case lastPage
         case data
     }
 }
@@ -414,7 +418,7 @@ struct MessagePage: Decodable {
     let data: [MessageItem?]?
 
     enum CodingKeys: String, CodingKey {
-        case currentPage = "current_page"
+        case currentPage
         case data
     }
 }

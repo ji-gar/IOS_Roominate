@@ -1,17 +1,24 @@
 import Foundation
 
 enum UserIdBackfill {
+    /// Returns the signed-in user's numeric id, fetching it from the backend
+    /// when needed.
+    ///
+    /// `forceRefresh` should be used by surfaces where having a CORRECT user id
+    /// is critical (e.g. chat — needed for sender-side bubble alignment), to
+    /// avoid trusting a possibly stale/wrong value persisted by an older
+    /// version of the app.
     @MainActor
     static func ensureStored(
         userService: UserServiceProtocol = UserService(),
-        authService: AuthServiceProtocol = AuthService()
+        authService: AuthServiceProtocol = AuthService(),
+        forceRefresh: Bool = false
     ) async -> Int {
         let stored = TokenStorage.shared.userId
-        if stored > 0 { return stored }
+        if !forceRefresh, stored > 0 { return stored }
 
         if let user = try? await authService.fetchCurrentUser(),
-           let idString = user.id,
-           let id = Int(idString), id > 0 {
+           let id = user.resolvedUserId, id > 0 {
             TokenStorage.shared.userId = id
             return id
         }
@@ -22,6 +29,6 @@ enum UserIdBackfill {
             return id
         }
 
-        return 0
+        return stored
     }
 }

@@ -79,12 +79,7 @@ final class AuthService: AuthServiceProtocol {
             method: .post,
             body: VerifyOTPRequest(email: normalizedEmail, otp: otp)
         )
-        if let token = response.resolvedToken {
-            TokenStorage.shared.token = token
-        }
-        if let userId = response.data?.userId, userId > 0 {
-            TokenStorage.shared.userId = userId
-        }
+        await persistAuthCredentials(from: response)
         return response
     }
 
@@ -95,12 +90,7 @@ final class AuthService: AuthServiceProtocol {
             method: .post,
             body: LoginRequest(email: normalizedEmail, password: password)
         )
-        if let token = response.resolvedToken {
-            TokenStorage.shared.token = token
-        }
-        if let userId = response.data?.userId, userId > 0 {
-            TokenStorage.shared.userId = userId
-        }
+        await persistAuthCredentials(from: response)
         return response
     }
 
@@ -111,13 +101,27 @@ final class AuthService: AuthServiceProtocol {
             method: .post,
             body: LoginWithOTPRequest(email: normalizedEmail, otp: otp)
         )
+        await persistAuthCredentials(from: response)
+        return response
+    }
+
+    /// Stores token + user id from an auth response. If the response does not
+    /// expose the user id, we fall back to `/me` so chat code can correctly
+    /// identify the signed-in user (used for sender-side bubble alignment).
+    private func persistAuthCredentials(from response: AuthResponse) async {
         if let token = response.resolvedToken {
             TokenStorage.shared.token = token
         }
         if let userId = response.data?.userId, userId > 0 {
             TokenStorage.shared.userId = userId
+            return
         }
-        return response
+        // Auth response did not include a user id — fetch it explicitly so
+        // chat bubble alignment works on the very first session.
+        if let user = try? await fetchCurrentUser(),
+           let resolved = user.resolvedUserId, resolved > 0 {
+            TokenStorage.shared.userId = resolved
+        }
     }
 
     func setPassword(

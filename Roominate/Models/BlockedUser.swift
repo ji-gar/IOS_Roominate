@@ -20,13 +20,16 @@ struct BlockedUserResponse: Decodable {
     let profileImageUrl: String?
     let profileImage: String?
 
+    // Keep all CodingKey raw values in camelCase — APIClient.decoder uses
+    // `.convertFromSnakeCase`, which converts JSON snake_case keys to camelCase
+    // BEFORE matching CodingKey raw values.
     enum CodingKeys: String, CodingKey {
         case id
-        case userId = "user_id"
+        case userId
         case name
         case fullname
-        case profileImageUrl = "profile_image_url"
-        case profileImage = "profile_image"
+        case profileImageUrl
+        case profileImage
     }
 
     init(from decoder: Decoder) throws {
