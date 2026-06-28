@@ -5,8 +5,8 @@ struct FlatDetailView: View {
     var onStartChat: ((Int, String, Int?, Int?) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var savedStore: SavedPostsStore
     @StateObject private var startChatVM = StartChatViewModel()
-    @State private var isFavorite = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,9 +32,9 @@ struct FlatDetailView: View {
             .scrollIndicators(.hidden)
 
             DetailBottomBar(
-                isFavorite: isFavorite,
+                isFavorite: savedStore.isSaved(listing.id),
                 isLoading: startChatVM.isLoading,
-                onToggleFavorite: { isFavorite.toggle() },
+                onToggleFavorite: { Task { await savedStore.toggleSave(postId: listing.id) } },
                 onInterested: {
                     Task {
                         await startChatVM.startChat(postId: listing.id, receiverName: listing.author.name) { id, name, postId, otherUserId in
@@ -73,7 +73,9 @@ struct FlatDetailView: View {
                 .frame(height: 220)
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 14))
-            FavoriteButton(isFavorite: isFavorite, action: { isFavorite.toggle() })
+            FavoriteButton(isFavorite: savedStore.isSaved(listing.id), action: {
+                Task { await savedStore.toggleSave(postId: listing.id) }
+            })
                 .padding(12)
         }
     }
@@ -147,5 +149,6 @@ struct FlatDetailView: View {
 #Preview {
     NavigationStack {
         FlatDetailView(listing: MockListings.flats[0])
+            .environmentObject(SavedPostsStore())
     }
 }

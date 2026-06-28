@@ -1,41 +1,50 @@
 import SwiftUI
 
 struct ChatListView: View {
+    var showsBackButton: Bool = false
+    var onBack: (() -> Void)? = nil
+    var onSelectConversation: ((Int, String, Int?, Int?) -> Void)? = nil
+
     @StateObject private var viewModel = ChatListViewModel()
-    @State private var path: [ChatRoute] = []
+    @State private var internalPath: [ChatRoute] = []
 
     var body: some View {
-        NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                navBar
-                content
-            }
-            .background(Color.white.ignoresSafeArea())
-            .navigationBarHidden(true)
-            .navigationDestination(for: ChatRoute.self) { route in
-                switch route {
-                case .thread(let id, let name, let postId, let otherUserId):
-                    ChatView(
-                        conversationId: id,
-                        otherName: name,
-                        postId: postId,
-                        otherUserId: otherUserId
-                    )
+        Group {
+            if onSelectConversation != nil {
+                listContent
+            } else {
+                NavigationStack(path: $internalPath) {
+                    listContent
+                        .navigationDestination(for: ChatRoute.self) { route in
+                            threadDestination(for: route)
+                        }
                 }
             }
         }
         .onAppear { Task { await viewModel.load() } }
-        .onChange(of: path.count) { _, count in
-            if count == 0 {
+        .onChange(of: internalPath.count) { _, count in
+            if count == 0, onSelectConversation == nil {
                 Task { await viewModel.refresh() }
             }
         }
     }
 
+    private var listContent: some View {
+        VStack(spacing: 0) {
+            navBar
+            content
+        }
+        .background(Color.white.ignoresSafeArea())
+        .navigationBarHidden(true)
+    }
+
     // MARK: - Nav Bar
 
     private var navBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
+            if showsBackButton {
+                BackButton(action: { onBack?() })
+            }
             Text("Messages")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color(hex: "#1A1A2E"))
@@ -44,7 +53,7 @@ struct ChatListView: View {
                 .font(.system(size: 18))
                 .foregroundStyle(AppTheme.primaryBlue)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, showsBackButton ? 8 : 20)
         .padding(.vertical, 14)
         .background(Color.white)
         .overlay(alignment: .bottom) {
@@ -104,20 +113,7 @@ struct ChatListView: View {
             LazyVStack(spacing: 0) {
                 ForEach(viewModel.conversations) { conv in
                     Button {
-                        if let cid = viewModel.conversationId(for: conv) {
-                            let name = viewModel.otherName(for: conv)
-                            let postId = conv.postId ?? conv.post?.id
-                            let otherUserId = ChatViewModel.otherUserId(
-                                from: conv,
-                                myId: viewModel.myUserId
-                            )
-                            path.append(.thread(
-                                conversationId: cid,
-                                otherName: name,
-                                postId: postId,
-                                otherUserId: otherUserId
-                            ))
-                        }
+                        openConversation(conv)
                     } label: {
                         ConversationRowView(
                             conversation: conv,
@@ -133,6 +129,40 @@ struct ChatListView: View {
         }
         .scrollIndicators(.hidden)
         .refreshable { await viewModel.refresh() }
+    }
+
+    private func openConversation(_ conv: ChatConversation) {
+        guard let cid = viewModel.conversationId(for: conv) else { return }
+        let name = viewModel.otherName(for: conv)
+        let postId = conv.postId ?? conv.post?.id
+        let otherUserId = ChatViewModel.otherUserId(
+            from: conv,
+            myId: viewModel.myUserId
+        )
+
+        if let onSelectConversation {
+            onSelectConversation(cid, name, postId, otherUserId)
+        } else {
+            internalPath.append(.thread(
+                conversationId: cid,
+                otherName: name,
+                postId: postId,
+                otherUserId: otherUserId
+            ))
+        }
+    }
+
+    @ViewBuilder
+    private func threadDestination(for route: ChatRoute) -> some View {
+        switch route {
+        case .thread(let id, let name, let postId, let otherUserId):
+            ChatView(
+                conversationId: id,
+                otherName: name,
+                postId: postId,
+                otherUserId: otherUserId
+            )
+        }
     }
 }
 

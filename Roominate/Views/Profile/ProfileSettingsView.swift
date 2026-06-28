@@ -5,6 +5,11 @@ enum ProfileRoute: Hashable {
     case editPersonalInfo
     case editContact
     case editAboutMe
+    case myPosts
+    case blockedUsers
+    case aboutUs
+    case deleteAccountReason
+    case deleteAccountVerify(reason: String)
 }
 
 enum ProfilePostFlow: Identifiable {
@@ -43,7 +48,11 @@ struct ProfileTabView: View {
                 viewModel: viewModel,
                 onSignOut: onSignOut,
                 onAccountDeleted: onSignOut,
-                onOpenProfile: { path.append(.detail) }
+                onOpenProfile: { path.append(.detail) },
+                onOpenMyPosts: { path.append(.myPosts) },
+                onOpenBlockedUsers: { path.append(.blockedUsers) },
+                onOpenAboutUs: { path.append(.aboutUs) },
+                onOpenDeleteAccount: { path.append(.deleteAccountReason) }
             )
             .navigationDestination(for: ProfileRoute.self) { route in
                 switch route {
@@ -56,6 +65,33 @@ struct ProfileTabView: View {
                         onEditAboutMe: { path.append(.editAboutMe) },
                         onAddPost: { postFlow = .add },
                         onEditListing: { post in postFlow = .edit(post) }
+                    )
+                case .myPosts:
+                    MyPostsView(
+                        viewModel: viewModel,
+                        onBack: { path.removeLast() },
+                        onAddPost: { postFlow = .add },
+                        onEditListing: { post in postFlow = .edit(post) }
+                    )
+                case .blockedUsers:
+                    BlockedUsersView(
+                        viewModel: viewModel,
+                        onBack: { path.removeLast() }
+                    )
+                case .aboutUs:
+                    AboutUsView(onBack: { path.removeLast() })
+                case .deleteAccountReason:
+                    DeleteAccountReasonView(
+                        viewModel: viewModel,
+                        onBack: { path.removeLast() },
+                        onContinue: { reason in path.append(.deleteAccountVerify(reason: reason)) }
+                    )
+                case .deleteAccountVerify(let reason):
+                    DeleteAccountOTPView(
+                        viewModel: viewModel,
+                        reason: reason,
+                        onBack: { path.removeLast() },
+                        onAccountDeleted: onSignOut
                     )
                 case .editPersonalInfo:
                     EditPersonalInfoView(
@@ -99,8 +135,11 @@ struct ProfileSettingsView: View {
     let onSignOut: () -> Void
     let onAccountDeleted: () -> Void
     let onOpenProfile: () -> Void
+    let onOpenMyPosts: () -> Void
+    let onOpenBlockedUsers: () -> Void
+    let onOpenAboutUs: () -> Void
+    let onOpenDeleteAccount: () -> Void
 
-    @State private var showDeleteConfirmation = false
     @State private var showShareSheet = false
 
     var body: some View {
@@ -129,18 +168,6 @@ struct ProfileSettingsView: View {
         }
         .background(AppTheme.screenBackground.ignoresSafeArea())
         .navigationBarHidden(true)
-        .alert(Strings.Profile.deleteAccountTitle, isPresented: $showDeleteConfirmation) {
-            Button(Strings.Profile.deleteAccountConfirm, role: .destructive) {
-                Task {
-                    if await viewModel.deleteAccount() {
-                        onAccountDeleted()
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(Strings.Profile.deleteAccountMessage)
-        }
         .alert("Error", isPresented: errorAlertBinding) {
             Button("OK", role: .cancel) {
                 viewModel.errorMessage = nil
@@ -151,19 +178,12 @@ struct ProfileSettingsView: View {
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: [URL(string: "https://roominate.app") ?? Strings.App.name])
         }
-        .overlay {
-            if viewModel.isDeletingAccount {
-                Color.black.opacity(0.2)
-                    .ignoresSafeArea()
-                ProgressView()
-            }
-        }
     }
 
     private var header: some View {
         HStack {
             Text(Strings.App.name)
-                .font(.system(size: 22, weight: .bold))
+                .font(.system(size: AppTheme.Profile.sectionTitleSize + 5, weight: .bold))
                 .foregroundStyle(AppTheme.primaryBlue)
             Spacer()
             Image(systemName: "ellipsis.message")
@@ -181,12 +201,12 @@ struct ProfileSettingsView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(viewModel.profile.name.isEmpty ? Strings.Profile.guestUser : viewModel.profile.name)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: AppTheme.Profile.cardTitleSize, weight: .semibold))
                         .foregroundStyle(AppTheme.textPrimary)
 
                     if !viewModel.profile.professionDisplay.isEmpty {
                         Text(viewModel.profile.professionDisplay)
-                            .font(.system(size: 13))
+                            .font(.system(size: AppTheme.Profile.detailLabelSize))
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineLimit(1)
                     }
@@ -194,7 +214,7 @@ struct ProfileSettingsView: View {
                     let detailLine = profileDetailLine
                     if !detailLine.isEmpty {
                         Text(detailLine)
-                            .font(.system(size: 13))
+                            .font(.system(size: AppTheme.Profile.detailLabelSize))
                             .foregroundStyle(AppTheme.textSecondary)
                             .lineLimit(1)
                     }
@@ -230,11 +250,11 @@ struct ProfileSettingsView: View {
 
     private var aboutCard: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("About")
-                .font(.system(size: 13, weight: .semibold))
+            Text(Strings.Profile.aboutCardTitle)
+                .font(.system(size: AppTheme.Profile.detailLabelSize, weight: .semibold))
                 .foregroundStyle(AppTheme.textSecondary)
             Text(viewModel.profile.about)
-                .font(.system(size: 15))
+                .font(.system(size: AppTheme.Profile.detailValueSize))
                 .foregroundStyle(AppTheme.textPrimary)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -248,15 +268,15 @@ struct ProfileSettingsView: View {
     private var settingsMenu: some View {
         VStack(spacing: 0) {
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: "My Posts", systemImage: "house", showsChevron: true, action: onOpenProfile),
+                ProfileMenuItem(title: Strings.Profile.myPosts, systemImage: "house", showsChevron: true, action: onOpenMyPosts),
                 ProfileMenuItem(title: Strings.Profile.notification, systemImage: "bell", showsChevron: true),
-                ProfileMenuItem(title: Strings.Profile.blockedUsers, systemImage: "nosign", showsChevron: true)
+                ProfileMenuItem(title: Strings.Profile.blockedUsers, systemImage: "nosign", showsChevron: true, action: onOpenBlockedUsers)
             ])
 
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: Strings.Profile.aboutUs, systemImage: "info.circle", showsChevron: true),
+                ProfileMenuItem(title: Strings.Profile.aboutUs, systemImage: "info.circle", showsChevron: true, action: onOpenAboutUs),
                 ProfileMenuItem(title: Strings.Profile.contactUs, systemImage: "envelope", showsChevron: true),
                 ProfileMenuItem(title: Strings.Profile.reportProblem, systemImage: "exclamationmark.bubble", showsChevron: true)
             ])
@@ -277,7 +297,7 @@ struct ProfileSettingsView: View {
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: Strings.Profile.deleteAccount, systemImage: "trash", isDestructive: true, action: { showDeleteConfirmation = true })
+                ProfileMenuItem(title: Strings.Profile.deleteAccount, systemImage: "trash", isDestructive: true, action: onOpenDeleteAccount)
             ])
         }
         .background(Color.white)
@@ -286,7 +306,7 @@ struct ProfileSettingsView: View {
 
     private var errorAlertBinding: Binding<Bool> {
         Binding(
-            get: { viewModel.errorMessage != nil && !viewModel.isDeletingAccount },
+            get: { viewModel.errorMessage != nil },
             set: { isPresented in
                 if !isPresented {
                     viewModel.errorMessage = nil

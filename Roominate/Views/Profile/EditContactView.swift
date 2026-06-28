@@ -37,7 +37,7 @@ struct EditContactView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text(Strings.Profile.socialLinks)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                         .foregroundStyle(AppTheme.textPrimary)
 
                     ForEach($socialLinks) { $link in
@@ -51,7 +51,7 @@ struct EditContactView: View {
                             Image(systemName: "plus.circle.fill")
                             Text(Strings.Profile.addSocialLink)
                         }
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                         .foregroundStyle(AppTheme.primaryBlue)
                     }
                     .buttonStyle(.plain)
@@ -99,7 +99,7 @@ struct EditContactView: View {
                 } label: {
                     HStack {
                         Text(link.wrappedValue.type.displayName)
-                            .font(.system(size: 15))
+                            .font(.system(size: AppTheme.Profile.fieldInputSize))
                             .foregroundStyle(AppTheme.textPrimary)
                         Spacer()
                         Image(systemName: "chevron.down")
@@ -107,7 +107,7 @@ struct EditContactView: View {
                             .foregroundStyle(AppTheme.textSecondary)
                     }
                     .padding(.horizontal, 16)
-                    .frame(height: 52)
+                    .frame(height: AppTheme.Profile.fieldHeight)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                             .stroke(AppTheme.fieldBorder, lineWidth: 1)
@@ -125,13 +125,13 @@ struct EditContactView: View {
             }
 
             TextField(Strings.Profile.socialLinkPlaceholder, text: link.link)
-                .font(.system(size: 16))
+                .font(.system(size: AppTheme.Profile.fieldInputSize))
                 .keyboardType(.URL)
                 .autocapitalization(.none)
                 .autocorrectionDisabled()
                 .appTextInputStyle()
                 .padding(.horizontal, 16)
-                .frame(height: 52)
+                .frame(height: AppTheme.Profile.fieldHeight)
                 .background(AppTheme.fieldBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadius)

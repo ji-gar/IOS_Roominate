@@ -20,7 +20,11 @@ protocol UserServiceProtocol {
     ) async throws -> ProfileResponse
     func deleteProfileImage() async throws
     func deleteSocialLink(id: Int) async throws
-    func deleteAccount() async throws
+    func fetchBlockedUsers() async throws -> [BlockedUser]
+    func blockUser(userId: Int) async throws
+    func unblockUser(userId: Int) async throws
+    func requestAccountDeletion(reason: String) async throws
+    func verifyAccountDeletion(otp: String) async throws
 }
 
 final class UserService: UserServiceProtocol {
@@ -170,10 +174,45 @@ final class UserService: UserServiceProtocol {
         )
     }
 
-    func deleteAccount() async throws {
+    func fetchBlockedUsers() async throws -> [BlockedUser] {
+        let data = try await client.requestData(
+            path: APIConstants.User.blockedUsers,
+            method: .get,
+            requiresAuth: true
+        )
+        return try BlockedUser.decodeList(from: data, using: client.decoder)
+    }
+
+    func blockUser(userId: Int) async throws {
         _ = try await client.requestData(
-            path: APIConstants.User.deleteAccount,
+            path: APIConstants.User.block(userId: userId),
+            method: .post,
+            requiresAuth: true
+        )
+    }
+
+    func unblockUser(userId: Int) async throws {
+        _ = try await client.requestData(
+            path: APIConstants.User.block(userId: userId),
             method: .delete,
+            requiresAuth: true
+        )
+    }
+
+    func requestAccountDeletion(reason: String) async throws {
+        _ = try await client.requestData(
+            path: APIConstants.Account.deleteRequest,
+            method: .post,
+            body: DeleteAccountRequest(reason: reason),
+            requiresAuth: true
+        )
+    }
+
+    func verifyAccountDeletion(otp: String) async throws {
+        _ = try await client.requestData(
+            path: APIConstants.Account.deleteVerify,
+            method: .post,
+            body: DeleteAccountVerifyRequest(otp: otp),
             requiresAuth: true
         )
     }

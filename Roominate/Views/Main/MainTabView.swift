@@ -3,7 +3,7 @@ import SwiftUI
 
 enum AppTab: Hashable {
     case explore
-    case messages
+    case saved
     case add
     case profile
 }
@@ -12,6 +12,7 @@ enum AppTab: Hashable {
 final class MainTabState: ObservableObject {
     @Published var selectedTab: AppTab = .explore
     @Published private(set) var homeRefreshID = UUID()
+    @Published private(set) var savedRefreshID = UUID()
     @Published private(set) var addFlowResetID = UUID()
 
     func openAddTab() {
@@ -27,11 +28,16 @@ final class MainTabState: ObservableObject {
         homeRefreshID = UUID()
         addFlowResetID = UUID()
     }
+
+    func refreshSavedTab() {
+        savedRefreshID = UUID()
+    }
 }
 
 struct MainTabView: View {
     let onSignOut: () -> Void
     @StateObject private var tabState = MainTabState()
+    @StateObject private var savedStore = SavedPostsStore()
 
     init(onSignOut: @escaping () -> Void = {}) {
         self.onSignOut = onSignOut
@@ -47,16 +53,19 @@ struct MainTabView: View {
         TabView(selection: $tabState.selectedTab) {
             HomeView()
                 .environmentObject(tabState)
+                .environmentObject(savedStore)
                 .tabItem {
                     Label("Explore", systemImage: "magnifyingglass")
                 }
                 .tag(AppTab.explore)
 
-            ChatListView()
+            SavedTabView()
+                .environmentObject(tabState)
+                .environmentObject(savedStore)
                 .tabItem {
-                    Label("Messages", systemImage: "message")
+                    Label("Saved", systemImage: "bookmark")
                 }
-                .tag(AppTab.messages)
+                .tag(AppTab.saved)
 
             CreatePostFlowView(
                 onDismiss: { tabState.cancelAddFlow() },
@@ -75,6 +84,9 @@ struct MainTabView: View {
                 .tag(AppTab.profile)
         }
         .tint(AppTheme.primaryBlue)
+        .task {
+            await savedStore.load()
+        }
     }
 }
 

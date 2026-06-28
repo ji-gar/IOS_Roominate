@@ -134,6 +134,17 @@ enum Strings {
         static var deleteListing: String { localized("profile.deleteListing") }
         static var deleteListingTitle: String { localized("profile.deleteListingTitle") }
         static var deleteListingMessage: String { localized("profile.deleteListingMessage") }
+        static var myPosts: String { localized("profile.myPosts") }
+        static var aboutCardTitle: String { localized("profile.aboutCardTitle") }
+        static var searchPerson: String { localized("profile.searchPerson") }
+        static var unblock: String { localized("profile.unblock") }
+        static var noBlockedUsers: String { localized("profile.noBlockedUsers") }
+        static var noSearchResults: String { localized("profile.noSearchResults") }
+        static var aboutUsDescription: String { localized("profile.aboutUsDescription") }
+        static var deleteAccountReasonPrompt: String { localized("profile.deleteAccountReasonPrompt") }
+        static var deleteAccountOTPSent: String { localized("profile.deleteAccountOTPSent") }
+        static var verifyAndDelete: String { localized("profile.verifyAndDelete") }
+        static var cancel: String { localized("profile.cancel") }
     }
 
     enum Common {

@@ -24,4 +24,18 @@ enum AppTheme {
     static let cornerRadius: CGFloat = 10
     static let horizontalPadding: CGFloat = 24
     static let buttonHeight: CGFloat = 52
+
+    enum Profile {
+        static let fieldLabelSize: CGFloat = 16
+        static let fieldInputSize: CGFloat = 16
+        static let fieldHeight: CGFloat = 52
+        static let sectionTitleSize: CGFloat = 17
+        static let menuRowHeight: CGFloat = 56
+        static let menuTitleSize: CGFloat = 16
+        static let menuIconSize: CGFloat = 20
+        static let cardTitleSize: CGFloat = 16
+        static let cardSubtitleSize: CGFloat = 14
+        static let detailValueSize: CGFloat = 15
+        static let detailLabelSize: CGFloat = 13
+    }
 }

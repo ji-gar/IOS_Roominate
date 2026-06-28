@@ -14,7 +14,6 @@ final class HomeViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var createPostTitle = ""
     @Published var createPostErrorMessage: String?
-    @Published private var favoriteIDs: Set<Int> = []
 
     private let postService: PostServiceProtocol
     private let userService: UserServiceProtocol
@@ -143,18 +142,6 @@ final class HomeViewModel: ObservableObject {
             return response.total
         } catch {
             return nil
-        }
-    }
-
-    func isFavorite(_ id: Int) -> Bool {
-        favoriteIDs.contains(id)
-    }
-
-    func toggleFavorite(_ id: Int) {
-        if favoriteIDs.contains(id) {
-            favoriteIDs.remove(id)
-        } else {
-            favoriteIDs.insert(id)
         }
     }
 

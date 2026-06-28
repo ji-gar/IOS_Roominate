@@ -194,7 +194,7 @@ struct EditPersonalInfoView: View {
     private var birthYearField: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Strings.Profile.birthYear)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                 .foregroundStyle(AppTheme.textPrimary)
 
             Menu {
@@ -206,7 +206,7 @@ struct EditPersonalInfoView: View {
             } label: {
                 HStack {
                     Text(birthYear.map(String.init) ?? Strings.Profile.birthYearPlaceholder)
-                        .font(.system(size: 16))
+                        .font(.system(size: AppTheme.Profile.fieldInputSize))
                         .foregroundStyle(
                             birthYear == nil ? AppTheme.textSecondary : AppTheme.textPrimary
                         )
@@ -216,7 +216,8 @@ struct EditPersonalInfoView: View {
                         .foregroundStyle(AppTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
-                .frame(height: 52)
+                .frame(height: AppTheme.Profile.fieldHeight)
+                .background(AppTheme.fieldBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                         .stroke(AppTheme.fieldBorder, lineWidth: 1)

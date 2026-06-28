@@ -9,6 +9,7 @@ enum HomeRoute: Hashable {
         postId: Int? = nil,
         otherUserId: Int? = nil
     )
+    case chatList
 }
 
 private struct ReportTarget: Identifiable {
@@ -17,6 +18,7 @@ private struct ReportTarget: Identifiable {
 
 struct HomeView: View {
     @EnvironmentObject private var tabState: MainTabState
+    @EnvironmentObject private var savedStore: SavedPostsStore
     @StateObject private var viewModel = HomeViewModel()
     @StateObject private var startChatVM = StartChatViewModel()
     @State private var path: [HomeRoute] = []
@@ -62,6 +64,19 @@ struct HomeView: View {
                         postId: postId,
                         otherUserId: otherUserId
                     )
+                case .chatList:
+                    ChatListView(
+                        showsBackButton: true,
+                        onBack: { if !path.isEmpty { path.removeLast() } },
+                        onSelectConversation: { id, name, postId, otherUserId in
+                            path.append(.chat(
+                                conversationId: id,
+                                otherName: name,
+                                postId: postId,
+                                otherUserId: otherUserId
+                            ))
+                        }
+                    )
                 }
             }
             .task {
@@ -93,7 +108,7 @@ struct HomeView: View {
                 .foregroundStyle(AppTheme.primaryBlue)
             Spacer()
             Button {
-                tabState.selectedTab = .messages
+                path.append(.chatList)
             } label: {
                 Image(systemName: "ellipsis.message")
                     .font(.system(size: 20))
@@ -226,8 +241,8 @@ struct HomeView: View {
                 NavigationLink(value: HomeRoute.flatDetail(listing)) {
                     FlatCard(
                         listing: listing,
-                        isFavorite: viewModel.isFavorite(listing.id),
-                        onToggleFavorite: { viewModel.toggleFavorite(listing.id) },
+                        isFavorite: savedStore.isSaved(listing.id),
+                        onToggleFavorite: { Task { await savedStore.toggleSave(postId: listing.id) } },
                         onReport: { reportTarget = ReportTarget(id: listing.id) }
                     )
                 }
@@ -255,8 +270,8 @@ struct HomeView: View {
                 NavigationLink(value: HomeRoute.flatmateDetail(listing)) {
                     FlatmateCard(
                         listing: listing,
-                        isFavorite: viewModel.isFavorite(listing.id),
-                        onSave: { viewModel.toggleFavorite(listing.id) },
+                        isFavorite: savedStore.isSaved(listing.id),
+                        onSave: { Task { await savedStore.toggleSave(postId: listing.id) } },
                         onChat: {
                             Task {
                                 await startChatVM.startChat(postId: listing.id, receiverName: listing.author.name) { id, name, postId, otherUserId in
@@ -323,4 +338,5 @@ struct HomeView: View {
 #Preview {
     HomeView()
         .environmentObject(MainTabState())
+        .environmentObject(SavedPostsStore())
 }

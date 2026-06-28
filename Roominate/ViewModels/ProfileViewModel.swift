@@ -6,8 +6,10 @@ import UIKit
 final class ProfileViewModel: ObservableObject {
     @Published var profile = UserProfile()
     @Published var listings: [UserListing] = []
+    @Published var blockedUsers: [BlockedUser] = []
     @Published var isLoading = false
     @Published var isLoadingListings = false
+    @Published var isLoadingBlockedUsers = false
     @Published var isSaving = false
     @Published var isDeletingListing = false
     @Published var isDeletingAccount = false
@@ -49,6 +51,21 @@ final class ProfileViewModel: ObservableObject {
         }
     }
 
+    private func refreshProfile() async {
+        do {
+            async let profileResponse = userService.fetchProfile()
+            async let userResponse = authService.fetchCurrentUser()
+            let (fetchedProfile, fetchedUser) = try await (profileResponse, userResponse)
+            let preservedImageData = profile.profileImageData
+            profile = UserProfile.from(profile: fetchedProfile, user: fetchedUser)
+            if preservedImageData != nil, profile.profileImageURL == nil {
+                profile.profileImageData = preservedImageData
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     @discardableResult
     func loadListings() async -> Bool {
         isLoadingListings = true
@@ -60,6 +77,20 @@ final class ProfileViewModel: ObservableObject {
                 query: PostQuery(perPage: 50, page: 1)
             )
             listings = response.data.map(UserListing.init)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    @discardableResult
+    func loadBlockedUsers() async -> Bool {
+        isLoadingBlockedUsers = true
+        defer { isLoadingBlockedUsers = false }
+
+        do {
+            blockedUsers = try await userService.fetchBlockedUsers()
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -92,7 +123,7 @@ final class ProfileViewModel: ObservableObject {
         defer { isSaving = false }
 
         do {
-            let response = try await userService.updateProfile(
+            _ = try await userService.updateProfile(
                 name: name,
                 gender: gender,
                 birthYear: birthYear,
@@ -101,13 +132,13 @@ final class ProfileViewModel: ObservableObject {
                 instituteName: profession == .student ? instituteName : nil,
                 organizationName: profession == .working ? organizationName : nil,
                 position: position.isEmpty ? nil : position,
-                about: nil,
-                email: nil,
-                socialLinks: nil,
+                about: profile.about.isEmpty ? nil : profile.about,
+                email: profile.email.isEmpty ? nil : profile.email,
+                socialLinks: profile.socialLinks.isEmpty ? nil : profile.socialLinks,
                 profileImageData: profile.profileImageData,
                 removeProfileImage: removeImage
             )
-            profile = UserProfile.from(profile: response, user: nil)
+            await refreshProfile()
             profile.profileImageData = nil
             return true
         } catch {
@@ -122,22 +153,24 @@ final class ProfileViewModel: ObservableObject {
         defer { isSaving = false }
 
         do {
-            let response = try await userService.updateProfile(
-                name: nil,
-                gender: nil,
-                birthYear: nil,
-                currentCity: nil,
-                profession: nil,
-                instituteName: nil,
-                organizationName: nil,
-                position: nil,
-                about: nil,
+            _ = try await userService.updateProfile(
+                name: profile.name.isEmpty ? nil : profile.name,
+                gender: profile.gender,
+                birthYear: profile.birthYear,
+                currentCity: profile.currentCity.isEmpty ? nil : profile.currentCity,
+                profession: profile.profession,
+                instituteName: profile.profession == .student && !profile.instituteName.isEmpty
+                    ? profile.instituteName : nil,
+                organizationName: profile.profession == .working && !profile.organizationName.isEmpty
+                    ? profile.organizationName : nil,
+                position: profile.position.isEmpty ? nil : profile.position,
+                about: profile.about.isEmpty ? nil : profile.about,
                 email: email,
                 socialLinks: socialLinks,
                 profileImageData: nil,
                 removeProfileImage: false
             )
-            profile = UserProfile.from(profile: response, user: nil)
+            await refreshProfile()
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -151,22 +184,24 @@ final class ProfileViewModel: ObservableObject {
         defer { isSaving = false }
 
         do {
-            let response = try await userService.updateProfile(
-                name: nil,
-                gender: nil,
-                birthYear: nil,
-                currentCity: nil,
-                profession: nil,
-                instituteName: nil,
-                organizationName: nil,
-                position: nil,
+            _ = try await userService.updateProfile(
+                name: profile.name.isEmpty ? nil : profile.name,
+                gender: profile.gender,
+                birthYear: profile.birthYear,
+                currentCity: profile.currentCity.isEmpty ? nil : profile.currentCity,
+                profession: profile.profession,
+                instituteName: profile.profession == .student && !profile.instituteName.isEmpty
+                    ? profile.instituteName : nil,
+                organizationName: profile.profession == .working && !profile.organizationName.isEmpty
+                    ? profile.organizationName : nil,
+                position: profile.position.isEmpty ? nil : profile.position,
                 about: about,
-                email: nil,
-                socialLinks: nil,
+                email: profile.email.isEmpty ? nil : profile.email,
+                socialLinks: profile.socialLinks.isEmpty ? nil : profile.socialLinks,
                 profileImageData: nil,
                 removeProfileImage: false
             )
-            profile = UserProfile.from(profile: response, user: nil)
+            await refreshProfile()
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -212,13 +247,38 @@ final class ProfileViewModel: ObservableObject {
         }
     }
 
-    func deleteAccount() async -> Bool {
+    func unblockUser(id: Int) async -> Bool {
+        do {
+            try await userService.unblockUser(userId: id)
+            blockedUsers.removeAll { $0.id == id }
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    func requestAccountDeletion(reason: String) async -> Bool {
         isDeletingAccount = true
         errorMessage = nil
         defer { isDeletingAccount = false }
 
         do {
-            try await userService.deleteAccount()
+            try await userService.requestAccountDeletion(reason: reason)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    func verifyAccountDeletion(otp: String) async -> Bool {
+        isDeletingAccount = true
+        errorMessage = nil
+        defer { isDeletingAccount = false }
+
+        do {
+            try await userService.verifyAccountDeletion(otp: otp)
             TokenStorage.shared.clear()
             return true
         } catch {

@@ -6,10 +6,10 @@ struct RequiredLabel: View {
     var body: some View {
         HStack(spacing: 2) {
             Text(title)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                 .foregroundStyle(AppTheme.textPrimary)
             Text(Strings.Profile.required)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                 .foregroundStyle(AppTheme.errorRed)
         }
     }

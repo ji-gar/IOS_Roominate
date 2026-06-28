@@ -124,6 +124,17 @@
 "profile.deleteListing" = "Delete";
 "profile.deleteListingTitle" = "Delete listing?";
 "profile.deleteListingMessage" = "This will permanently remove your listing. This action cannot be undone.";
+"profile.myPosts" = "My Posts";
+"profile.aboutCardTitle" = "About";
+"profile.searchPerson" = "Search Person";
+"profile.unblock" = "Unblock";
+"profile.noBlockedUsers" = "You haven't blocked anyone yet.";
+"profile.noSearchResults" = "No users found.";
+"profile.aboutUsDescription" = "Roominate helps students and young professionals find compatible flatmates and shared homes through a trusted community. Whether you have a room to fill or need a place to stay, Roominate makes it easy to discover listings, connect with like-minded people, and find a living arrangement that feels right.";
+"profile.deleteAccountReasonPrompt" = "Please let us know the reason for deleting your account";
+"profile.deleteAccountOTPSent" = "We've sent a 4-digit verification code to your email.";
+"profile.verifyAndDelete" = "Verify & Delete Account";
+"profile.cancel" = "Cancel";
 
 /* Common */
 "common.back" = "Back";

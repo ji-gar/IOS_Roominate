@@ -45,7 +45,12 @@ struct FlatmateCard: View {
             .padding(.top, 2)
 
             HStack(spacing: 12) {
-                cardActionButton(title: "Save", systemImage: "heart", action: onSave)
+                cardActionButton(
+                    title: "Save",
+                    systemImage: isFavorite ? "heart.fill" : "heart",
+                    isHighlighted: isFavorite,
+                    action: onSave
+                )
                 cardActionButton(title: "Chat", systemImage: "message", action: onChat)
             }
             .padding(.top, 4)
@@ -125,14 +130,19 @@ struct FlatmateCard: View {
         }
     }
 
-    private func cardActionButton(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func cardActionButton(
+        title: String,
+        systemImage: String,
+        isHighlighted: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: systemImage)
                 Text(title)
             }
             .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(AppTheme.textPrimary)
+            .foregroundStyle(isHighlighted ? AppTheme.errorRed : AppTheme.textPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 44)
             .background(Color.white)

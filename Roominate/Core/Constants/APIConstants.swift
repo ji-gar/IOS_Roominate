@@ -39,9 +39,14 @@ enum APIConstants {
         static let me = "/user"
         static let profile = "/profile"
         static let profileImage = "/profile/image"
-        static let deleteAccount = "/profile"
+        static let blockedUsers = "/users/blocked"
         static func socialLink(id: Int) -> String { "/profile/social-links/\(id)" }
         static func block(userId: Int) -> String { "/users/\(userId)/block" }
+    }
+
+    enum Account {
+        static let deleteRequest = "/account/delete/request"
+        static let deleteVerify = "/account/delete/verify"
     }
 
     enum Posts {
@@ -50,6 +55,11 @@ enum APIConstants {
         static let search = "/posts/search"
         static func post(id: Int) -> String { "/posts/\(id)" }
         static func report(postId: Int) -> String { "/posts/\(postId)/report" }
+    }
+
+    enum Wishlist {
+        static let list = "/wishlist"
+        static func post(postId: Int) -> String { "/posts/\(postId)/wishlist" }
     }
 
     enum Chat {

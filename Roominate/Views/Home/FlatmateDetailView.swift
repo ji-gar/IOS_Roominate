@@ -5,8 +5,8 @@ struct FlatmateDetailView: View {
     var onStartChat: ((Int, String, Int?, Int?) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var savedStore: SavedPostsStore
     @StateObject private var startChatVM = StartChatViewModel()
-    @State private var isFavorite = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,9 +32,9 @@ struct FlatmateDetailView: View {
             .scrollIndicators(.hidden)
 
             DetailBottomBar(
-                isFavorite: isFavorite,
+                isFavorite: savedStore.isSaved(listing.id),
                 isLoading: startChatVM.isLoading,
-                onToggleFavorite: { isFavorite.toggle() },
+                onToggleFavorite: { Task { await savedStore.toggleSave(postId: listing.id) } },
                 onInterested: {
                     Task {
                         await startChatVM.startChat(postId: listing.id, receiverName: listing.author.name) { id, name, postId, otherUserId in
@@ -173,5 +173,6 @@ struct FlatmateDetailView: View {
 #Preview {
     NavigationStack {
         FlatmateDetailView(listing: MockListings.flatmates[0])
+            .environmentObject(SavedPostsStore())
     }
 }

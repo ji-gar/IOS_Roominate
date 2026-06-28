@@ -279,6 +279,86 @@ struct PaginatedPosts: Decodable {
     }
 }
 
+struct WishlistItem: Decodable, Hashable {
+    let id: Int
+    let userId: Int
+    let postId: Int
+    let post: Post?
+}
+
+struct PaginatedWishlist: Decodable {
+    let currentPage: Int
+    let data: [WishlistItem]
+    let lastPage: Int
+    let perPage: Int
+    let total: Int
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        currentPage = try container.decodeFlexibleInt(forKey: .currentPage, default: 1)
+        data = try container.decodeIfPresent([WishlistItem].self, forKey: .data) ?? []
+        perPage = try container.decodeFlexibleInt(forKey: .perPage, default: 15)
+        total = try container.decodeFlexibleInt(forKey: .total, default: data.count)
+
+        let decodedLastPage = try container.decodeFlexibleIntIfPresent(forKey: .lastPage)
+        if let decodedLastPage {
+            lastPage = decodedLastPage
+        } else {
+            let pageSize = max(perPage, 1)
+            lastPage = max(1, Int(ceil(Double(total) / Double(pageSize))))
+        }
+    }
+
+    init(currentPage: Int, data: [WishlistItem], lastPage: Int, perPage: Int, total: Int) {
+        self.currentPage = currentPage
+        self.data = data
+        self.lastPage = lastPage
+        self.perPage = perPage
+        self.total = total
+    }
+
+    static let empty = PaginatedWishlist(currentPage: 1, data: [], lastPage: 1, perPage: 15, total: 0)
+
+    var posts: [Post] {
+        data.compactMap(\.post)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case currentPage
+        case data
+        case lastPage
+        case perPage
+        case total
+    }
+}
+
+struct WishlistListResponse: Decodable {
+    let success: Bool?
+    let message: String?
+    let data: PaginatedWishlist
+
+    static func decode(from data: Data, using decoder: JSONDecoder) throws -> WishlistListResponse {
+        if let wrapped = try? decoder.decode(WishlistListEnvelope.self, from: data) {
+            return WishlistListResponse(
+                success: wrapped.success,
+                message: wrapped.message,
+                data: wrapped.resolvedData
+            )
+        }
+        return try decoder.decode(WishlistListResponse.self, from: data)
+    }
+}
+
+private struct WishlistListEnvelope: Decodable {
+    let success: Bool?
+    let message: String?
+    let data: PaginatedWishlist?
+
+    var resolvedData: PaginatedWishlist {
+        data ?? .empty
+    }
+}
+
 struct PostsListResponse: Decodable {
     let success: Bool?
     let message: String?

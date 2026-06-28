@@ -69,21 +69,21 @@ struct ProfileDetailView: View {
             )
 
             Text(viewModel.profile.name)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: AppTheme.Profile.cardTitleSize + 2, weight: .semibold))
                 .foregroundStyle(AppTheme.textPrimary)
 
             if !viewModel.profile.profileHeaderSubtitle.isEmpty {
                 Text(viewModel.profile.profileHeaderSubtitle)
-                    .font(.system(size: 14))
+                    .font(.system(size: AppTheme.Profile.cardSubtitleSize))
                     .foregroundStyle(AppTheme.textSecondary)
             }
 
             if !viewModel.profile.currentCity.isEmpty {
                 HStack(spacing: 4) {
                     Image(systemName: "mappin.and.ellipse")
-                        .font(.system(size: 13))
+                        .font(.system(size: AppTheme.Profile.detailLabelSize))
                     Text(viewModel.profile.currentCity)
-                        .font(.system(size: 14))
+                        .font(.system(size: AppTheme.Profile.cardSubtitleSize))
                 }
                 .foregroundStyle(AppTheme.textSecondary)
             }
@@ -173,7 +173,7 @@ struct ProfileDetailView: View {
                         ? Strings.Profile.aboutEmpty
                         : viewModel.profile.about
                 )
-                .font(.system(size: 14))
+                .font(.system(size: AppTheme.Profile.cardSubtitleSize))
                 .foregroundStyle(
                     viewModel.profile.about.isEmpty
                         ? AppTheme.textSecondary
@@ -184,7 +184,7 @@ struct ProfileDetailView: View {
                 if !viewModel.profile.lifestyleNotes.isEmpty {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(Strings.Profile.lifestyleNotes)
-                            .font(.system(size: 13))
+                            .font(.system(size: AppTheme.Profile.detailLabelSize))
                             .foregroundStyle(AppTheme.textSecondary)
                         WrapChips(items: viewModel.profile.lifestyleNotes)
                     }
@@ -196,7 +196,7 @@ struct ProfileDetailView: View {
     private var listingSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(Strings.Profile.listing)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: AppTheme.Profile.sectionTitleSize, weight: .semibold))
                 .foregroundStyle(AppTheme.textPrimary)
 
             if viewModel.isLoadingListings && viewModel.listings.isEmpty {

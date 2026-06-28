@@ -23,7 +23,7 @@ struct EditAboutMeView: View {
                         axis: .vertical
                     )
                     .lineLimit(5...10)
-                    .font(.system(size: 16))
+                    .font(.system(size: AppTheme.Profile.fieldInputSize))
                     .appTextInputStyle()
                     .padding(16)
                     .frame(minHeight: 140, alignment: .topLeading)

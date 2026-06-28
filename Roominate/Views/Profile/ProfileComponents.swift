@@ -14,25 +14,25 @@ struct ProfileFormTextField: View {
                 RequiredLabel(title: title)
             } else {
                 Text(title)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                     .foregroundStyle(AppTheme.textPrimary)
             }
 
             HStack(spacing: 10) {
                 if let icon {
                     Image(systemName: icon)
-                        .font(.system(size: 22))
+                        .font(.system(size: AppTheme.Profile.fieldInputSize))
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
                 TextField(placeholder.isEmpty ? title : placeholder, text: $text)
-                    .font(.system(size: 25))
+                    .font(.system(size: AppTheme.Profile.fieldInputSize))
                     .keyboardType(keyboardType)
                     .autocorrectionDisabled()
                     .appTextInputStyle()
             }
-            .padding(.horizontal, 20)
-            .frame(height: 70)
+            .padding(.horizontal, 16)
+            .frame(height: AppTheme.Profile.fieldHeight)
             .background(AppTheme.fieldBackground)
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
@@ -53,12 +53,12 @@ struct ProfileMenuRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 20, weight: .regular))
+                    .font(.system(size: AppTheme.Profile.menuIconSize, weight: .regular))
                     .foregroundStyle(isDestructive ? AppTheme.errorRed : AppTheme.textPrimary)
                     .frame(width: 24, alignment: .center)
 
                 Text(title)
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.system(size: AppTheme.Profile.menuTitleSize, weight: .regular))
                     .foregroundStyle(isDestructive ? AppTheme.errorRed : AppTheme.textPrimary)
 
                 Spacer(minLength: 8)
@@ -68,7 +68,7 @@ struct ProfileMenuRow: View {
                     .foregroundStyle(showsChevron ? AppTheme.textSecondary.opacity(0.45) : .clear)
             }
             .padding(.horizontal, 16)
-            .frame(height: 56)
+            .frame(height: AppTheme.Profile.menuRowHeight)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -152,7 +152,7 @@ struct ProfileSectionGroup<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(title)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: AppTheme.Profile.sectionTitleSize, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
                 Spacer()
                 if let onEdit {
@@ -195,7 +195,7 @@ struct ProfileIconDetailRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.system(size: 12))
+                    .font(.system(size: AppTheme.Profile.detailLabelSize))
                     .foregroundStyle(AppTheme.textSecondary)
 
                 HStack(spacing: 8) {
@@ -216,19 +216,19 @@ struct ProfileIconDetailRow: View {
             if let url = linkURL(from: value) {
                 Link(destination: url) {
                     Text(displayLink(value))
-                        .font(.system(size: 15))
+                        .font(.system(size: AppTheme.Profile.detailValueSize))
                         .foregroundStyle(AppTheme.primaryBlue)
                         .underline()
                 }
             } else {
                 Text(value)
-                    .font(.system(size: 15))
+                    .font(.system(size: AppTheme.Profile.detailValueSize))
                     .foregroundStyle(AppTheme.primaryBlue)
                     .underline()
             }
         } else {
             Text(value.isEmpty ? "—" : value)
-                .font(.system(size: 15))
+                .font(.system(size: AppTheme.Profile.detailValueSize))
                 .foregroundStyle(AppTheme.textPrimary)
         }
     }
@@ -257,11 +257,11 @@ struct ProfileDetailRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(label)
-                .font(.system(size: 13))
+                .font(.system(size: AppTheme.Profile.detailLabelSize))
                 .foregroundStyle(AppTheme.textSecondary)
             HStack(spacing: 8) {
                 Text(value.isEmpty ? "—" : value)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: AppTheme.Profile.detailValueSize, weight: .medium))
                     .foregroundStyle(AppTheme.textPrimary)
                 if let trailing {
                     trailing
@@ -354,10 +354,10 @@ struct ProfileListingActionButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
                 .foregroundStyle(isDestructive ? AppTheme.errorRed : AppTheme.textPrimary)
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(height: AppTheme.buttonHeight)
                 .background(Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
@@ -377,11 +377,11 @@ struct ProfileAddPostButton: View {
                 Image(systemName: "plus")
                     .font(.system(size: 16, weight: .semibold))
                 Text(Strings.Profile.addPost)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .semibold))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 48)
+            .frame(height: AppTheme.buttonHeight)
             .background(AppTheme.primaryBlue)
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
@@ -525,7 +525,7 @@ func profileEditContainer<Content: View>(
             BackButton(action: onBack)
             Spacer()
             Text(title)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: AppTheme.Profile.sectionTitleSize, weight: .semibold))
                 .foregroundStyle(AppTheme.textPrimary)
             Spacer()
             Color.clear.frame(width: 44, height: 44)
