@@ -10,13 +10,17 @@ struct CreatePostPhotosView: View {
 
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var isLoadingPhotos = false
-    @State private var activeSlotIndex: Int?
 
     private let minPhotos = 5
     private let maxPhotos = 10
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 14), count: 2)
 
-    private var slotCount: Int {
-        max(minPhotos, min(viewModel.images.count + 1, maxPhotos))
+    private var remainingSlots: Int {
+        max(0, maxPhotos - viewModel.images.count)
+    }
+
+    private var photosNeeded: Int {
+        max(0, minPhotos - viewModel.images.count)
     }
 
     var body: some View {
@@ -28,18 +32,20 @@ struct CreatePostPhotosView: View {
                         .foregroundStyle(AppTheme.textPrimary)
                         .padding(.top, 8)
 
-                    Text("Upload at least \(minPhotos) pictures")
+                    Text(uploadHint)
                         .font(.system(size: 14))
                         .foregroundStyle(AppTheme.textSecondary)
 
-                    VStack(spacing: 14) {
-                        ForEach(0 ..< slotCount, id: \.self) { index in
-                            if index < viewModel.images.count {
-                                filledSlot(viewModel.images[index])
-                            } else {
-                                addSlot(at: index)
+                    if !viewModel.images.isEmpty {
+                        LazyVGrid(columns: columns, spacing: 14) {
+                            ForEach(viewModel.images) { item in
+                                filledSlot(item)
                             }
                         }
+                    }
+
+                    if remainingSlots > 0 {
+                        bulkPhotoPicker
                     }
 
                     Spacer(minLength: 24)
@@ -79,6 +85,54 @@ struct CreatePostPhotosView: View {
         }
     }
 
+    private var uploadHint: String {
+        if viewModel.images.isEmpty {
+            return "Select at least \(minPhotos) pictures in one go"
+        }
+        if photosNeeded > 0 {
+            return "\(photosNeeded) more picture\(photosNeeded == 1 ? "" : "s") needed (minimum \(minPhotos))"
+        }
+        return "\(viewModel.images.count) of \(maxPhotos) pictures added"
+    }
+
+    private var bulkPhotoPicker: some View {
+        PhotosPicker(
+            selection: $pickerItems,
+            maxSelectionCount: remainingSlots,
+            matching: .images,
+            photoLibrary: .shared()
+        ) {
+            HStack(spacing: 8) {
+                if isLoadingPhotos {
+                    ProgressView()
+                        .tint(AppTheme.textSecondary)
+                } else {
+                    Image(systemName: viewModel.images.isEmpty ? "photo.on.rectangle.angled" : "plus")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(AppTheme.textSecondary)
+                    Text(bulkPickerLabel)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: viewModel.images.isEmpty ? 160 : 56)
+            .background(Color(red: 0.93, green: 0.94, blue: 0.95))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+        .disabled(isLoadingPhotos)
+    }
+
+    private var bulkPickerLabel: String {
+        if viewModel.images.isEmpty {
+            return "Select Photos"
+        }
+        if photosNeeded > 0 {
+            return "Select \(photosNeeded) More"
+        }
+        return "Add More Photos"
+    }
+
     private func filledSlot(_ item: DraftImage) -> some View {
         ZStack(alignment: .topTrailing) {
             Image(uiImage: item.image)
@@ -103,37 +157,6 @@ struct CreatePostPhotosView: View {
         }
     }
 
-    private func addSlot(at index: Int) -> some View {
-        PhotosPicker(
-            selection: $pickerItems,
-            maxSelectionCount: maxPhotos - viewModel.images.count,
-            matching: .images,
-            photoLibrary: .shared()
-        ) {
-            HStack(spacing: 8) {
-                if isLoadingPhotos && activeSlotIndex == index {
-                    ProgressView()
-                        .tint(AppTheme.textSecondary)
-                } else {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(AppTheme.textSecondary)
-                    Text("Add Stay")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 160)
-            .background(Color(red: 0.93, green: 0.94, blue: 0.95))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-        }
-        .disabled(isLoadingPhotos || viewModel.images.count >= maxPhotos)
-        .simultaneousGesture(TapGesture().onEnded {
-            activeSlotIndex = index
-        })
-    }
-
     private func loadPhotos(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
         isLoadingPhotos = true
@@ -148,7 +171,6 @@ struct CreatePostPhotosView: View {
                 viewModel.addImages(datas)
                 pickerItems = []
                 isLoadingPhotos = false
-                activeSlotIndex = nil
             }
         }
     }

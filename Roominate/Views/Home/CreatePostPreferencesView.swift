@@ -14,7 +14,7 @@ struct CreatePostPreferencesView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
-                    Text("Set Your Preferences for\nRoomy")
+                    Text("Set your preferences for\nflatmate")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineSpacing(3)

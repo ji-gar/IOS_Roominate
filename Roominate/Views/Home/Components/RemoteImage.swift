@@ -59,32 +59,9 @@ struct RemoteImage: View {
                   (200...299).contains(http.statusCode),
                   let image = UIImage(data: data) else {
                 didFail = true
-                // #region agent log
-                #if DEBUG
-                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                DebugSessionLog.log(
-                    location: "RemoteImage.swift:loadImage",
-                    message: "image load failed",
-                    data: ["url": urlString, "status": "\(status)"],
-                    hypothesisId: "H",
-                    runId: "post-fix-v3"
-                )
-                #endif
-                // #endregion
                 return
             }
             loadedImage = image
-            // #region agent log
-            #if DEBUG
-            DebugSessionLog.log(
-                location: "RemoteImage.swift:loadImage",
-                message: "image load succeeded",
-                data: ["url": urlString, "bytes": "\(data.count)"],
-                hypothesisId: "H",
-                runId: "post-fix-v3"
-            )
-            #endif
-            // #endregion
         } catch {
             didFail = true
         }

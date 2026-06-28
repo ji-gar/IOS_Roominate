@@ -65,29 +65,9 @@ struct HomeView: View {
                 }
             }
             .task {
-                // #region agent log
-                #if DEBUG
-                DebugSessionLog.log(
-                    location: "HomeView.swift:task",
-                    message: "view .task started loadPosts",
-                    data: [:],
-                    hypothesisId: "A"
-                )
-                #endif
-                // #endregion
-                await viewModel.loadPosts(source: "viewTask")
+                await viewModel.loadPosts()
             }
             .onChange(of: tabState.homeRefreshID) { _, _ in
-                // #region agent log
-                #if DEBUG
-                DebugSessionLog.log(
-                    location: "HomeView.swift:homeRefreshID",
-                    message: "homeRefreshID changed, triggering refreshPosts",
-                    data: [:],
-                    hypothesisId: "A"
-                )
-                #endif
-                // #endregion
                 Task { await viewModel.refreshPosts() }
             }
             .onChange(of: viewModel.searchText) { _, _ in
@@ -201,16 +181,6 @@ struct HomeView: View {
         }
         .scrollIndicators(.hidden)
         .refreshable {
-            // #region agent log
-            #if DEBUG
-            DebugSessionLog.log(
-                location: "HomeView.swift:refreshable",
-                message: "pull-to-refresh triggered refreshPosts",
-                data: [:],
-                hypothesisId: "A"
-            )
-            #endif
-            // #endregion
             await viewModel.refreshPosts()
         }
     }

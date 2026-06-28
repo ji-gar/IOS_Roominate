@@ -10,7 +10,7 @@ struct CreatePostPropertyDetailsView: View {
 
     private let propertyTypes = ["3BHK", "2BHK", "1BHK", "Other"]
     private let spaceTypes = ["Shared Room", "Private Room"]
-    private let furnishings = ["Ful Furn.", "Half", "Non furn."]
+    private let furnishings = ["Full Furnished", "Semi Furnished", "Unfurnished"]
 
     var body: some View {
         VStack(spacing: 0) {

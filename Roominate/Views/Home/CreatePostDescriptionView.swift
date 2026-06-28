@@ -15,7 +15,7 @@ struct CreatePostDescriptionView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
-                    Text("Write a Short Description\nfor Roomy")
+                    Text("Write short description\nabout your place.")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineSpacing(3)

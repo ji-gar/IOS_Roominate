@@ -87,6 +87,12 @@ struct CreatePostLocationView: View {
                         .zIndex(20)
 
                         OutlinedInputField(label: "State", text: $viewModel.draft.state)
+
+                        OutlinedInputField(
+                            label: "Pincode",
+                            text: $viewModel.draft.pincode,
+                            keyboardType: .numberPad
+                        )
                     }
 
                     Spacer(minLength: 24)
