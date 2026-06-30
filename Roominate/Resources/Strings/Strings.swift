@@ -145,6 +145,15 @@ enum Strings {
         static var deleteAccountOTPSent: String { localized("profile.deleteAccountOTPSent") }
         static var verifyAndDelete: String { localized("profile.verifyAndDelete") }
         static var cancel: String { localized("profile.cancel") }
+
+        // Notifications screen
+        static var manageNotification: String { localized("profile.manageNotification") }
+        static var manageNotificationSubtitle: String { localized("profile.manageNotificationSubtitle") }
+        static var selectAll: String { localized("profile.selectAll") }
+        static var newListing: String { localized("profile.newListing") }
+        static var messageNotification: String { localized("profile.messageNotification") }
+        static var wishListed: String { localized("profile.wishListed") }
+        static var notificationUpdated: String { localized("profile.notificationUpdated") }
     }
 
     enum Common {

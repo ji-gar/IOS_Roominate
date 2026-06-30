@@ -136,6 +136,15 @@
 "profile.verifyAndDelete" = "Verify & Delete Account";
 "profile.cancel" = "Cancel";
 
+/* Notifications screen */
+"profile.manageNotification" = "Manage notification";
+"profile.manageNotificationSubtitle" = "Customise when you'd like to receive notifications";
+"profile.selectAll" = "Select All";
+"profile.newListing" = "New Listing";
+"profile.messageNotification" = "Message";
+"profile.wishListed" = "Wish listed";
+"profile.notificationUpdated" = "Notification preferences updated";
+
 /* Common */
 "common.back" = "Back";
 "common.loading" = "Loading...";

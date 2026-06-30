@@ -11,6 +11,8 @@ struct ListingAuthor: Hashable {
     let name: String
     let role: String
     let avatarURL: String?
+    /// The author's user ID — used to navigate to their public profile.
+    let userId: Int?
 }
 
 /// A "Flat" listing: someone offering a flat / room and looking for a flatmate.

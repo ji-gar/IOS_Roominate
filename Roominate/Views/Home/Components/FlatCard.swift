@@ -55,6 +55,14 @@ struct FlatCard: View {
         )
         .overlay(alignment: .topTrailing) {
             if showCardMenu {
+                // Transparent full-card dismiss layer — tapping anywhere closes the menu
+                // without stealing the navigation tap from the outer Button.
+                Color.clear
+                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .onTapGesture { showCardMenu = false }
+                    .zIndex(9)
+
                 cardContextMenu
                     .padding(.top, 44)
                     .padding(.trailing, 10)
@@ -62,9 +70,6 @@ struct FlatCard: View {
             }
         }
         .contentShape(Rectangle())
-        .simultaneousGesture(TapGesture().onEnded {
-            if showCardMenu { showCardMenu = false }
-        })
     }
 
     private var cardContextMenu: some View {

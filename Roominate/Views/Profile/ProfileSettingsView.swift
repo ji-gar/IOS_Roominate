@@ -8,6 +8,8 @@ enum ProfileRoute: Hashable {
     case myPosts
     case blockedUsers
     case aboutUs
+    case notifications
+    case help
     case deleteAccountReason
     case deleteAccountVerify(reason: String)
 }
@@ -52,6 +54,8 @@ struct ProfileTabView: View {
                 onOpenMyPosts: { path.append(.myPosts) },
                 onOpenBlockedUsers: { path.append(.blockedUsers) },
                 onOpenAboutUs: { path.append(.aboutUs) },
+                onOpenNotifications: { path.append(.notifications) },
+                onOpenHelp: { path.append(.help) },
                 onOpenDeleteAccount: { path.append(.deleteAccountReason) }
             )
             .navigationDestination(for: ProfileRoute.self) { route in
@@ -80,6 +84,10 @@ struct ProfileTabView: View {
                     )
                 case .aboutUs:
                     AboutUsView(onBack: { path.removeLast() })
+                case .notifications:
+                    NotificationsView(onBack: { path.removeLast() })
+                case .help:
+                    HelpView(onBack: { path.removeLast() })
                 case .deleteAccountReason:
                     DeleteAccountReasonView(
                         viewModel: viewModel,
@@ -138,6 +146,8 @@ struct ProfileSettingsView: View {
     let onOpenMyPosts: () -> Void
     let onOpenBlockedUsers: () -> Void
     let onOpenAboutUs: () -> Void
+    let onOpenNotifications: () -> Void
+    let onOpenHelp: () -> Void
     let onOpenDeleteAccount: () -> Void
 
     @State private var showShareSheet = false
@@ -269,7 +279,7 @@ struct ProfileSettingsView: View {
         VStack(spacing: 0) {
             ProfileMenuSection(rows: [
                 ProfileMenuItem(title: Strings.Profile.myPosts, systemImage: "house", showsChevron: true, action: onOpenMyPosts),
-                ProfileMenuItem(title: Strings.Profile.notification, systemImage: "bell", showsChevron: true),
+                ProfileMenuItem(title: Strings.Profile.notification, systemImage: "bell", showsChevron: true, action: onOpenNotifications),
                 ProfileMenuItem(title: Strings.Profile.blockedUsers, systemImage: "nosign", showsChevron: true, action: onOpenBlockedUsers)
             ])
 
@@ -284,7 +294,7 @@ struct ProfileSettingsView: View {
             ProfileMenuSectionDivider()
 
             ProfileMenuSection(rows: [
-                ProfileMenuItem(title: Strings.Profile.help, systemImage: "questionmark.circle", showsChevron: true),
+                ProfileMenuItem(title: Strings.Profile.help, systemImage: "questionmark.circle", showsChevron: true, action: onOpenHelp),
                 ProfileMenuItem(title: Strings.Profile.shareApp, systemImage: "square.and.arrow.up", showsChevron: true, action: { showShareSheet = true })
             ])
 

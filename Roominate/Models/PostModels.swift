@@ -861,10 +861,16 @@ enum PostMapper {
     private static func listingAuthor(from post: Post, currentUser: PostUser? = nil) -> ListingAuthor {
         let resolvedUser = resolvedPostUser(for: post, currentUser: currentUser)
         let role = formattedProfession(resolvedUser?.profession ?? post.profession)
+        let userId: Int? = {
+            if let uid = resolvedUser?.id, uid > 0 { return uid }
+            if let uid = post.userId, uid > 0 { return uid }
+            return nil
+        }()
         return ListingAuthor(
             name: resolvedUser?.resolvedName ?? "Unknown",
             role: role,
-            avatarURL: resolvedUser?.resolvedProfileImageURL
+            avatarURL: resolvedUser?.resolvedProfileImageURL,
+            userId: userId
         )
     }
 

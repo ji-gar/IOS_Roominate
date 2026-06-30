@@ -5,7 +5,8 @@ enum MockListings {
     private static let author = ListingAuthor(
         name: "Shruti Jagtap",
         role: "UI/UX Designer 24",
-        avatarURL: "https://i.pravatar.cc/150?img=47"
+        avatarURL: "https://i.pravatar.cc/150?img=47",
+        userId: nil
     )
 
     static let flats: [FlatListing] = [
