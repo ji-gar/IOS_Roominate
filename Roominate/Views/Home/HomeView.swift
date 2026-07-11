@@ -133,7 +133,7 @@ struct HomeView: View {
             }
             .padding(.horizontal, 14)
             .frame(height: 46)
-            .background(Color.white)
+            .background(AppTheme.fieldBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -148,7 +148,7 @@ struct HomeView: View {
                         .font(.system(size: 18, weight: .medium))
                         .foregroundStyle(AppTheme.textPrimary)
                         .frame(width: 46, height: 46)
-                        .background(Color.white)
+                        .background(AppTheme.fieldBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)

@@ -21,7 +21,7 @@ struct BlockedUsersView: View {
             searchBar
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color.white)
+                .background(Color(UIColor.systemBackground))
 
             if viewModel.isLoadingBlockedUsers && viewModel.blockedUsers.isEmpty {
                 Spacer()
@@ -43,7 +43,7 @@ struct BlockedUsersView: View {
                         blockedUserRow(user)
                             .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                             .listRowSeparator(.visible)
-                            .listRowBackground(Color.white)
+                            .listRowBackground(AppTheme.fieldBackground)
                     }
                 }
                 .listStyle(.plain)
@@ -77,7 +77,7 @@ struct BlockedUsersView: View {
         }
         .padding(.horizontal, 14)
         .frame(height: AppTheme.Profile.fieldHeight)
-        .background(Color.white)
+        .background(AppTheme.fieldBackground)
         .overlay(
             Capsule()
                 .stroke(AppTheme.fieldBorder, lineWidth: 1)

@@ -171,7 +171,7 @@ struct PlacesSearchTextField: View {
                 }
             }
         }
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.cornerRadius)

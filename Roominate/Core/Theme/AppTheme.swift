@@ -8,8 +8,19 @@ enum AppTheme {
     static let keypadBackground = Color("KeypadBackground")
     static let fieldBorder = Color("FieldBorder")
     static let errorRed = Color("ErrorRed")
-    static let activeFieldBackground = Color(red: 0.93, green: 0.96, blue: 1.0)
-    static let fieldBackground = Color.white
+    /// Adaptive field background — white in light mode, elevated surface in dark mode.
+    static let fieldBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.secondarySystemGroupedBackground
+            : UIColor.white
+    })
+    /// Adaptive active/focused field background — light blue tint in light mode, muted blue tint in dark mode.
+    static let activeFieldBackground = Color(UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.15, green: 0.22, blue: 0.40, alpha: 1.0)
+            : UIColor(red: 0.93, green: 0.96, blue: 1.0, alpha: 1.0)
+    })
+
 
     // Home / Listing module
     static let screenBackground = Color(red: 0.96, green: 0.97, blue: 0.98)

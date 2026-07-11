@@ -55,7 +55,7 @@ struct CreatePostBottomBar: View {
             Divider()
             navButtons
         }
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
     }
 
     private var progressBar: some View {
@@ -159,9 +159,8 @@ struct PostOptionChip: View {
                 .background(
                     isSelected
                     ? AppTheme.textPrimary
-                    : Color.white
+                    : AppTheme.fieldBackground
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 10))
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(isSelected ? Color.clear : AppTheme.fieldBorder, lineWidth: 1)
@@ -195,7 +194,7 @@ struct PostSpaceTypePicker: View {
                         .frame(height: 44)
                         .background(
                             selected == option
-                            ? Color.white
+                            ? Color(UIColor.systemBackground)
                             : Color.clear
                         )
                         .clipShape(RoundedRectangle(cornerRadius: 9))
@@ -239,7 +238,7 @@ struct AmenityChipView: View {
             .background(
                 isSelected
                 ? AppTheme.textPrimary
-                : Color.white
+                : AppTheme.fieldBackground
             )
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
@@ -332,7 +331,7 @@ struct CreatePostCurrencyField: View {
         }
         .padding(.horizontal, 14)
         .frame(height: 54)
-        .background(Color.white)
+        .background(AppTheme.fieldBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -376,7 +375,7 @@ struct CreatePostDateField: View {
             }
             .padding(.horizontal, 14)
             .frame(height: 52)
-            .background(Color.white)
+            .background(AppTheme.fieldBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -448,7 +447,7 @@ struct IconChoiceChip: View {
             .foregroundStyle(isSelected ? Color.white : AppTheme.textPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 50)
-            .background(isSelected ? AppTheme.textPrimary : Color.white)
+            .background(isSelected ? AppTheme.textPrimary : AppTheme.fieldBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -484,7 +483,7 @@ struct CreatePostToggleRow: View {
                 .tint(AppTheme.primaryBlue)
         }
         .padding(14)
-        .background(Color.white)
+        .background(AppTheme.fieldBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)

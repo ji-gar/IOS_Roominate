@@ -29,7 +29,7 @@ struct CreatePostDescriptionView: View {
                             .appTextInputStyle()
                             .padding(.horizontal, 14)
                             .frame(height: 52)
-                            .background(Color.white)
+                            .background(AppTheme.fieldBackground)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
@@ -69,7 +69,7 @@ struct CreatePostDescriptionView: View {
                                     }
                                 }
                         }
-                        .background(Color.white)
+                        .background(AppTheme.fieldBackground)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
@@ -103,7 +103,7 @@ struct CreatePostDescriptionView: View {
                 onNext: onNext
             )
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(Color(UIColor.systemBackground).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Create Post")
         .navigationBarTitleDisplayMode(.inline)

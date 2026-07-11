@@ -161,7 +161,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .overlay(alignment: .bottom) { Divider() }
     }
 
@@ -262,7 +262,7 @@ struct ChatView: View {
                     if viewModel.inputText.isEmpty {
                         Text("Send a message...")
                             .font(.system(size: 15))
-                            .foregroundStyle(Color(hex: "#9EA3B0"))
+                            .foregroundStyle(AppTheme.textSecondary)
                             .padding(.horizontal, 4)
                     }
                     TextField("", text: $viewModel.inputText, axis: .vertical)
@@ -278,7 +278,7 @@ struct ChatView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Color(UIColor.systemBackground))
         }
     }
 

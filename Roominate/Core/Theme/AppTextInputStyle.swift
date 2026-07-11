@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Keeps typed text visible on light field backgrounds when the device uses dark mode.
+/// Keeps typed text and placeholder text visible in both light and dark mode.
 struct AppTextInputStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
