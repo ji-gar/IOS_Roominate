@@ -188,7 +188,7 @@ final class CreatePostViewModel: ObservableObject {
     var isAvailabilityValid: Bool {
         !draft.monthlyRent.isEmpty &&
         !draft.deposit.isEmpty &&
-        !draft.extraCost.isEmpty &&
+        // Extra cost is optional — users may leave it blank or enter a description
         !draft.availableFrom.isEmpty &&
         (draft.lookingForLongTerm || !draft.availableTo.isEmpty)
     }
@@ -206,7 +206,11 @@ final class CreatePostViewModel: ObservableObject {
     }
 
     var isSeekerLocationValid: Bool {
-        !draft.city.isEmpty && !draft.preferedLocation.isEmpty
+        // Allow the user to proceed if a city is chosen AND either:
+        // 1. They selected an autocomplete suggestion (stored in preferedLocation), OR
+        // 2. They have typed something in the area query field (free-text fallback).
+        let hasArea = !draft.preferedLocation.isEmpty || !preferredAreaQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return !draft.city.isEmpty && hasArea
     }
 
     var isSeekerBudgetValid: Bool {
@@ -407,6 +411,15 @@ final class CreatePostViewModel: ObservableObject {
         guard selected.insert(trimmed).inserted else { return }
         draft.preferedLocation = selected.sorted().joined(separator: ", ")
         preferredAreaQuery = ""
+    }
+
+    /// Commits any free-typed text in the area query field as a preferred area.
+    /// Call this before navigating to the next step so that text entered without
+    /// picking an autocomplete suggestion is still persisted to the draft.
+    func commitPreferredAreaQueryIfNeeded() {
+        let trimmed = preferredAreaQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        addPreferredArea(trimmed)
     }
 
     func removePreferredArea(_ area: String) {

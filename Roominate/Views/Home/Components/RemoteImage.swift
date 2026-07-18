@@ -1,5 +1,25 @@
 import SwiftUI
 
+// MARK: - Image Cache
+
+private final class ImageCache: @unchecked Sendable {
+    static let shared = ImageCache()
+    private var cache = NSCache<NSString, UIImage>()
+
+    private init() {
+        cache.countLimit = 100
+        cache.totalCostLimit = 50 * 1024 * 1024 // 50 MB
+    }
+
+    func image(for key: String) -> UIImage? {
+        cache.object(forKey: key as NSString)
+    }
+
+    func store(_ image: UIImage, for key: String) {
+        cache.setObject(image, forKey: key as NSString)
+    }
+}
+
 /// Loads remote images with optional auth headers for protected storage URLs.
 struct RemoteImage: View {
     let urlString: String?
@@ -37,12 +57,23 @@ struct RemoteImage: View {
 
     @MainActor
     private func loadImage() async {
-        loadedImage = nil
-        didFail = false
+        guard let urlString, !urlString.isEmpty else {
+            didFail = true
+            return
+        }
 
-        guard let urlString,
-              !urlString.isEmpty,
-              let url = URL(string: urlString) else {
+        // Serve from cache immediately — no flash
+        if let cached = ImageCache.shared.image(for: urlString) {
+            loadedImage = cached
+            return
+        }
+
+        // Only reset state if we don't already have an image loaded
+        if loadedImage == nil {
+            didFail = false
+        }
+
+        guard let url = URL(string: urlString) else {
             didFail = true
             return
         }
@@ -61,9 +92,12 @@ struct RemoteImage: View {
                 didFail = true
                 return
             }
+            ImageCache.shared.store(image, for: urlString)
             loadedImage = image
         } catch {
-            didFail = true
+            if loadedImage == nil {
+                didFail = true
+            }
         }
     }
 }

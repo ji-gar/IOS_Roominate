@@ -161,6 +161,35 @@ final class APIClient {
         }
         return decoded.message ?? decoded.error
     }
+    /// Uploads an institution verification document as multipart form data.
+    /// The endpoint receives `email`, `document_type`, and the image file.
+    func uploadVerificationDocument(
+        path: String,
+        email: String,
+        documentType: String,
+        imageData: Data
+    ) async throws {
+        let multipart = MultipartFormData(
+            fields: [
+                .init(name: "email", value: email),
+                .init(name: "document_type", value: documentType)
+            ],
+            files: [
+                .init(
+                    name: "document",
+                    filename: "verification.\(documentType).jpg",
+                    mimeType: "image/jpeg",
+                    data: imageData
+                )
+            ]
+        )
+        _ = try await requestData(
+            path: path,
+            method: .post,
+            multipart: multipart,
+            requiresAuth: true
+        )
+    }
 }
 
 private struct AnyEncodable: Encodable {

@@ -29,8 +29,8 @@ struct CreatePostAvailabilityView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        CreatePostSectionLabel(title: "Extra Cost")
-                        OutlinedInputField(label: "Extra Cost", text: $viewModel.draft.extraCost)
+                        CreatePostSectionLabel(title: "Extra Cost", isRequired: false)
+                        OutlinedInputField(label: "Extra Cost (optional)", text: $viewModel.draft.extraCost)
                     }
 
                     VStack(alignment: .leading, spacing: 10) {

@@ -491,7 +491,7 @@ struct ProfileListingCard: View {
         amenities: String
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            InlineDetail(label: "Looking for", value: lookingFor)
+            InlineDetail(label: "Looking for", value: lookingFor, valueIsBold: false)
             InlineDetail(label: "Deposit", value: deposit, valueIsBold: false)
             InlineDetail(label: "Rent", value: rent, valueIsBold: false)
             Text(subtitle)

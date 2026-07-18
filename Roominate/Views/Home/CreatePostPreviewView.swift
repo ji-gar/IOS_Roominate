@@ -154,7 +154,7 @@ struct CreatePostPreviewView: View {
             DetailSectionTitle(title: "Financial Details")
             InfoCardRow(
                 left: InfoCard(icon: "creditcard", caption: "Security Deposit", value: formattedRent(draft.deposit)),
-                right: InfoCard(icon: "bolt", caption: "Extra Cost", value: draft.extraCost.isEmpty ? "Included" : formattedRent(draft.extraCost))
+                right: InfoCard(icon: "bolt", caption: "Extra Cost", value: draft.extraCost.isEmpty ? "Included" : extraCostDisplay(draft.extraCost))
             )
             InfoCard(
                 icon: "clock",
@@ -300,5 +300,19 @@ struct CreatePostPreviewView: View {
         formatter.groupingSeparator = ","
         let formatted = formatter.string(from: NSNumber(value: amount)) ?? digits
         return "₹\(formatted)\(suffix)"
+    }
+
+    /// Displays extra cost as a currency amount if purely numeric, otherwise shows the raw text as-is.
+    private func extraCostDisplay(_ value: String) -> String {
+        guard !value.isEmpty else { return "Included" }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.allSatisfy(\.isNumber), let amount = Int(trimmed) {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            formatter.groupingSeparator = ","
+            let formatted = formatter.string(from: NSNumber(value: amount)) ?? trimmed
+            return "₹\(formatted)"
+        }
+        return trimmed
     }
 }

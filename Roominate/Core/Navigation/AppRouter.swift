@@ -8,6 +8,11 @@ enum AppRoute: Hashable {
     case signUpVerification(email: String, password: String)
     case signInOTP(email: String)
     case setPassword(email: String, otp: String?)
+    // Institution verification flow (post OTP, before profile setup)
+    case institutionDetails(email: String)
+    case institutionVerification(email: String)
+    case verificationPending
+    // Profile setup
     case addProfileStep1
     case addProfileStep2
     case addProfileStep3

@@ -166,4 +166,40 @@ enum Strings {
         static var invalidEmail: String { localized("error.invalidEmail") }
         static var network: String { localized("error.network") }
     }
+
+    enum InstitutionDetails {
+        static var title: String { localized("institutionDetails.title") }
+        static var subtitle: String { localized("institutionDetails.subtitle") }
+        static var name: String { localized("institutionDetails.name") }
+        static var namePlaceholder: String { localized("institutionDetails.namePlaceholder") }
+        static var institution: String { localized("institutionDetails.institution") }
+        static var institutionPlaceholder: String { localized("institutionDetails.institutionPlaceholder") }
+        static var course: String { localized("institutionDetails.course") }
+        static var coursePlaceholder: String { localized("institutionDetails.coursePlaceholder") }
+        static var graduationYear: String { localized("institutionDetails.graduationYear") }
+        static var graduationYearPlaceholder: String { localized("institutionDetails.graduationYearPlaceholder") }
+        static var next: String { localized("institutionDetails.next") }
+        static var autoVerified: String { localized("institutionDetails.autoVerified") }
+    }
+
+    enum InstitutionVerification {
+        static var title: String { localized("institutionVerification.title") }
+        static var subtitle: String { localized("institutionVerification.subtitle") }
+        static var studentID: String { localized("institutionVerification.studentID") }
+        static var alumniID: String { localized("institutionVerification.alumniID") }
+        static var degreeCertificate: String { localized("institutionVerification.degreeCertificate") }
+        static var admissionLetter: String { localized("institutionVerification.admissionLetter") }
+        static var tapToUpload: String { localized("institutionVerification.tapToUpload") }
+        static var submit: String { localized("institutionVerification.submit") }
+        static var uploading: String { localized("institutionVerification.uploading") }
+        static var selectDocType: String { localized("institutionVerification.selectDocType") }
+        static var uploadPrompt: String { localized("institutionVerification.uploadPrompt") }
+    }
+
+    enum VerificationPending {
+        static var title: String { localized("verificationPending.title") }
+        static var subtitle: String { localized("verificationPending.subtitle") }
+        static var note: String { localized("verificationPending.note") }
+        static var continueButton: String { localized("verificationPending.continueButton") }
+    }
 }

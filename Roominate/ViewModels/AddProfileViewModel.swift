@@ -35,7 +35,8 @@ final class AddProfileViewModel: ObservableObject {
     }
 
     func setProfileImage(_ image: UIImage?) {
-        draft.profileImageData = image?.jpegData(compressionQuality: 0.85)
+        draft.profileImageData = image.flatMap { ImageCompressor.profileJPEGData(from: $0) }
+            ?? image?.jpegData(compressionQuality: 0.85)
     }
 
     func submitProfile() async -> Bool {

@@ -106,6 +106,7 @@ struct EditPersonalInfoView: View {
                     RequiredLabel(title: Strings.Profile.areaCity)
                     PlacesSearchTextField(
                         selectedText: $currentCity,
+                        mode: .address,
                         placeholder: Strings.Profile.areaPlaceholder
                     )
                 }

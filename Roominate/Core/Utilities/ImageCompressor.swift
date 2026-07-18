@@ -5,8 +5,16 @@ enum ImageCompressor {
     static let chatMaxBytes = 750_000
     static let chatMaxDimension: CGFloat = 1280
 
+    /// Target size for profile picture uploads (5 MB).
+    static let profileMaxBytes = 5_000_000
+    static let profileMaxDimension: CGFloat = 2048
+
     static func chatJPEGData(from image: UIImage) -> Data? {
         compressedJPEGData(from: image, maxBytes: chatMaxBytes, maxDimension: chatMaxDimension)
+    }
+
+    static func profileJPEGData(from image: UIImage) -> Data? {
+        compressedJPEGData(from: image, maxBytes: profileMaxBytes, maxDimension: profileMaxDimension)
     }
 
     static func compressedJPEGData(

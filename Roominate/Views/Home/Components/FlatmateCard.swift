@@ -27,7 +27,6 @@ struct FlatmateCard: View {
                     .foregroundStyle(AppTheme.textSecondary)
             }
 
-            InlineDetail(label: "Looking for", value: listing.lookingFor)
             InlineDetail(label: "Max Budget", value: listing.maxBudget)
 
             HStack(spacing: 10) {
@@ -73,7 +72,7 @@ struct FlatmateCard: View {
                     .zIndex(9)
 
                 cardContextMenu
-                    .padding(.top, 44)
+                    .padding(.top, 36)
                     .padding(.trailing, 10)
                     .zIndex(10)
             }

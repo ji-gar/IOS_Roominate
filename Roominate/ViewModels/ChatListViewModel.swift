@@ -36,6 +36,19 @@ final class ChatListViewModel: ObservableObject {
         await load()
     }
 
+    func deleteConversation(_ conversation: ChatConversation) async {
+        guard let conversationId = conversationId(for: conversation) else { return }
+        // Optimistically remove from the list
+        conversations.removeAll { $0.id == conversation.id }
+        do {
+            try await chatService.deleteConversation(conversationId: conversationId)
+        } catch {
+            // If the API call fails, restore the conversation and show an error
+            await load()
+            errorMessage = "Couldn't delete conversation: \(error.localizedDescription)"
+        }
+    }
+
     func otherName(for conversation: ChatConversation) -> String {
         let myId = myUserId
         if let initiatorId = conversation.initiatorId, initiatorId == myId {

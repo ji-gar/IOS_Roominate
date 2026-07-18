@@ -12,8 +12,8 @@
 
 /* Sign Up */
 "signup.title" = "Sign Up";
-"signup.subtitle" = "Enter Your IIM email Address";
-"signup.emailPlaceholder" = "Example@iim.com";
+"signup.subtitle" = "Enter Your Institute email Address";
+"signup.emailPlaceholder" = "Example@institute.com";
 "signup.passwordPlaceholder" = "Password";
 "signup.alreadyHaveAccount" = "Already have an account?";
 "signup.signInLink" = "Sign In";
@@ -32,8 +32,8 @@
 
 /* Sign In */
 "signin.title" = "Sign In";
-"signin.subtitle" = "Enter Your IIM email Address";
-"signin.emailPlaceholder" = "Example@iim.com";
+"signin.subtitle" = "Enter Your Institute email Address";
+"signin.emailPlaceholder" = "Example@institute.com";
 "signin.passwordPlaceholder" = "Password";
 "signin.or" = "Or";
 "signin.otpButton" = "Sign In using OTP";
@@ -152,5 +152,39 @@
 /* Errors */
 "error.generic" = "Something went wrong. Please try again.";
 "error.invalidCredentials" = "Invalid credentials. Try Sign In using OTP if you have not set a password yet.";
-"error.invalidEmail" = "Please enter a valid IIM email address.";
+"error.invalidEmail" = "Please enter a valid Institute email address.";
 "error.network" = "Network error. Please check your connection.";
+
+/* Institution Details (Step 4 of onboarding) */
+"institutionDetails.title" = "Your B-School";
+"institutionDetails.subtitle" = "Tell us about your B-school background";
+"institutionDetails.name" = "Full Name";
+"institutionDetails.namePlaceholder" = "Enter your full name";
+"institutionDetails.institution" = "Institution";
+"institutionDetails.institutionPlaceholder" = "Select your institution";
+"institutionDetails.course" = "Programme / Course";
+"institutionDetails.coursePlaceholder" = "e.g. PGP, MBA, PGDM…";
+"institutionDetails.graduationYear" = "Graduation Year";
+"institutionDetails.graduationYearPlaceholder" = "Select year";
+"institutionDetails.next" = "Continue";
+"institutionDetails.autoVerified" = "Your institute email was detected — you're auto-verified!";
+
+/* Institution Verification Upload (Step 6) */
+"institutionVerification.title" = "Verify Your Institution";
+"institutionVerification.subtitle" = "Upload any one document to verify your B-school association";
+"institutionVerification.studentID" = "Student ID";
+"institutionVerification.alumniID" = "Alumni ID";
+"institutionVerification.degreeCertificate" = "Degree Certificate";
+"institutionVerification.admissionLetter" = "Admission Letter";
+"institutionVerification.tapToUpload" = "Tap to upload";
+"institutionVerification.submit" = "Submit for Review";
+"institutionVerification.uploading" = "Uploading…";
+"institutionVerification.selectDocType" = "Select document type";
+"institutionVerification.uploadPrompt" = "Upload a clear photo or PDF of your document";
+
+/* Verification Pending */
+"verificationPending.title" = "Verification Pending";
+"verificationPending.subtitle" = "Our team is reviewing your document. This usually takes 24–48 hours.";
+"verificationPending.note" = "You'll receive an email once your institution is verified.";
+"verificationPending.continueButton" = "I'll come back later";
+

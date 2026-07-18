@@ -81,7 +81,10 @@ struct CreatePostSeekerLocationView: View {
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isSeekerLocationValid,
                 onBack: onBack,
-                onNext: onNext
+                onNext: {
+                    viewModel.commitPreferredAreaQueryIfNeeded()
+                    onNext()
+                }
             )
         }
         .background(Color.white.ignoresSafeArea())

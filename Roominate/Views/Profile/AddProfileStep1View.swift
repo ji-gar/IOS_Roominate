@@ -73,36 +73,54 @@ struct AddProfileStep1View: View {
     }
 
     private var profilePhotoPicker: some View {
-        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(Color(red: 0.88, green: 0.93, blue: 0.98))
-                    .frame(width: 120, height: 120)
-                    .overlay {
-                        if let data = viewModel.draft.profileImageData,
-                           let uiImage = UIImage(data: data) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 120, height: 120)
-                                .clipShape(Circle())
-                        } else {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 44))
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
+        ZStack(alignment: .bottomTrailing) {
+            Circle()
+                .fill(Color(red: 0.88, green: 0.93, blue: 0.98))
+                .frame(width: 120, height: 120)
+                .overlay {
+                    if let data = viewModel.draft.profileImageData,
+                       let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 120, height: 120)
+                            .clipShape(Circle())
+                    } else {
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 44))
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
+                }
 
-                Circle()
-                    .fill(AppTheme.primaryBlue)
-                    .frame(width: 32, height: 32)
-                    .overlay {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-            }
+            Circle()
+                .fill(AppTheme.primaryBlue)
+                .frame(width: 32, height: 32)
+                .overlay {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                }
         }
         .frame(maxWidth: .infinity)
+        .contextMenu {
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                Label("Choose Photo", systemImage: "photo.on.rectangle")
+            }
+
+            if viewModel.draft.profileImageData != nil {
+                Button(role: .destructive) {
+                    viewModel.draft.profileImageData = nil
+                } label: {
+                    Label("Remove Photo", systemImage: "trash")
+                }
+            }
+        }
+        .overlay {
+            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                Circle()
+                    .fill(.clear)
+                    .frame(width: 120, height: 120)
+            }
+        }
     }
 }

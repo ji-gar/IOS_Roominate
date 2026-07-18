@@ -25,9 +25,13 @@ struct FlatDetailView: View {
                     overviewGrid
                     financialSection
                     preferenceSection
+                    if !listing.amenities.isEmpty {
+                        amenitiesSection
+                    }
+                    locationSection
                 }
                 .padding(16)
-                .padding(.bottom, 16)
+                .padding(.bottom, 100)
             }
             .scrollIndicators(.hidden)
 
@@ -141,6 +145,39 @@ struct FlatDetailView: View {
             InfoCardRow(
                 left: InfoCard(icon: "nosign", caption: "Smoking", value: listing.smokingPreference),
                 right: InfoCard(icon: "briefcase", caption: "Occupation", value: listing.occupation)
+            )
+        }
+    }
+
+    private var amenitiesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            DetailSectionTitle(title: "Amenities")
+            Text(listing.amenities)
+                .font(.system(size: 14))
+                .foregroundStyle(AppTheme.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var locationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            DetailSectionTitle(title: "Location")
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "mappin.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(AppTheme.primaryBlue)
+                Text(listing.location)
+                    .font(.system(size: 14))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppTheme.fieldBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(AppTheme.infoCardBorder, lineWidth: 1)
             )
         }
     }

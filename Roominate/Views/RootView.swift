@@ -27,6 +27,7 @@ struct RootView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
         .task {
             guard !showSplash else { return }
             await bootstrapSession()
@@ -97,9 +98,8 @@ struct RootView: View {
                         router.isAuthenticated = true
                         router.rootRoute = .home
                     case .authenticatedNeedsProfile:
-                        router.popToRoot()
-                        router.isAuthenticated = true
-                        router.rootRoute = .addProfileStep1
+                        // After email OTP is verified, go to institution details
+                        router.navigate(to: .institutionDetails(email: email))
                     case .needsSetPassword, .failure:
                         break
                     }
@@ -117,14 +117,47 @@ struct RootView: View {
                         router.isAuthenticated = true
                         router.rootRoute = .home
                     case .authenticatedNeedsProfile:
-                        router.popToRoot()
-                        router.isAuthenticated = true
-                        router.rootRoute = .addProfileStep1
+                        // Returning user who hasn't completed profile —
+                        // still go through institution details if needed.
+                        router.navigate(to: .institutionDetails(email: email))
                     case .needsSetPassword(let otp):
                         router.navigate(to: .setPassword(email: email, otp: otp))
                     case .failure:
                         break
                     }
+                }
+            )
+        case .institutionDetails(let email):
+            InstitutionDetailsView(
+                email: email,
+                onBack: { router.pop() },
+                onContinue: { isAutoVerified in
+                    if isAutoVerified {
+                        // Domain matched — skip document upload, go straight to profile
+                        router.popToRoot()
+                        router.isAuthenticated = true
+                        router.rootRoute = .addProfileStep1
+                    } else {
+                        // Need manual document verification
+                        router.navigate(to: .institutionVerification(email: email))
+                    }
+                }
+            )
+        case .institutionVerification(let email):
+            InstitutionVerificationView(
+                email: email,
+                onBack: { router.pop() },
+                onSubmitted: {
+                    router.navigate(to: .verificationPending)
+                }
+            )
+        case .verificationPending:
+            VerificationPendingView(
+                onContinue: {
+                    // Allow user to complete profile while verification is in progress
+                    router.popToRoot()
+                    router.isAuthenticated = true
+                    router.rootRoute = .addProfileStep1
                 }
             )
         case .setPassword(let email, let otp):

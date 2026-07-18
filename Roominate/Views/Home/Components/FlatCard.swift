@@ -30,7 +30,7 @@ struct FlatCard: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                InlineDetail(label: "Looking for", value: listing.lookingFor)
+                InlineDetail(label: "Looking for", value: listing.lookingFor, valueIsBold: false)
                 InlineDetail(label: "Deposit", value: listing.deposit, valueIsBold: false)
                 InlineDetail(label: "Rent", value: listing.rent, valueIsBold: false)
 
@@ -64,7 +64,7 @@ struct FlatCard: View {
                     .zIndex(9)
 
                 cardContextMenu
-                    .padding(.top, 44)
+                    .padding(.top, 36)
                     .padding(.trailing, 10)
                     .zIndex(10)
             }

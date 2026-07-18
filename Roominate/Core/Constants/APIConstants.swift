@@ -33,6 +33,8 @@ enum APIConstants {
         static let register = "/register"
         static let forgotPassword = "/forgot-password"
         static let resetPassword = "/reset-password"
+        /// Submit institution verification document for admin review.
+        static let verifyInstitution = "/verify-institution"
     }
 
     enum User {
@@ -70,6 +72,9 @@ enum APIConstants {
         }
         static func grabDeal(conversationId: Int) -> String {
             "/chat/conversations/\(conversationId)/grab-deal"
+        }
+        static func deleteConversation(conversationId: Int) -> String {
+            "/chat/conversations/\(conversationId)"
         }
     }
 

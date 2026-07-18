@@ -19,6 +19,7 @@ struct AddProfileStep2View: View {
                     RequiredLabel(title: Strings.Profile.areaCity)
                     PlacesSearchTextField(
                         selectedText: $viewModel.draft.area,
+                        mode: .address,
                         placeholder: Strings.Profile.areaPlaceholder
                     )
                 }

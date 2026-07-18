@@ -9,6 +9,7 @@ protocol ChatServiceProtocol {
     func sendImageMessage(conversationId: Int, imageData: Data) async throws -> [MessageItem]
     func blockUser(userId: Int) async throws
     func grabDeal(conversationId: Int) async throws
+    func deleteConversation(conversationId: Int) async throws
     func enrichWithLatestMessages(_ conversations: [ChatConversation]) async -> [ChatConversation]
 }
 
@@ -130,6 +131,14 @@ final class ChatService: ChatServiceProtocol {
         let _: ChatActionResponse = try await api.request(
             path: APIConstants.Chat.grabDeal(conversationId: conversationId),
             method: .post,
+            requiresAuth: true
+        )
+    }
+
+    func deleteConversation(conversationId: Int) async throws {
+        let _: ChatActionResponse = try await api.request(
+            path: APIConstants.Chat.deleteConversation(conversationId: conversationId),
+            method: .delete,
             requiresAuth: true
         )
     }

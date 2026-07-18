@@ -99,7 +99,8 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func setProfileImage(_ image: UIImage?) {
-        profile.profileImageData = image?.jpegData(compressionQuality: 0.85)
+        profile.profileImageData = image.flatMap { ImageCompressor.profileJPEGData(from: $0) }
+            ?? image?.jpegData(compressionQuality: 0.85)
     }
 
     func removeProfileImage() {
