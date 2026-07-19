@@ -149,6 +149,12 @@ struct RootView: View {
                 onBack: { router.pop() },
                 onSubmitted: {
                     router.navigate(to: .verificationPending)
+                },
+                onSkip: {
+                    // User skipped document upload — proceed straight to profile setup
+                    router.popToRoot()
+                    router.isAuthenticated = true
+                    router.rootRoute = .addProfileStep1
                 }
             )
         case .verificationPending:

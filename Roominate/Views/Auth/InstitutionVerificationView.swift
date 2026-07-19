@@ -1,23 +1,28 @@
 import PhotosUI
 import SwiftUI
 
-/// Step 6 of onboarding – upload one of four accepted documents for admin review.
+/// Step 5 of onboarding – upload one of four accepted documents for admin
+/// review. The user may skip this step and complete it later.
 struct InstitutionVerificationView: View {
 
     @StateObject private var viewModel: InstitutionVerificationViewModel
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showSkipAlert = false
 
     let onBack: () -> Void
     let onSubmitted: () -> Void
+    let onSkip: () -> Void
 
     init(
         email: String,
         onBack: @escaping () -> Void,
-        onSubmitted: @escaping () -> Void
+        onSubmitted: @escaping () -> Void,
+        onSkip: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: InstitutionVerificationViewModel(email: email))
         self.onBack = onBack
         self.onSubmitted = onSubmitted
+        self.onSkip = onSkip
     }
 
     var body: some View {
@@ -25,12 +30,23 @@ struct InstitutionVerificationView: View {
             AuthBackgroundView()
 
             VStack(spacing: 0) {
-                AuthScreenHeader(onBack: onBack)
+                // Header row — back on left, skip on right
+                HStack {
+                    BackButton(action: onBack)
+                    Spacer()
+                    Button("Skip") {
+                        showSkipAlert = true
+                    }
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(AppTheme.textSecondary)
+                }
+                .padding(.horizontal, AppTheme.horizontalPadding)
+                .frame(minHeight: 44)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 28) {
 
-                        // Header
+                        // Title
                         VStack(spacing: 8) {
                             Image(systemName: "shield.lefthalf.filled.badge.checkmark")
                                 .font(.system(size: 48))
@@ -46,7 +62,7 @@ struct InstitutionVerificationView: View {
                                 .foregroundStyle(AppTheme.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
-                        .padding(.top, 12)
+                        .padding(.top, 4)
 
                         // Document type selector
                         VStack(alignment: .leading, spacing: 12) {
@@ -89,6 +105,7 @@ struct InstitutionVerificationView: View {
                                 .multilineTextAlignment(.center)
                         }
 
+                        // Submit button
                         PrimaryButton(
                             title: viewModel.isLoading
                                 ? Strings.InstitutionVerification.uploading
@@ -102,6 +119,17 @@ struct InstitutionVerificationView: View {
                                 }
                             }
                         }
+
+                        // Inline skip link below submit
+                        Button {
+                            showSkipAlert = true
+                        } label: {
+                            Text("Skip for now")
+                                .font(.system(size: 14))
+                                .foregroundStyle(AppTheme.textSecondary)
+                                .underline()
+                        }
+                        .padding(.bottom, 8)
                     }
                     .padding(.horizontal, AppTheme.horizontalPadding)
                     .padding(.bottom, 40)
@@ -109,6 +137,12 @@ struct InstitutionVerificationView: View {
             }
         }
         .navigationBarHidden(true)
+        .alert("Skip Verification?", isPresented: $showSkipAlert) {
+            Button("Skip", role: .destructive) { onSkip() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You can upload your document later from your profile. Your account will have limited access until verified.")
+        }
     }
 
     // MARK: - Upload area
@@ -121,7 +155,10 @@ struct InstitutionVerificationView: View {
                     viewModel.selectedImageData != nil
                         ? AppTheme.primaryBlue
                         : AppTheme.fieldBorder,
-                    style: StrokeStyle(lineWidth: viewModel.selectedImageData != nil ? 1.5 : 1, dash: [6])
+                    style: StrokeStyle(
+                        lineWidth: viewModel.selectedImageData != nil ? 1.5 : 1,
+                        dash: [6]
+                    )
                 )
                 .background(
                     RoundedRectangle(cornerRadius: 16)
@@ -131,7 +168,6 @@ struct InstitutionVerificationView: View {
 
             if let imageData = viewModel.selectedImageData,
                let uiImage = UIImage(data: imageData) {
-                // Preview the uploaded image
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
@@ -208,8 +244,9 @@ private struct DocumentTypeCard: View {
 
 #Preview {
     InstitutionVerificationView(
-        email: "test@gmail.com",
+        email: "test@iima.ac.in",
         onBack: {},
-        onSubmitted: {}
+        onSubmitted: {},
+        onSkip: {}
     )
 }

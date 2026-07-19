@@ -35,6 +35,8 @@ enum APIConstants {
         static let resetPassword = "/reset-password"
         /// Submit institution verification document for admin review.
         static let verifyInstitution = "/verify-institution"
+        /// Check whether an institute email address already has an account.
+        static let checkEmail = "/check-email"
     }
 
     enum User {

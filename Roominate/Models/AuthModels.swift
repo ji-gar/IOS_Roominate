@@ -1,5 +1,14 @@
 import Foundation
 
+struct CheckEmailRequest: Encodable {
+    let email: String
+}
+
+struct CheckEmailResponse: Decodable {
+    let success: Bool
+    let message: String?
+}
+
 struct LoginRequest: Encodable {
     let email: String
     let password: String
