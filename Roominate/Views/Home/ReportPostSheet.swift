@@ -31,6 +31,7 @@ struct ReportPostSheet: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(20)
+        .dismissKeyboardOnTap()
     }
 
     // MARK: - Screen 1: Reason Picker

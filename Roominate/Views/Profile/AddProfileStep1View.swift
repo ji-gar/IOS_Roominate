@@ -15,8 +15,7 @@ struct AddProfileStep1View: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     RequiredLabel(title: Strings.Profile.fullName)
-                    TextField(Strings.Profile.fullNamePlaceholder, text: $viewModel.draft.fullName)
-                        .font(.system(size: 16))
+                    TextField(Strings.Profile.fullNamePlaceholder, text: $viewModel.draft.fullName)                        .font(.system(size: 16))
                         .appTextInputStyle()
                         .padding(.horizontal, 16)
                         .frame(height: 52)
@@ -70,6 +69,7 @@ struct AddProfileStep1View: View {
                 }
             }
         }
+        .dismissKeyboardOnTap()
     }
 
     private var profilePhotoPicker: some View {

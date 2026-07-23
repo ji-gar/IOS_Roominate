@@ -83,5 +83,6 @@ struct AddProfileStep2View: View {
             }
             .animation(.easeInOut(duration: 0.25), value: viewModel.draft.profession)
         }
+        .dismissKeyboardOnTap()
     }
 }

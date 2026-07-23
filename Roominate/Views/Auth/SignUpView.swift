@@ -80,6 +80,7 @@ struct SignUpView: View {
             }
         }
         .navigationBarHidden(true)
+        .dismissKeyboardOnTap()
     }
 
     private func mapFieldState(_ state: SignUpViewModel.EmailFieldState) -> AuthTextField.FieldState {

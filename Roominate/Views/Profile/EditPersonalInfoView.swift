@@ -163,6 +163,7 @@ struct EditPersonalInfoView: View {
                 }
             }
         }
+        .dismissKeyboardOnTap()
     }
 
     private var profilePhotoSection: some View {

@@ -58,5 +58,6 @@ struct EditAboutMeView: View {
         .onAppear {
             about = viewModel.profile.about
         }
+        .dismissKeyboardOnTap()
     }
 }

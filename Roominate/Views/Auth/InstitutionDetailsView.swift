@@ -111,6 +111,7 @@ struct InstitutionDetailsView: View {
             }
         }
         .navigationBarHidden(true)
+        .dismissKeyboardOnTap()
     }
 
     // MARK: - Sub-views

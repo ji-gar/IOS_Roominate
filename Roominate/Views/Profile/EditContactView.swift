@@ -85,6 +85,7 @@ struct EditContactView: View {
                 ? [SocialLinkDraft()]
                 : viewModel.profile.socialLinks
         }
+        .dismissKeyboardOnTap()
     }
 
     private func socialLinkRow(link: Binding<SocialLinkDraft>) -> some View {

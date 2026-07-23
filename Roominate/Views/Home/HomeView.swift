@@ -98,6 +98,7 @@ struct HomeView: View {
             .sheet(item: $reportTarget) { target in
                 ReportPostSheet(postId: target.id)
             }
+            .dismissKeyboardOnTap()
         }
     }
 

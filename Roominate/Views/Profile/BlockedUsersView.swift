@@ -52,6 +52,7 @@ struct BlockedUsersView: View {
         }
         .background(AppTheme.screenBackground.ignoresSafeArea())
         .navigationBarHidden(true)
+        .dismissKeyboardOnTap()
         .task {
             await viewModel.loadBlockedUsers()
         }

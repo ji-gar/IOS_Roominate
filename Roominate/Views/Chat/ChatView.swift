@@ -211,7 +211,13 @@ struct ChatView: View {
                 .padding(.vertical, 8)
             }
             .scrollIndicators(.hidden)
-            .onTapGesture { isInputFocused = false }
+            .onTapGesture {
+                UIApplication.shared.sendAction(
+                    #selector(UIResponder.resignFirstResponder),
+                    to: nil, from: nil, for: nil
+                )
+                isInputFocused = false
+            }
             .onAppear { scrollProxy = proxy }
         }
     }

@@ -61,5 +61,6 @@ struct AddProfileStep3View: View {
                 viewModel.draft.about = String(newValue.prefix(100))
             }
         }
+        .dismissKeyboardOnTap()
     }
 }

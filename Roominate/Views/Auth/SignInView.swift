@@ -123,6 +123,7 @@ struct SignInView: View {
             }
         }
         .navigationBarHidden(true)
+        .dismissKeyboardOnTap()
     }
 }
 

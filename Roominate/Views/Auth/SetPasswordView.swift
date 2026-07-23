@@ -101,6 +101,7 @@ struct SetPasswordView: View {
             }
         }
         .navigationBarHidden(true)
+        .dismissKeyboardOnTap()
     }
 
     private func mapConfirmFieldState() -> AuthTextField.FieldState {

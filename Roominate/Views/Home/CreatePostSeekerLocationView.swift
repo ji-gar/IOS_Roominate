@@ -91,6 +91,7 @@ struct CreatePostSeekerLocationView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Create Post")
         .navigationBarTitleDisplayMode(.inline)
+        .dismissKeyboardOnTap()
         .toolbar { createPostBackToolbar(action: onBack) }
     }
 }

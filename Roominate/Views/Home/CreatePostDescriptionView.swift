@@ -107,6 +107,7 @@ struct CreatePostDescriptionView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Create Post")
         .navigationBarTitleDisplayMode(.inline)
+        .dismissKeyboardOnTap()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onBack) {
