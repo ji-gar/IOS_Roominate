@@ -22,8 +22,9 @@ struct ChatListView: View {
             }
         }
         .onAppear { Task { await viewModel.load() } }
-        .onChange(of: internalPath.count) { _, count in
-            if count == 0, onSelectConversation == nil {
+        .onChange(of: internalPath.count) { oldCount, newCount in
+            // Only refresh when coming back from a detail view (going from 1 to 0)
+            if oldCount == 1, newCount == 0, onSelectConversation == nil {
                 Task { await viewModel.refresh() }
             }
         }
@@ -65,9 +66,9 @@ struct ChatListView: View {
 
     @ViewBuilder
     private var content: some View {
-        if viewModel.isLoading && viewModel.conversations.isEmpty {
+        if viewModel.isLoading && viewModel.displayedConversations.isEmpty {
             loadingView
-        } else if viewModel.conversations.isEmpty {
+        } else if viewModel.displayedConversations.isEmpty {
             emptyState
         } else {
             conversationList
@@ -109,18 +110,28 @@ struct ChatListView: View {
     }
 
     private var conversationList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(viewModel.conversations) { conv in
-                    Button {
-                        openConversation(conv)
-                    } label: {
+        ZStack {
+            List {
+                ForEach(viewModel.displayedConversations) { conv in
+                    ZStack(alignment: .bottom) {
                         ConversationRowView(
                             conversation: conv,
                             myUserId: viewModel.myUserId
                         )
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            openConversation(conv)
+                        }
+                        
+                        VStack {
+                            Spacer()
+                            Divider()
+                                .padding(.leading, 78)
+                        }
                     }
-                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.white)
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) {
                             Task {
@@ -130,14 +141,34 @@ struct ChatListView: View {
                             Label("Delete", systemImage: "trash")
                         }
                     }
-
-                    Divider()
-                        .padding(.leading, 78)
+                }
+                .onDelete { indexSet in
+                    Task {
+                        for index in indexSet {
+                            await viewModel.deleteConversation(viewModel.displayedConversations[index])
+                        }
+                    }
                 }
             }
+            .listStyle(.plain)
+            .scrollIndicators(.hidden)
+            .refreshable { await viewModel.refresh() }
+            
+            if let errorMessage = viewModel.errorMessage {
+                VStack {
+                    Spacer()
+                    Text(errorMessage)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.red)
+                        .cornerRadius(8)
+                        .padding()
+                }
+                .transition(.move(edge: .bottom))
+            }
         }
-        .scrollIndicators(.hidden)
-        .refreshable { await viewModel.refresh() }
     }
 
     private func openConversation(_ conv: ChatConversation) {
