@@ -6,9 +6,45 @@ struct PlaceSuggestion: Identifiable, Equatable {
     let id: String
     let mainText: String
     let secondaryText: String
+    
+    var entityType: EntityType {
+        if id.hasPrefix("local-society-") {
+            return .society
+        } else if id.hasPrefix("local-landmark-") {
+            return .landmark
+        } else if id.hasPrefix("local-city-") {
+            return .city
+        } else {
+            // Remote results - try to infer from secondary text
+            if secondaryText.isEmpty {
+                return .city
+            }
+            return .locality
+        }
+    }
 
     var fullText: String {
         secondaryText.isEmpty ? mainText : "\(mainText), \(secondaryText)"
+    }
+    
+    enum EntityType: String {
+        case society
+        case landmark
+        case locality
+        case city
+        
+        var iconName: String {
+            switch self {
+            case .society: return "building.2.fill"
+            case .landmark: return "mappin.and.ellipse"
+            case .locality: return "map"
+            case .city: return "building.columns.fill"
+            }
+        }
+        
+        var displayName: String {
+            rawValue.capitalized
+        }
     }
 }
 
@@ -34,7 +70,8 @@ final class GooglePlacesService: ObservableObject {
     @Published var isLoading = false
 
     private var searchTask: Task<Void, Never>?
-
+    private var sequenceNumber: UInt64 = 0
+    
     func search(query: String, mode: PlacesSearchMode = .cities) {
         searchTask?.cancel()
 
@@ -44,8 +81,12 @@ final class GooglePlacesService: ObservableObject {
             return
         }
 
+        sequenceNumber &+= 1
+        let currentSeq = sequenceNumber
+
         searchTask = Task {
-            try? await Task.sleep(nanoseconds: 300_000_000)
+            // Debounce: 250ms as per spec
+            try? await Task.sleep(nanoseconds: 250_000_000)
             guard !Task.isCancelled else { return }
 
             isLoading = true
@@ -60,7 +101,9 @@ final class GooglePlacesService: ObservableObject {
             }
 
             let remoteResults = await fetchRemoteSuggestions(query: trimmed, mode: mode, apiKey: key)
-            guard !Task.isCancelled else { return }
+            
+            // Stale-response guard: only update if this is still the latest search
+            guard !Task.isCancelled, currentSeq >= sequenceNumber else { return }
 
             suggestions = merge(localResults, remoteResults)
         }
@@ -162,14 +205,15 @@ final class GooglePlacesService: ObservableObject {
         }
 
         let encoded = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchQuery
+        
+        // ✅ FIX: Include ALL result types for better coverage
+        // Don't restrict to types=(cities) - this was blocking localities, POIs, and societies
         var urlString =
             "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=\(encoded)&components=country:in&key=\(apiKey)"
 
-        switch mode {
-        case .cities:
+        // Only restrict type for explicit city search mode
+        if case .cities = mode {
             urlString += "&types=(cities)"
-        case .landmarks, .address:
-            break
         }
 
         guard let url = URL(string: urlString) else { return [] }
@@ -193,14 +237,25 @@ final class GooglePlacesService: ObservableObject {
         var seen = Set<String>()
         var merged: [PlaceSuggestion] = []
 
-        for suggestion in local + remote {
+        // Priority ranking: Society → Landmark → Locality → City
+        // Local results come first (they include societies and are more relevant)
+        for suggestion in local {
+            let key = suggestion.mainText.lowercased()
+            guard !seen.contains(key) else { continue }
+            seen.insert(key)
+            merged.append(suggestion)
+        }
+        
+        // Then add remote results that aren't duplicates
+        for suggestion in remote {
             let key = suggestion.mainText.lowercased()
             guard !seen.contains(key) else { continue }
             seen.insert(key)
             merged.append(suggestion)
         }
 
-        return Array(merged.prefix(8))
+        // Limit to 10 results for better UX
+        return Array(merged.prefix(10))
     }
 
     private func firstComponent(in components: [AddressComponent], types: [String]) -> String {

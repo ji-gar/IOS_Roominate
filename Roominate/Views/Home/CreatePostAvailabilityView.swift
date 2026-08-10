@@ -82,12 +82,20 @@ struct CreatePostAvailabilityView: View {
                 .padding(.bottom, 24)
                 .animation(.easeInOut(duration: 0.2), value: lookingForShortTerm.wrappedValue)
             }
+            .simultaneousGesture(
+                DragGesture().onChanged { _ in
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            )
 
             CreatePostBottomBar(
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isAvailabilityValid,
-                onBack: onBack,
+                onBack: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: onNext
             )
         }
@@ -97,7 +105,10 @@ struct CreatePostAvailabilityView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBack) {
+                Button(action: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                }) {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))

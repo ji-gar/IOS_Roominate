@@ -165,6 +165,7 @@ struct PostOptionChip: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(isSelected ? Color.clear : AppTheme.fieldBorder, lineWidth: 1)
                 )
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
@@ -202,6 +203,7 @@ struct PostSpaceTypePicker: View {
                             color: selected == option ? Color.black.opacity(0.06) : .clear,
                             radius: 4, x: 0, y: 2
                         )
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
@@ -245,6 +247,7 @@ struct AmenityChipView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(isSelected ? Color.clear : AppTheme.fieldBorder, lineWidth: 1)
             )
+            .contentShape(Rectangle())
             .animation(.easeInOut(duration: 0.15), value: isSelected)
         }
         .buttonStyle(.plain)
@@ -453,6 +456,7 @@ struct IconChoiceChip: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(isSelected ? Color.clear : AppTheme.fieldBorder, lineWidth: 1)
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isSelected)

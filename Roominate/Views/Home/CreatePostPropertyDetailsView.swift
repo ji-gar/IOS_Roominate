@@ -57,6 +57,7 @@ struct CreatePostPropertyDetailsView: View {
                                 ) {
                                     viewModel.toggleMultiValue(type, in: \.propertyType)
                                 }
+                                .contentShape(Rectangle())
                             }
                         }
                     }
@@ -85,6 +86,7 @@ struct CreatePostPropertyDetailsView: View {
                                 ) {
                                     viewModel.toggleMultiValue(item, in: \.homeFurnishing)
                                 }
+                                .contentShape(Rectangle())
                             }
                         }
                     }
@@ -100,7 +102,10 @@ struct CreatePostPropertyDetailsView: View {
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isPropertyDetailsValid,
-                onBack: onBack,
+                onBack: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: onNext
             )
         }

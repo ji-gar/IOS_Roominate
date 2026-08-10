@@ -54,12 +54,20 @@ struct CreatePostSeekerBudgetView: View {
                 .padding(.bottom, 24)
                 .animation(.easeInOut(duration: 0.2), value: viewModel.moveInImmediately)
             }
+            .simultaneousGesture(
+                DragGesture().onChanged { _ in
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            )
 
             CreatePostBottomBar(
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isSeekerBudgetValid,
-                onBack: onBack,
+                onBack: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: onNext
             )
         }
@@ -67,7 +75,10 @@ struct CreatePostSeekerBudgetView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Create Post")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { createPostBackToolbar(action: onBack) }
+        .toolbar { createPostBackToolbar(action: {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            onBack()
+        }) }
         .onAppear {
             if viewModel.moveInImmediately, viewModel.availableFromDate == nil {
                 viewModel.availableFromDate = Date()

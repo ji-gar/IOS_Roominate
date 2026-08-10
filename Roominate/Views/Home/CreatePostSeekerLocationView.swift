@@ -80,7 +80,10 @@ struct CreatePostSeekerLocationView: View {
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isSeekerLocationValid,
-                onBack: onBack,
+                onBack: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: {
                     viewModel.commitPreferredAreaQueryIfNeeded()
                     onNext()

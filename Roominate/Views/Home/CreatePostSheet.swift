@@ -27,6 +27,7 @@ enum CreatePostRoute: Hashable {
 struct CreatePostFlowView: View {
     @StateObject private var viewModel: CreatePostViewModel
     @State private var path: [CreatePostRoute] = []
+    @State private var hasInitializedEditPath = false
 
     private let offerFormStepCount = 7
     private let seekerFormStepCount = 4
@@ -53,12 +54,11 @@ struct CreatePostFlowView: View {
         NavigationStack(path: $path) {
             Group {
                 if viewModel.editingPostId != nil {
-                    Color.clear
-                        .onAppear {
-                            if path.isEmpty {
-                                path.append(.overview)
-                            }
-                        }
+                    CreatePostOverviewView(
+                        isSeekerFlow: isSeekerFlow,
+                        onStart: { path.append(.step1Intro) },
+                        onDismiss: onDismiss
+                    )
                 } else {
                     CreatePostTypeSelectionView(
                         onSelect: selectPostType,

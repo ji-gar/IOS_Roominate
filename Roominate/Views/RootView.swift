@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @StateObject private var router = AppRouter()
     @StateObject private var profileViewModel = AddProfileViewModel()
+    @StateObject private var locationManager = LocationManager()
     @State private var showSplash = true
     @State private var isBootstrapping = true
 
@@ -17,7 +18,9 @@ struct RootView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.white.ignoresSafeArea())
             } else if router.rootRoute == .home {
-                MainTabView(onSignOut: { router.resetToOnboarding() })
+                MainTabView(onSignOut: { 
+                    router.resetToOnboarding()
+                })
             } else {
                 NavigationStack(path: $router.path) {
                     authRootContent
@@ -34,7 +37,15 @@ struct RootView: View {
         }
         .onChange(of: showSplash) { _, isShowing in
             if !isShowing {
-                Task { await bootstrapSession() }
+                Task {
+                    await bootstrapSession()
+                }
+            }
+        }
+        .onChange(of: router.rootRoute) { oldRoute, newRoute in
+            // Request location permission once after successful authentication
+            if newRoute == .home && oldRoute != .home && router.isAuthenticated {
+                locationManager.requestCurrentLocation()
             }
         }
     }

@@ -99,7 +99,11 @@ struct CreatePostDescriptionView: View {
                 currentStep: currentStep,
                 totalSteps: totalSteps,
                 isNextEnabled: viewModel.isDescriptionValid,
-                onBack: onBack,
+                onBack: {
+                    isDescriptionFocused = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: onNext
             )
         }
@@ -110,7 +114,11 @@ struct CreatePostDescriptionView: View {
         .dismissKeyboardOnTap()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: onBack) {
+                Button(action: {
+                    isDescriptionFocused = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                }) {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))

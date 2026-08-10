@@ -21,6 +21,14 @@ enum GeocodingService {
     "Chandigarh": .init(latitude: 30.7333, longitude: 76.7794),
     "Goa": .init(latitude: 15.2993, longitude: 74.1240),
     "Thane": .init(latitude: 19.2183, longitude: 72.9781),
+    "Vapi": .init(latitude: 20.3711, longitude: 72.9045),
+    "Santacruz": .init(latitude: 19.0810, longitude: 72.8404),
+    "Santa Cruz": .init(latitude: 19.0810, longitude: 72.8404),
+    "Kurla": .init(latitude: 19.0728, longitude: 72.8826),
+    "Andheri": .init(latitude: 19.1136, longitude: 72.8697),
+    "Bandra": .init(latitude: 19.0596, longitude: 72.8295),
+    "Borivali": .init(latitude: 19.2304, longitude: 72.8577),
+    "Powai": .init(latitude: 19.1176, longitude: 72.9060),
   ]
 
   static func coordinate(forCity city: String) -> CLLocationCoordinate2D? {
@@ -145,19 +153,61 @@ enum GeocodingService {
   }
 
   private static func indianState(for city: String) -> String {
-    switch IndianLocationsService.normalizedCityName(city) {
-    case "Mumbai", "Pune", "Thane", "Nagpur", "Nashik": return "Maharashtra"
-    case "Ahmedabad", "Surat", "Vadodara", "Rajkot": return "Gujarat"
-    case "Bengaluru", "Bangalore", "Mysuru", "Mangalore": return "Karnataka"
-    case "Delhi", "New Delhi", "Gurugram", "Noida", "Faridabad", "Ghaziabad": return "Delhi NCR"
-    case "Hyderabad": return "Telangana"
-    case "Chennai", "Coimbatore", "Madurai": return "Tamil Nadu"
-    case "Kolkata": return "West Bengal"
-    case "Jaipur", "Jodhpur", "Udaipur": return "Rajasthan"
-    case "Lucknow", "Kanpur", "Agra", "Varanasi": return "Uttar Pradesh"
-    case "Chandigarh": return "Chandigarh"
-    case "Goa": return "Goa"
-    default: return ""
+    let normalized = IndianLocationsService.normalizedCityName(city).lowercased()
+    
+    // Maharashtra cities and localities
+    if ["mumbai", "pune", "thane", "nagpur", "nashik", "aurangabad", "santacruz", "santa cruz",
+        "kurla", "andheri", "bandra", "borivali", "powai", "worli", "dadar", "goregaon",
+        "juhu", "kandivali", "malad", "vile parle", "chembur", "mulund", "ghatkopar",
+        "vikhroli", "kanjurmarg", "bhandup", "matunga", "sion", "wadala", "parel"].contains(normalized) {
+      return "Maharashtra"
     }
+    
+    // Gujarat cities and localities
+    if ["ahmedabad", "surat", "vadodara", "rajkot", "vapi", "gandhinagar", "anand",
+        "bhavnagar", "jamnagar", "valsad", "bharuch", "navsari", "gandhidham"].contains(normalized) {
+      return "Gujarat"
+    }
+    
+    // Karnataka
+    if ["bengaluru", "bangalore", "mysuru", "mangalore"].contains(normalized) {
+      return "Karnataka"
+    }
+    
+    // Delhi NCR
+    if ["delhi", "new delhi", "gurugram", "noida", "faridabad", "ghaziabad", "greater noida"].contains(normalized) {
+      return "Delhi NCR"
+    }
+    
+    // Telangana
+    if ["hyderabad", "secunderabad"].contains(normalized) {
+      return "Telangana"
+    }
+    
+    // Tamil Nadu
+    if ["chennai", "coimbatore", "madurai"].contains(normalized) {
+      return "Tamil Nadu"
+    }
+    
+    // West Bengal
+    if ["kolkata", "howrah"].contains(normalized) {
+      return "West Bengal"
+    }
+    
+    // Rajasthan
+    if ["jaipur", "jodhpur", "udaipur"].contains(normalized) {
+      return "Rajasthan"
+    }
+    
+    // Uttar Pradesh
+    if ["lucknow", "kanpur", "agra", "varanasi"].contains(normalized) {
+      return "Uttar Pradesh"
+    }
+    
+    // Union Territories
+    if normalized == "chandigarh" { return "Chandigarh" }
+    if normalized == "goa" { return "Goa" }
+    
+    return ""
   }
 }

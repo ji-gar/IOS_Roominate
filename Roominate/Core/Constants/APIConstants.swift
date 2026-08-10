@@ -86,4 +86,9 @@ enum APIConstants {
         static let port = 443
         static let authEndpoint = "\(baseURL)/broadcasting/auth"
     }
+    
+    enum DeviceTokens {
+        static let register = "/device-tokens"
+        static let unregister = "/device-tokens"
+    }
 }

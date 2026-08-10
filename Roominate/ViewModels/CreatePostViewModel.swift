@@ -169,6 +169,60 @@ final class CreatePostViewModel: ObservableObject {
             if let to = existingPost.availableTo {
                 availableToDate = Self.date(fromAPI: to)
             }
+            
+            // Parse and populate amenities for each room
+            if let amenities = existingPost.amenities {
+                parseExistingAmenities(amenities)
+            }
+            
+            // Initialize images from existing post
+            if let imageURLs = existingPost.images, !imageURLs.isEmpty {
+                Task { @MainActor in
+                    await self.loadExistingImages(from: imageURLs)
+                }
+            }
+        }
+    }
+    
+    // Parse amenities from the existing post and populate selection state
+    private func parseExistingAmenities(_ amenities: [String]) {
+        // For simplicity, we'll put all recognized amenities in "Living Room"
+        // and any custom ones in customAmenities
+        let knownAmenityLabels = Set(AmenityItem.all.map { $0.label.lowercased() })
+        
+        for amenity in amenities {
+            let lowercased = amenity.lowercased()
+            if let knownItem = AmenityItem.all.first(where: { $0.label.lowercased() == lowercased }) {
+                // Add to Living Room by default when editing
+                if selectedAmenities[AmenityRoom.livingRoom.rawValue] == nil {
+                    selectedAmenities[AmenityRoom.livingRoom.rawValue] = []
+                }
+                selectedAmenities[AmenityRoom.livingRoom.rawValue]?.insert(knownItem.id)
+            } else {
+                // Custom amenity
+                if customAmenities[AmenityRoom.livingRoom.rawValue] == nil {
+                    customAmenities[AmenityRoom.livingRoom.rawValue] = []
+                }
+                if !customAmenities[AmenityRoom.livingRoom.rawValue]!.contains(amenity) {
+                    customAmenities[AmenityRoom.livingRoom.rawValue]!.append(amenity)
+                }
+            }
+        }
+    }
+    
+    // Load existing images from URLs for editing
+    private func loadExistingImages(from urls: [String]) async {
+        for urlString in urls {
+            guard let url = URL(string: urlString) else { continue }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard let image = UIImage(data: data),
+                      let jpegData = Self.compressedJPEGData(from: image) else { continue }
+                let preview = UIImage(data: jpegData) ?? image
+                images.append(DraftImage(data: jpegData, image: preview))
+            } catch {
+                print("Failed to load image from \(urlString): \(error)")
+            }
         }
     }
 
@@ -315,10 +369,21 @@ final class CreatePostViewModel: ObservableObject {
     // MARK: Location helpers
 
     func applyPlaceDetails(_ details: PlaceDetails) {
+        let newCity = IndianLocationsService.normalizedCityName(
+            details.city.isEmpty ? details.formattedAddress : details.city
+        )
+        
+        // If city changes, clear location fields to prevent mismatched hierarchies
+        if !newCity.isEmpty && !draft.city.isEmpty && newCity != draft.city {
+            draft.landmark = ""
+            draft.area = ""
+            draft.pincode = ""
+        }
+        
         if !details.landmark.isEmpty { draft.landmark = details.landmark }
         if !details.area.isEmpty { draft.area = details.area }
-        if !details.city.isEmpty {
-            draft.city = IndianLocationsService.normalizedCityName(details.city)
+        if !newCity.isEmpty {
+            draft.city = newCity
         }
         if !details.state.isEmpty, details.state.lowercased() != "india" {
             draft.state = details.state
@@ -448,8 +513,9 @@ final class CreatePostViewModel: ObservableObject {
     func prepareDraftForSubmit() {
         buildAutoTitle()
         if !draft.postType {
+            // Seeker flow: auto-fill deposit with "0" if empty
+            // Note: Extra Cost field does not exist in seeker flow, so we don't set it
             if draft.deposit.isEmpty { draft.deposit = "0" }
-            if draft.extraCost.isEmpty { draft.extraCost = "0" }
             if moveInImmediately, draft.availableFrom.isEmpty {
                 availableFromDate = Date()
             }
@@ -461,10 +527,12 @@ final class CreatePostViewModel: ObservableObject {
                 draft.landmark = firstArea
             }
         } else {
+            // Offer flow: recompress images for upload
             recompressImagesForUpload()
         }
         draft.city = IndianLocationsService.normalizedCityName(draft.city)
     }
+
 
     private func resolvePincodeIfNeeded() async {
         guard draft.pincode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }

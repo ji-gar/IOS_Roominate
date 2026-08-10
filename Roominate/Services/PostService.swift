@@ -162,8 +162,17 @@ final class PostService: PostServiceProtocol {
         name: String,
         value: String
     ) {
-        guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        fields.append(.init(name: name, value: value))
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        // Validate numeric fields (monthly_rent and deposit only)
+        // Note: extra_cost is excluded because it can contain alphanumeric text (e.g., "Included in rent")
+        if name == "monthly_rent" || name == "deposit" {
+            // Ensure the value contains only digits (numeric validation)
+            guard trimmed.allSatisfy(\.isNumber) else { return }
+        }
+        
+        fields.append(.init(name: name, value: trimmed))
     }
 
     private func appendArrayFields(

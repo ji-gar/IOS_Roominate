@@ -15,10 +15,15 @@ struct PlacesSearchTextField: View {
 
     @StateObject private var placesService = GooglePlacesService()
     @State private var query: String = ""
+    @State private var isValidSelection: Bool = true
     @FocusState private var isFocused: Bool
 
     private var showsSuggestions: Bool {
         isFocused && !placesService.suggestions.isEmpty
+    }
+    
+    private var showsValidationError: Bool {
+        !isFocused && !query.isEmpty && !isValidSelection && mode == .cities
     }
 
     var body: some View {
@@ -37,13 +42,29 @@ struct PlacesSearchTextField: View {
                 suggestionsList
                     .zIndex(3)
             }
+            
+            if showsValidationError {
+                Text("Please select a valid location from the suggestions")
+                    .font(.system(size: 12))
+                    .foregroundStyle(AppTheme.errorRed)
+                    .padding(.top, 4)
+                    .padding(.horizontal, 4)
+            }
         }
         .zIndex(showsSuggestions ? 50 : 0)
         .onAppear {
             query = selectedText
+            isValidSelection = !selectedText.isEmpty
         }
         .onChange(of: selectedText) { _, newValue in
-            if query != newValue { query = newValue }
+            if query != newValue {
+                query = newValue
+                isValidSelection = !newValue.isEmpty
+            }
+        }
+        .onDisappear {
+            // Dismiss keyboard when view disappears
+            isFocused = false
         }
     }
 
@@ -57,6 +78,7 @@ struct PlacesSearchTextField: View {
                 .textInputAutocapitalization(.words)
                 .onChange(of: query) { _, newValue in
                     selectedText = newValue
+                    isValidSelection = false
                     placesService.search(query: newValue, mode: mode)
                 }
 
@@ -92,6 +114,7 @@ struct PlacesSearchTextField: View {
                         .textInputAutocapitalization(.words)
                         .onChange(of: query) { _, newValue in
                             selectedText = newValue
+                            isValidSelection = false
                             placesService.search(query: newValue, mode: mode)
                         }
 
@@ -162,6 +185,8 @@ struct PlacesSearchTextField: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 11)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
@@ -192,6 +217,7 @@ struct PlacesSearchTextField: View {
 
         query = displayText
         selectedText = displayText
+        isValidSelection = true
         isFocused = false
         placesService.clear()
 

@@ -70,14 +70,14 @@ struct CreatePostLocationSearchField: View {
                     selectSuggestion(suggestion)
                 } label: {
                     HStack(spacing: 12) {
-                        Image(systemName: "mappin")
+                        Image(systemName: suggestion.entityType.iconName)
                             .font(.system(size: 13))
-                            .foregroundStyle(AppTheme.textPrimary)
+                            .foregroundStyle(suggestion.entityType == .society ? AppTheme.primaryBlue : AppTheme.textPrimary)
                             .frame(width: 18)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(suggestion.mainText)
-                                .font(.system(size: 15, weight: .medium))
+                                .font(.system(size: 15, weight: suggestion.entityType == .society ? .semibold : .medium))
                                 .foregroundStyle(AppTheme.textPrimary)
 
                             if !suggestion.secondaryText.isEmpty {

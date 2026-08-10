@@ -23,6 +23,10 @@ final class TokenStorage {
         get { UserDefaults.standard.integer(forKey: userIdKey) }
         set { UserDefaults.standard.set(newValue, forKey: userIdKey) }
     }
+    
+    var isSignedIn: Bool {
+        return token != nil
+    }
 
     func clear() {
         token = nil

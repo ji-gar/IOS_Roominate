@@ -108,7 +108,10 @@ struct CreatePostLocationView: View {
                 totalSteps: totalSteps,
                 nextLabel: "Next",
                 isNextEnabled: viewModel.isLocationValid,
-                onBack: onBack,
+                onBack: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    onBack()
+                },
                 onNext: onNext
             )
         }
@@ -165,18 +168,48 @@ struct CreatePostLocationView: View {
                 }
             }
 
-            Button {
-                locationManager.requestCurrentLocation()
-            } label: {
-                Image(systemName: "location.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(AppTheme.textPrimary)
-                    .frame(width: 36, height: 36)
-                    .background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
+            if locationManager.authorizationDenied {
+                // Show permission denied overlay
+                VStack(spacing: 8) {
+                    Image(systemName: "location.slash.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(AppTheme.textSecondary)
+                    
+                    Text("Location Disabled")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    
+                    Button {
+                        locationManager.openSettings()
+                    } label: {
+                        Text("Enable in Settings")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(AppTheme.primaryBlue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.75))
+            } else {
+                Button {
+                    locationManager.requestCurrentLocation()
+                } label: {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 2)
+                }
+                .padding(10)
             }
-            .padding(10)
+        }
+        .onAppear {
+            locationManager.checkAuthorizationStatus()
         }
     }
 
