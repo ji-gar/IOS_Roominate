@@ -11,9 +11,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		637C75702FCC473B0025AF73 /* Roominate */ = {
+		637C75702FCC473B0025AF73 /* Stay Sorted */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Roominate;
+			path = "Stay Sorted";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		637C75652FCC473B0025AF73 = {
 			isa = PBXGroup;
 			children = (
-				637C75702FCC473B0025AF73 /* Roominate */,
+				637C75702FCC473B0025AF73 /* Stay Sorted */,
 				637C756F2FCC473B0025AF73 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,7 +61,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				637C75702FCC473B0025AF73 /* Roominate */,
+				637C75702FCC473B0025AF73 /* Stay Sorted */,
 			);
 			name = "Stay Sorted";
 			packageProductDependencies = (
