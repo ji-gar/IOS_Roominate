@@ -12,6 +12,13 @@ enum ProfileRoute: Hashable {
     case help
     case deleteAccountReason
     case deleteAccountVerify(reason: String)
+    case chatList
+    case chat(
+        conversationId: Int,
+        otherName: String,
+        postId: Int? = nil,
+        otherUserId: Int? = nil
+    )
 }
 
 enum ProfilePostFlow: Identifiable {
@@ -56,7 +63,8 @@ struct ProfileTabView: View {
                 onOpenAboutUs: { path.append(.aboutUs) },
                 onOpenNotifications: { path.append(.notifications) },
                 onOpenHelp: { path.append(.help) },
-                onOpenDeleteAccount: { path.append(.deleteAccountReason) }
+                onOpenDeleteAccount: { path.append(.deleteAccountReason) },
+                onOpenChatList: { path.append(.chatList) }
             )
             .navigationDestination(for: ProfileRoute.self) { route in
                 switch route {
@@ -119,6 +127,26 @@ struct ProfileTabView: View {
                         onBack: { path.removeLast() },
                         onSaved: { path.removeLast() }
                     )
+                case .chatList:
+                    ChatListView(
+                        showsBackButton: true,
+                        onBack: { path.removeLast() },
+                        onSelectConversation: { id, name, postId, otherUserId in
+                            path.append(.chat(
+                                conversationId: id,
+                                otherName: name,
+                                postId: postId,
+                                otherUserId: otherUserId
+                            ))
+                        }
+                    )
+                case .chat(let id, let name, let postId, let otherUserId):
+                    ChatView(
+                        conversationId: id,
+                        otherName: name,
+                        postId: postId,
+                        otherUserId: otherUserId
+                    )
                 }
             }
         }
@@ -149,6 +177,7 @@ struct ProfileSettingsView: View {
     let onOpenNotifications: () -> Void
     let onOpenHelp: () -> Void
     let onOpenDeleteAccount: () -> Void
+    let onOpenChatList: () -> Void
 
     @State private var showShareSheet = false
 
@@ -196,9 +225,15 @@ struct ProfileSettingsView: View {
                 .font(.system(size: AppTheme.Profile.sectionTitleSize + 5, weight: .bold))
                 .foregroundStyle(AppTheme.primaryBlue)
             Spacer()
-            Image(systemName: "ellipsis.message")
-                .font(.system(size: 19))
-                .foregroundStyle(AppTheme.textPrimary)
+            Button {
+                onOpenChatList()
+            } label: {
+                Image(systemName: "ellipsis.message")
+                    .font(.system(size: 19))
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
