@@ -211,7 +211,7 @@ struct ReportPostSheet: View {
                         .foregroundStyle(AppTheme.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Your feedback helps us keep Stay Sorted safe, respectful, and trustworthy for everyone.")
+                    Text("Your feedback helps us keep Stay Set safe, respectful, and trustworthy for everyone.")
                         .font(.system(size: 14))
                         .foregroundStyle(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)
