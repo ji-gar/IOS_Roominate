@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		637C756E2FCC473B0025AF73 /* Roominate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Roominate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		637C756E2FCC473B0025AF73 /* Stay Sorted.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stay Sorted.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		637C756F2FCC473B0025AF73 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				637C756E2FCC473B0025AF73 /* Roominate.app */,
+				637C756E2FCC473B0025AF73 /* Stay Sorted.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		637C756D2FCC473B0025AF73 /* Roominate */ = {
+		637C756D2FCC473B0025AF73 /* Stay Sorted */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 637C75792FCC473C0025AF73 /* Build configuration list for PBXNativeTarget "Roominate" */;
+			buildConfigurationList = 637C75792FCC473C0025AF73 /* Build configuration list for PBXNativeTarget "Stay Sorted" */;
 			buildPhases = (
 				637C756A2FCC473B0025AF73 /* Sources */,
 				637C756B2FCC473B0025AF73 /* Frameworks */,
@@ -63,11 +63,11 @@
 			fileSystemSynchronizedGroups = (
 				637C75702FCC473B0025AF73 /* Roominate */,
 			);
-			name = Roominate;
+			name = "Stay Sorted";
 			packageProductDependencies = (
 			);
 			productName = Roominate;
-			productReference = 637C756E2FCC473B0025AF73 /* Roominate.app */;
+			productReference = 637C756E2FCC473B0025AF73 /* Stay Sorted.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 637C75692FCC473B0025AF73 /* Build configuration list for PBXProject "Roominate" */;
+			buildConfigurationList = 637C75692FCC473B0025AF73 /* Build configuration list for PBXProject "Stay Sorted" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -102,7 +102,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				637C756D2FCC473B0025AF73 /* Roominate */,
+				637C756D2FCC473B0025AF73 /* Stay Sorted */,
 			);
 		};
 /* End PBXProject section */
@@ -260,7 +260,7 @@
 				DEVELOPMENT_TEAM = A5533LC7PN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Roominate;
+				INFOPLIST_KEY_CFBundleDisplayName = "Stay Sorted";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Roominate uses your location to help you pin your stay on the map.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Roominate needs access to your photo library to set your profile picture.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -298,7 +298,7 @@
 				DEVELOPMENT_TEAM = A5533LC7PN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = Roominate;
+				INFOPLIST_KEY_CFBundleDisplayName = "Stay Sorted";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Roominate uses your location to help you pin your stay on the map.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Roominate needs access to your photo library to set your profile picture.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -328,7 +328,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		637C75692FCC473B0025AF73 /* Build configuration list for PBXProject "Roominate" */ = {
+		637C75692FCC473B0025AF73 /* Build configuration list for PBXProject "Stay Sorted" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				637C75772FCC473C0025AF73 /* Debug */,
@@ -337,7 +337,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		637C75792FCC473C0025AF73 /* Build configuration list for PBXNativeTarget "Roominate" */ = {
+		637C75792FCC473C0025AF73 /* Build configuration list for PBXNativeTarget "Stay Sorted" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				637C757A2FCC473C0025AF73 /* Debug */,

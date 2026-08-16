@@ -445,7 +445,7 @@ enum PostReportReason: String, CaseIterable, Identifiable {
     case offensive = "Offensive photos or language"
     case harassment = "Personal attack or harassment"
     case illegal = "Promoting illegal activity"
-    case irrelevant = "Not relevant to Roominate"
+    case irrelevant = "Not relevant to Stay Sorted"
     case other = "Other"
 
     var id: String { rawValue }

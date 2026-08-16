@@ -1,8 +1,8 @@
 /* App */
-"app.name" = "Roominate";
+"app.name" = "Stay Sorted";
 
 /* Splash */
-"splash.title" = "Roominate";
+"splash.title" = "Stay Sorted";
 
 /* Onboarding */
 "onboarding.title" = "Find your kind of people";
@@ -37,7 +37,7 @@
 "signin.passwordPlaceholder" = "Password";
 "signin.or" = "Or";
 "signin.otpButton" = "Sign In using OTP";
-"signin.newUser" = "New to Roominate?";
+"signin.newUser" = "New to Stay Sorted?";
 "signin.signUpLink" = "Sign Up";
 "signin.button" = "Sign In";
 
@@ -130,7 +130,7 @@
 "profile.unblock" = "Unblock";
 "profile.noBlockedUsers" = "You haven't blocked anyone yet.";
 "profile.noSearchResults" = "No users found.";
-"profile.aboutUsDescription" = "Roominate helps students and young professionals find compatible flatmates and shared homes through a trusted community. Whether you have a room to fill or need a place to stay, Roominate makes it easy to discover listings, connect with like-minded people, and find a living arrangement that feels right.";
+"profile.aboutUsDescription" = "Stay Sorted helps students and young professionals find compatible flatmates and shared homes through a trusted community. Whether you have a room to fill or need a place to stay, Stay Sorted makes it easy to discover listings, connect with like-minded people, and find a living arrangement that feels right.";
 "profile.deleteAccountReasonPrompt" = "Please let us know the reason for deleting your account";
 "profile.deleteAccountOTPSent" = "We've sent a 4-digit verification code to your email.";
 "profile.verifyAndDelete" = "Verify & Delete Account";
