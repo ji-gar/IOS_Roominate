@@ -3,13 +3,17 @@ import Foundation
 protocol AuthServiceProtocol {
     /// Checks whether an email address already exists in the system.
     func checkEmail(email: String) async throws -> CheckEmailResponse
+    /// Checks if email is from accepted institute and returns next step for signup.
+    func checkInstituteEmail(email: String) async throws -> CheckInstituteEmailResponse
     func sendOTP(email: String) async throws -> AuthResponse
     func resendOTP(email: String) async throws -> AuthResponse
     func requestOTPForSignUp(email: String) async throws -> AuthResponse
     func requestOTPForSignIn(email: String) async throws -> AuthResponse
     func verifyOTP(email: String, otp: String) async throws -> AuthResponse
+    func verifyOTPAndSetPassword(email: String, otp: String, password: String, confirmation: String) async throws -> AuthResponse
     func login(email: String, password: String) async throws -> AuthResponse
-    func loginWithOTP(email: String, otp: String) async throws -> AuthResponse
+    func requestLoginOTP(email: String) async throws -> AuthResponse
+    func verifyLoginOTP(email: String, otp: String) async throws -> AuthResponse
     func register(name: String, email: String, password: String, confirmation: String) async throws -> AuthResponse
     func setPassword(email: String, otp: String?, password: String, confirmation: String) async throws -> AuthResponse
     func fetchCurrentUser() async throws -> UserResponse
@@ -33,6 +37,16 @@ final class AuthService: AuthServiceProtocol {
             path: APIConstants.Auth.checkEmail,
             method: .post,
             body: CheckEmailRequest(email: normalizedEmail)
+        )
+    }
+    
+    /// POST /check-institute-email — validates institute email and returns next step for signup.
+    func checkInstituteEmail(email: String) async throws -> CheckInstituteEmailResponse {
+        let normalizedEmail = normalizeEmail(email)
+        return try await client.request(
+            path: APIConstants.Auth.checkInstituteEmail,
+            method: .post,
+            body: CheckInstituteEmailRequest(email: normalizedEmail)
         )
     }
 
@@ -80,11 +94,12 @@ final class AuthService: AuthServiceProtocol {
         }
     }
 
-    private func requestLoginOTP(email: String) async throws -> AuthResponse {
-        try await client.request(
+    func requestLoginOTP(email: String) async throws -> AuthResponse {
+        let normalizedEmail = normalizeEmail(email)
+        return try await client.request(
             path: APIConstants.Auth.loginWithOTP,
             method: .post,
-            body: SendOTPRequest(email: email)
+            body: SendOTPRequest(email: normalizedEmail)
         )
     }
 
@@ -96,6 +111,28 @@ final class AuthService: AuthServiceProtocol {
             path: APIConstants.Auth.verifyOTP,
             method: .post,
             body: VerifyOTPRequest(email: normalizedEmail, otp: otp)
+        )
+        await persistAuthCredentials(from: response)
+        return response
+    }
+    
+    /// Verifies OTP and sets password in a single call (recommended for signup flow)
+    func verifyOTPAndSetPassword(
+        email: String,
+        otp: String,
+        password: String,
+        confirmation: String
+    ) async throws -> AuthResponse {
+        let normalizedEmail = normalizeEmail(email)
+        let response: AuthResponse = try await client.request(
+            path: APIConstants.Auth.verifyOTPSetPassword,
+            method: .post,
+            body: VerifyOTPSetPasswordRequest(
+                email: normalizedEmail,
+                otp: otp,
+                password: password,
+                passwordConfirmation: confirmation
+            )
         )
         await persistAuthCredentials(from: response)
         return response
@@ -112,10 +149,10 @@ final class AuthService: AuthServiceProtocol {
         return response
     }
 
-    func loginWithOTP(email: String, otp: String) async throws -> AuthResponse {
+    func verifyLoginOTP(email: String, otp: String) async throws -> AuthResponse {
         let normalizedEmail = normalizeEmail(email)
         let response: AuthResponse = try await client.request(
-            path: APIConstants.Auth.loginWithOTP,
+            path: APIConstants.Auth.verifyLoginOTP,
             method: .post,
             body: LoginWithOTPRequest(email: normalizedEmail, otp: otp)
         )
@@ -151,16 +188,17 @@ final class AuthService: AuthServiceProtocol {
     ) async throws -> AuthResponse {
         let normalizedEmail = normalizeEmail(email)
 
+        // If OTP is provided, this is a signup flow - use the combined endpoint
         if let otp, !otp.isEmpty {
-            _ = try await resetPasswordWithOTP(
+            return try await verifyOTPAndSetPassword(
                 email: normalizedEmail,
                 otp: otp,
                 password: password,
                 confirmation: confirmation
             )
-            return try await login(email: normalizedEmail, password: password)
         }
 
+        // Fallback to legacy register endpoint
         return try await register(
             name: "User",
             email: normalizedEmail,

@@ -1,5 +1,6 @@
 import PhotosUI
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct EditPersonalInfoView: View {
     @ObservedObject var viewModel: ProfileViewModel
@@ -12,14 +13,25 @@ struct EditPersonalInfoView: View {
     @State private var currentCity: String = ""
     @State private var profession: Profession?
     @State private var instituteName: String = ""
+    @State private var programCourse: String = ""
+    @State private var graduationYear: Int?
     @State private var organizationName: String = ""
     @State private var position: String = ""
+    @State private var documentType: String = ""
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedDocumentItem: PhotosPickerItem?
     @State private var showRemovePhotoConfirm = false
+    @State private var showRemoveDocumentConfirm = false
+    @State private var showDocumentPicker = false
 
     private var birthYearOptions: [Int] {
         let currentYear = Calendar.current.component(.year, from: Date())
         return Array((1900...currentYear).reversed())
+    }
+    
+    private var graduationYearOptions: [Int] {
+        let currentYear = Calendar.current.component(.year, from: Date())
+        return Array((1950...(currentYear + 10)).reversed())
     }
 
     private var isValid: Bool {
@@ -86,6 +98,17 @@ struct EditPersonalInfoView: View {
                         icon: "building.columns",
                         isRequired: true
                     )
+                    
+                    ProfileFormTextField(
+                        title: "Program/Course",
+                        text: $programCourse,
+                        placeholder: "e.g. B.Tech Computer Engineering",
+                        icon: "book"
+                    )
+                    
+                    graduationYearField
+                    
+                    documentUploadSection
                 } else if profession == .working {
                     ProfileFormTextField(
                         title: Strings.Profile.organizationLabel,
@@ -132,6 +155,8 @@ struct EditPersonalInfoView: View {
                             currentCity: currentCity.trimmingCharacters(in: .whitespacesAndNewlines),
                             profession: profession,
                             instituteName: instituteName.trimmingCharacters(in: .whitespacesAndNewlines),
+                            programCourse: programCourse.trimmingCharacters(in: .whitespacesAndNewlines),
+                            graduationYear: graduationYear,
                             organizationName: organizationName.trimmingCharacters(in: .whitespacesAndNewlines),
                             position: position.trimmingCharacters(in: .whitespacesAndNewlines),
                             removeImage: false
@@ -151,6 +176,13 @@ struct EditPersonalInfoView: View {
                 }
             }
         }
+        .onChange(of: selectedDocumentItem) { _, newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                    viewModel.setDocument(data, type: documentType)
+                }
+            }
+        }
         .confirmationDialog(
             Strings.Profile.removePhotoTitle,
             isPresented: $showRemovePhotoConfirm,
@@ -161,6 +193,15 @@ struct EditPersonalInfoView: View {
                     _ = await viewModel.deleteProfileImage()
                     viewModel.removeProfileImage()
                 }
+            }
+        }
+        .confirmationDialog(
+            "Remove Document",
+            isPresented: $showRemoveDocumentConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Remove Document", role: .destructive) {
+                viewModel.removeDocument()
             }
         }
         .dismissKeyboardOnTap()
@@ -227,6 +268,96 @@ struct EditPersonalInfoView: View {
             }
         }
     }
+    
+    private var graduationYearField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Graduation Year")
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
+                .foregroundStyle(AppTheme.textPrimary)
+
+            Menu {
+                ForEach(graduationYearOptions, id: \.self) { year in
+                    Button(String(year)) {
+                        graduationYear = year
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(graduationYear.map(String.init) ?? "Select year")
+                        .font(.system(size: AppTheme.Profile.fieldInputSize))
+                        .foregroundStyle(
+                            graduationYear == nil ? AppTheme.textSecondary : AppTheme.textPrimary
+                        )
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                .padding(.horizontal, 16)
+                .frame(height: AppTheme.Profile.fieldHeight)
+                .background(AppTheme.fieldBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
+                        .stroke(AppTheme.fieldBorder, lineWidth: 1)
+                )
+            }
+        }
+    }
+    
+    private var documentUploadSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Identity Document")
+                .font(.system(size: AppTheme.Profile.fieldLabelSize, weight: .medium))
+                .foregroundStyle(AppTheme.textPrimary)
+            
+            Text("Upload Student ID or other proof (JPG, PNG, PDF - max 5MB)")
+                .font(.system(size: 12))
+                .foregroundStyle(AppTheme.textSecondary)
+            
+            ProfileFormTextField(
+                title: "Document Type",
+                text: $documentType,
+                placeholder: "e.g. Student ID, ID Card",
+                icon: "doc.text"
+            )
+            
+            if viewModel.profile.documentURL != nil || viewModel.profile.documentData != nil {
+                HStack {
+                    Image(systemName: "doc.fill")
+                        .foregroundStyle(AppTheme.primaryBlue)
+                    Text("Document uploaded")
+                        .font(.system(size: 14))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Spacer()
+                    Button("Remove") {
+                        showRemoveDocumentConfirm = true
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(AppTheme.errorRed)
+                }
+                .padding(12)
+                .background(Color(red: 0.95, green: 0.97, blue: 1.0))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            
+            PhotosPicker(
+                selection: $selectedDocumentItem,
+                matching: .any(of: [.images, .item(conformingTo: .pdf)])
+            ) {
+                HStack {
+                    Image(systemName: "doc.badge.plus")
+                    Text(viewModel.profile.documentURL != nil || viewModel.profile.documentData != nil
+                         ? "Replace Document" : "Upload Document")
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(AppTheme.primaryBlue)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .background(Color(red: 0.95, green: 0.97, blue: 1.0))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        }
+    }
 
     private func populateFields() {
         let profile = viewModel.profile
@@ -236,7 +367,10 @@ struct EditPersonalInfoView: View {
         currentCity = profile.currentCity
         profession = profile.profession
         instituteName = profile.instituteName
+        programCourse = profile.programCourse
+        graduationYear = profile.graduationYear
         organizationName = profile.organizationName
         position = profile.position
+        documentType = profile.documentType
     }
 }

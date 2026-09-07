@@ -7,10 +7,19 @@ struct EditContactView: View {
 
     @State private var email: String = ""
     @State private var socialLinks: [SocialLinkDraft] = []
+    @State private var socialLinkErrors: [String: String] = [:]
 
     private var isValid: Bool {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedEmail.contains("@") && trimmedEmail.contains(".")
+        let emailValid = trimmedEmail.contains("@") && trimmedEmail.contains(".")
+        
+        // Validate all social links
+        let allLinksValid = socialLinks.allSatisfy { link in
+            let trimmed = link.link.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty || link.isValidURL
+        }
+        
+        return emailValid && allLinksValid
     }
 
     var body: some View {
@@ -136,8 +145,24 @@ struct EditContactView: View {
                 .background(AppTheme.fieldBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                        .stroke(AppTheme.fieldBorder, lineWidth: 1)
+                        .stroke(
+                            !link.wrappedValue.link.isEmpty && !link.wrappedValue.isValidURL
+                                ? AppTheme.errorRed : AppTheme.fieldBorder,
+                            lineWidth: 1
+                        )
                 )
+            
+            // Show validation error for invalid URLs
+            if !link.wrappedValue.link.isEmpty && !link.wrappedValue.isValidURL {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 12))
+                    Text("Enter a full link starting with https:// or http://")
+                        .font(.system(size: 12))
+                }
+                .foregroundStyle(AppTheme.errorRed)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 

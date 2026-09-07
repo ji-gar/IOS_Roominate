@@ -27,15 +27,19 @@ enum APIConstants {
     enum Auth {
         static let login = "/login"
         static let loginWithOTP = "/login-with-otp"
+        static let verifyLoginOTP = "/verify-login-otp"
         static let sendOTP = "/send-otp"
         static let resendOTP = "/resend-otp"
         static let verifyOTP = "/verify-otp"
+        static let verifyOTPSetPassword = "/verify-otp-set-password"
         static let register = "/register"
         static let forgotPassword = "/forgot-password"
         static let resetPassword = "/reset-password"
         /// Submit institution verification document for admin review.
         static let verifyInstitution = "/verify-institution"
-        /// Check whether an institute email address already has an account.
+        /// Check if email domain is from accepted institute and return next step for signup flow.
+        static let checkInstituteEmail = "/check-institute-email"
+        /// Legacy endpoint - kept for backward compatibility with sign-in flows
         static let checkEmail = "/check-email"
     }
 
@@ -46,6 +50,7 @@ enum APIConstants {
         static let blockedUsers = "/users/blocked"
         static func socialLink(id: Int) -> String { "/profile/social-links/\(id)" }
         static func block(userId: Int) -> String { "/users/\(userId)/block" }
+        static func userProfile(userId: Int) -> String { "/users/\(userId)/profile" }
     }
 
     enum Account {

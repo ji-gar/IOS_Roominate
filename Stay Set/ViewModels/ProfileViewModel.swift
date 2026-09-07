@@ -107,6 +107,18 @@ final class ProfileViewModel: ObservableObject {
         profile.profileImageData = nil
         profile.profileImageURL = nil
     }
+    
+    func setDocument(_ data: Data?, type: String) {
+        profile.documentData = data
+        profile.documentType = type
+    }
+    
+    func removeDocument() {
+        profile.documentData = nil
+        profile.documentType = ""
+        profile.document = nil
+        profile.documentURL = nil
+    }
 
     func updatePersonalInfo(
         name: String,
@@ -115,6 +127,8 @@ final class ProfileViewModel: ObservableObject {
         currentCity: String,
         profession: Profession?,
         instituteName: String,
+        programCourse: String,
+        graduationYear: Int?,
         organizationName: String,
         position: String,
         removeImage: Bool
@@ -131,16 +145,21 @@ final class ProfileViewModel: ObservableObject {
                 currentCity: currentCity,
                 profession: profession,
                 instituteName: profession == .student ? instituteName : nil,
+                programCourse: profession == .student && !programCourse.isEmpty ? programCourse : nil,
+                graduationYear: profession == .student ? graduationYear : nil,
                 organizationName: profession == .working ? organizationName : nil,
                 position: position.isEmpty ? nil : position,
                 about: profile.about.isEmpty ? nil : profile.about,
                 email: profile.email.isEmpty ? nil : profile.email,
                 socialLinks: profile.socialLinks.isEmpty ? nil : profile.socialLinks,
                 profileImageData: profile.profileImageData,
+                documentData: profile.documentData,
+                documentType: profile.documentType.isEmpty ? nil : profile.documentType,
                 removeProfileImage: removeImage
             )
             await refreshProfile()
             profile.profileImageData = nil
+            profile.documentData = nil
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -162,6 +181,9 @@ final class ProfileViewModel: ObservableObject {
                 profession: profile.profession,
                 instituteName: profile.profession == .student && !profile.instituteName.isEmpty
                     ? profile.instituteName : nil,
+                programCourse: profile.profession == .student && !profile.programCourse.isEmpty
+                    ? profile.programCourse : nil,
+                graduationYear: profile.profession == .student ? profile.graduationYear : nil,
                 organizationName: profile.profession == .working && !profile.organizationName.isEmpty
                     ? profile.organizationName : nil,
                 position: profile.position.isEmpty ? nil : profile.position,
@@ -169,6 +191,8 @@ final class ProfileViewModel: ObservableObject {
                 email: email,
                 socialLinks: socialLinks,
                 profileImageData: nil,
+                documentData: nil,
+                documentType: nil,
                 removeProfileImage: false
             )
             await refreshProfile()
@@ -193,6 +217,9 @@ final class ProfileViewModel: ObservableObject {
                 profession: profile.profession,
                 instituteName: profile.profession == .student && !profile.instituteName.isEmpty
                     ? profile.instituteName : nil,
+                programCourse: profile.profession == .student && !profile.programCourse.isEmpty
+                    ? profile.programCourse : nil,
+                graduationYear: profile.profession == .student ? profile.graduationYear : nil,
                 organizationName: profile.profession == .working && !profile.organizationName.isEmpty
                     ? profile.organizationName : nil,
                 position: profile.position.isEmpty ? nil : profile.position,
@@ -200,6 +227,8 @@ final class ProfileViewModel: ObservableObject {
                 email: profile.email.isEmpty ? nil : profile.email,
                 socialLinks: profile.socialLinks.isEmpty ? nil : profile.socialLinks,
                 profileImageData: nil,
+                documentData: nil,
+                documentType: nil,
                 removeProfileImage: false
             )
             await refreshProfile()

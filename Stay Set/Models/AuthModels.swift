@@ -9,6 +9,34 @@ struct CheckEmailResponse: Decodable {
     let message: String?
 }
 
+// MARK: - Check Institute Email (Signup Flow)
+
+struct CheckInstituteEmailRequest: Encodable {
+    let email: String
+}
+
+struct CheckInstituteEmailResponse: Decodable {
+    let success: Bool
+    let message: String
+    let data: CheckInstituteEmailData?
+    
+    struct CheckInstituteEmailData: Decodable {
+        let email: String
+        let emailDomain: String
+        let allowed: Bool
+        let institute: Institute?
+        let registered: Bool
+        let verified: Bool
+        let nextStep: String
+        
+        struct Institute: Decodable {
+            let id: Int
+            let name: String
+            let emailDomain: String
+        }
+    }
+}
+
 struct LoginRequest: Encodable {
     let email: String
     let password: String
@@ -35,6 +63,20 @@ struct RegisterRequest: Encodable {
 struct VerifyOTPRequest: Encodable {
     let email: String
     let otp: String
+}
+
+struct VerifyOTPSetPasswordRequest: Encodable {
+    let email: String
+    let otp: String
+    let password: String
+    let passwordConfirmation: String
+    
+    enum CodingKeys: String, CodingKey {
+        case email
+        case otp
+        case password
+        case passwordConfirmation = "password_confirmation"
+    }
 }
 
 struct LoginWithOTPRequest: Encodable {
@@ -240,6 +282,55 @@ struct SocialLinkDraft: Identifiable, Hashable {
         self.type = type
         self.link = link
     }
+    
+    var isValidURL: Bool {
+        let trimmed = link.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://")
+    }
+}
+
+struct PublicProfileResponse: Decodable {
+    let id: Int
+    let name: String?
+    let memberSince: String?
+    let joinedAt: String?
+    let gender: String?
+    let currentCity: String?
+    let birthYear: Int?
+    let profession: String?
+    let instituteName: String?
+    let programCourse: String?
+    let graduationYear: Int?
+    let organizationName: String?
+    let position: String?
+    let about: String?
+    let profileImageUrl: String?
+    let socialLinks: [SocialLink]?
+    let activePostsCount: Int?
+    
+    var resolvedProfileImageURL: String? {
+        guard let profileImageUrl, !profileImageUrl.isEmpty else { return nil }
+        return APIConstants.resolveMediaURL(profileImageUrl)
+    }
+    
+    var resolvedGender: Gender? {
+        guard let gender else { return nil }
+        return Gender(rawValue: gender.lowercased())
+    }
+    
+    var resolvedProfession: Profession? {
+        guard let profession else { return nil }
+        let normalized = profession.uppercased()
+        if normalized.contains("STUDENT") { return .student }
+        if normalized.contains("WORK") { return .working }
+        return Profession(rawValue: normalized)
+    }
+    
+    var age: Int? {
+        guard let birthYear else { return nil }
+        let currentYear = Calendar.current.component(.year, from: Date())
+        return currentYear - birthYear
+    }
 }
 
 enum SocialLinkType: String, CaseIterable, Identifiable {
@@ -284,10 +375,15 @@ struct ProfileResponse: Decodable {
     let gender: String?
     let profession: String?
     let instituteName: String?
+    let programCourse: String?
+    let graduationYear: Int?
     let organizationName: String?
     let position: String?
     let birthYear: Int?
     let profileImageUrl: String?
+    let documentType: String?
+    let document: String?
+    let documentUrl: String?
     let isVerified: Bool?
     let socialLinks: [SocialLink]?
     let lifestyleNotes: [String]?
@@ -305,11 +401,16 @@ struct ProfileResponse: Decodable {
         case gender
         case profession
         case instituteName
+        case programCourse
+        case graduationYear
         case organizationName
         case position
         case birthYear
         case profileImageUrl
         case profileImage
+        case documentType
+        case document
+        case documentUrl
         case isVerified
         case socialLinks
         case lifestyleNotes
@@ -325,10 +426,15 @@ struct ProfileResponse: Decodable {
         gender: String? = nil,
         profession: String? = nil,
         instituteName: String? = nil,
+        programCourse: String? = nil,
+        graduationYear: Int? = nil,
         organizationName: String? = nil,
         position: String? = nil,
         birthYear: Int? = nil,
         profileImageUrl: String? = nil,
+        documentType: String? = nil,
+        document: String? = nil,
+        documentUrl: String? = nil,
         isVerified: Bool? = nil,
         socialLinks: [SocialLink]? = nil,
         lifestyleNotes: [String]? = nil
@@ -342,10 +448,15 @@ struct ProfileResponse: Decodable {
         self.gender = gender
         self.profession = profession
         self.instituteName = instituteName
+        self.programCourse = programCourse
+        self.graduationYear = graduationYear
         self.organizationName = organizationName
         self.position = position
         self.birthYear = birthYear
         self.profileImageUrl = profileImageUrl
+        self.documentType = documentType
+        self.document = document
+        self.documentUrl = documentUrl
         self.isVerified = isVerified
         self.socialLinks = socialLinks
         self.lifestyleNotes = lifestyleNotes
@@ -362,11 +473,16 @@ struct ProfileResponse: Decodable {
         gender = try container.decodeIfPresent(String.self, forKey: .gender)
         profession = try container.decodeIfPresent(String.self, forKey: .profession)
         instituteName = try container.decodeIfPresent(String.self, forKey: .instituteName)
+        programCourse = try container.decodeIfPresent(String.self, forKey: .programCourse)
+        graduationYear = try container.decodeFlexibleIntIfPresent(forKey: .graduationYear)
         organizationName = try container.decodeIfPresent(String.self, forKey: .organizationName)
         position = try container.decodeIfPresent(String.self, forKey: .position)
         birthYear = try container.decodeFlexibleIntIfPresent(forKey: .birthYear)
         profileImageUrl = try container.decodeIfPresent(String.self, forKey: .profileImageUrl)
             ?? (try container.decodeIfPresent(String.self, forKey: .profileImage))
+        documentType = try container.decodeIfPresent(String.self, forKey: .documentType)
+        document = try container.decodeIfPresent(String.self, forKey: .document)
+        documentUrl = try container.decodeIfPresent(String.self, forKey: .documentUrl)
         isVerified = try container.decodeIfPresent(Bool.self, forKey: .isVerified)
         socialLinks = try container.decodeIfPresent([SocialLink].self, forKey: .socialLinks)
         lifestyleNotes = try container.decodeIfPresent([String].self, forKey: .lifestyleNotes)
@@ -381,6 +497,11 @@ struct ProfileResponse: Decodable {
     var resolvedProfileImageURL: String? {
         guard let profileImageUrl, !profileImageUrl.isEmpty else { return nil }
         return APIConstants.resolveMediaURL(profileImageUrl)
+    }
+
+    var resolvedDocumentURL: String? {
+        guard let documentUrl, !documentUrl.isEmpty else { return nil }
+        return APIConstants.resolveMediaURL(documentUrl)
     }
 
     var resolvedGender: Gender? {
@@ -495,12 +616,18 @@ struct UserProfile {
     var currentCity: String = ""
     var profession: Profession?
     var instituteName: String = ""
+    var programCourse: String = ""
+    var graduationYear: Int?
     var organizationName: String = ""
     var position: String = ""
     var about: String = ""
     var lifestyleNotes: [String] = []
     var profileImageURL: String?
     var profileImageData: Data?
+    var documentType: String = ""
+    var document: String?
+    var documentURL: String?
+    var documentData: Data?
     var isEmailVerified: Bool = false
     var socialLinks: [SocialLinkDraft] = []
 
@@ -597,11 +724,16 @@ struct UserProfile {
                 return Profession(rawValue: normalized)
             },
             instituteName: profile.instituteName ?? "",
+            programCourse: profile.programCourse ?? "",
+            graduationYear: profile.graduationYear,
             organizationName: profile.organizationName ?? "",
             position: profile.position ?? "",
             about: profile.about ?? user?.about ?? "",
             lifestyleNotes: profile.lifestyleNotes ?? [],
             profileImageURL: resolvedImageURL,
+            documentType: profile.documentType ?? "",
+            document: profile.document,
+            documentURL: profile.resolvedDocumentURL,
             isEmailVerified: profile.isVerified ?? user?.isVerified ?? false,
             socialLinks: socialLinks
         )

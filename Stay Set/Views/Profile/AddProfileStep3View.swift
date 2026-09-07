@@ -17,7 +17,7 @@ struct AddProfileStep3View: View {
                         text: $viewModel.draft.about,
                         axis: .vertical
                     )
-                    .lineLimit(4...6)
+                    .lineLimit(4...8)
                     .font(.system(size: 16))
                     .appTextInputStyle()
                     .padding(16)
@@ -27,13 +27,6 @@ struct AddProfileStep3View: View {
                         RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
                             .stroke(AppTheme.fieldBorder, lineWidth: 1)
                     )
-
-                    HStack {
-                        Spacer()
-                        Text("\(viewModel.aboutCharacterCount)/100")
-                            .font(.system(size: 12))
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -54,11 +47,6 @@ struct AddProfileStep3View: View {
                         }
                     }
                 }
-            }
-        }
-        .onChange(of: viewModel.draft.about) { _, newValue in
-            if newValue.count > 100 {
-                viewModel.draft.about = String(newValue.prefix(100))
             }
         }
         .dismissKeyboardOnTap()

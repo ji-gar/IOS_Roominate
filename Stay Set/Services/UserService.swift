@@ -2,6 +2,7 @@ import Foundation
 
 protocol UserServiceProtocol {
     func fetchProfile() async throws -> ProfileResponse
+    func fetchUserProfile(userId: Int) async throws -> PublicProfileResponse
     func updateProfile(_ draft: ProfileDraft) async throws -> UserResponse
     func updateProfile(
         name: String?,
@@ -10,12 +11,16 @@ protocol UserServiceProtocol {
         currentCity: String?,
         profession: Profession?,
         instituteName: String?,
+        programCourse: String?,
+        graduationYear: Int?,
         organizationName: String?,
         position: String?,
         about: String?,
         email: String?,
         socialLinks: [SocialLinkDraft]?,
         profileImageData: Data?,
+        documentData: Data?,
+        documentType: String?,
         removeProfileImage: Bool
     ) async throws -> ProfileResponse
     func deleteProfileImage() async throws
@@ -42,6 +47,23 @@ final class UserService: UserServiceProtocol {
         )
         return try ProfileResponse.decode(from: data, using: client.decoder)
     }
+    
+    func fetchUserProfile(userId: Int) async throws -> PublicProfileResponse {
+        let data = try await client.requestData(
+            path: APIConstants.User.userProfile(userId: userId),
+            method: .get,
+            requiresAuth: true
+        )
+        
+        struct Envelope: Decodable {
+            let data: PublicProfileResponse?
+        }
+        
+        if let wrapped = try? client.decoder.decode(Envelope.self, from: data), let profile = wrapped.data {
+            return profile
+        }
+        return try client.decoder.decode(PublicProfileResponse.self, from: data)
+    }
 
     func updateProfile(_ draft: ProfileDraft) async throws -> UserResponse {
         let profile = try await updateProfile(
@@ -51,12 +73,16 @@ final class UserService: UserServiceProtocol {
             currentCity: draft.area,
             profession: draft.profession,
             instituteName: draft.profession == .student ? draft.organization : nil,
+            programCourse: nil,
+            graduationYear: nil,
             organizationName: draft.profession == .working ? draft.organization : nil,
             position: nil,
             about: draft.about,
             email: nil,
             socialLinks: nil,
             profileImageData: draft.profileImageData,
+            documentData: nil,
+            documentType: nil,
             removeProfileImage: false
         )
         return UserResponse(
@@ -82,12 +108,16 @@ final class UserService: UserServiceProtocol {
         currentCity: String?,
         profession: Profession?,
         instituteName: String?,
+        programCourse: String?,
+        graduationYear: Int?,
         organizationName: String?,
         position: String?,
         about: String?,
         email: String?,
         socialLinks: [SocialLinkDraft]?,
         profileImageData: Data?,
+        documentData: Data?,
+        documentType: String?,
         removeProfileImage: Bool
     ) async throws -> ProfileResponse {
         var fields: [MultipartFormData.Field] = []
@@ -110,6 +140,12 @@ final class UserService: UserServiceProtocol {
         if let instituteName {
             fields.append(.init(name: "institute_name", value: instituteName))
         }
+        if let programCourse {
+            fields.append(.init(name: "program_course", value: programCourse))
+        }
+        if let graduationYear {
+            fields.append(.init(name: "graduation_year", value: String(graduationYear)))
+        }
         if let organizationName {
             fields.append(.init(name: "organization_name", value: organizationName))
         }
@@ -122,11 +158,18 @@ final class UserService: UserServiceProtocol {
         if let email {
             fields.append(.init(name: "email", value: email))
         }
+        if let documentType {
+            fields.append(.init(name: "document_type", value: documentType))
+        }
 
         if let socialLinks {
             for (index, link) in socialLinks.enumerated() {
                 let trimmedLink = link.link.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmedLink.isEmpty else { continue }
+                
+                // Validate URL format
+                guard link.isValidURL else { continue }
+                
                 fields.append(.init(name: "social_links[\(index)][type]", value: link.type.rawValue))
                 fields.append(.init(name: "social_links[\(index)][link]", value: trimmedLink))
             }
@@ -140,6 +183,22 @@ final class UserService: UserServiceProtocol {
                     filename: "profile.jpg",
                     mimeType: "image/jpeg",
                     data: imageData
+                )
+            )
+        }
+        
+        if let documentData = documentData {
+            // Detect if it's a PDF or image
+            let isPDF = documentData.starts(with: [0x25, 0x50, 0x44, 0x46]) // "%PDF" header
+            let filename = isPDF ? "document.pdf" : "document.jpg"
+            let mimeType = isPDF ? "application/pdf" : "image/jpeg"
+            
+            files.append(
+                .init(
+                    name: "document",
+                    filename: filename,
+                    mimeType: mimeType,
+                    data: documentData
                 )
             )
         }

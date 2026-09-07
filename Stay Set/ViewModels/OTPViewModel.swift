@@ -93,6 +93,7 @@ final class OTPViewModel: ObservableObject {
         do {
             switch flowType {
             case .signUpVerification:
+                // For signup, verify OTP first, then login if password is provided
                 _ = try await authService.verifyOTP(email: email, otp: code)
                 if let password {
                     _ = try await authService.login(email: email, password: password)
@@ -101,7 +102,10 @@ final class OTPViewModel: ObservableObject {
                 return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
 
             case .signIn:
-                return try await completeSignInWithOTP()
+                // For sign-in, use the dedicated login OTP verification endpoint
+                _ = try await authService.verifyLoginOTP(email: email, otp: code)
+                let isComplete = try await authService.resolveProfileCompletion()
+                return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -119,17 +123,11 @@ final class OTPViewModel: ObservableObject {
             case .signUpVerification:
                 _ = try await authService.resendOTP(email: email)
             case .signIn:
-                _ = try await authService.requestOTPForSignIn(email: email)
+                _ = try await authService.requestLoginOTP(email: email)
             }
         } catch {
             errorMessage = error.localizedDescription
         }
-    }
-
-    private func completeSignInWithOTP() async throws -> OTPResult {
-        _ = try await authService.verifyOTP(email: email, otp: code)
-        let isComplete = try await authService.resolveProfileCompletion()
-        return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
     }
 
     private func startTimer() {

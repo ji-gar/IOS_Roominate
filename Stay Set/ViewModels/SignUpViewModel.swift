@@ -44,9 +44,9 @@ final class SignUpViewModel: ObservableObject {
         }
     }
 
-    /// Validates the email format locally, then calls `POST /check-email` to
-    /// confirm the address does NOT already exist in the system before
-    /// proceeding to the Set Password step.
+    /// Validates the email format locally, then calls `POST /check-institute-email` to
+    /// confirm the email is from an accepted institute and determine the next step
+    /// in the signup flow (send-otp, login, or resend-otp).
     func signUp() async -> String? {
         validateEmail()
         guard isFormValid else { return nil }
@@ -58,19 +58,51 @@ final class SignUpViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let response = try await authService.checkEmail(email: normalizedEmail)
+            let response = try await authService.checkInstituteEmail(email: normalizedEmail)
 
-            if response.success {
-                // Email already registered — tell the user to sign in instead
+            guard response.success, let data = response.data else {
+                emailError = response.message
+                return nil
+            }
+            
+            // Check if email domain is allowed
+            guard data.allowed else {
+                emailError = response.message
+                return nil
+            }
+            
+            // Handle based on next_step
+            switch data.nextStep {
+            case "send-otp":
+                // New user - proceed with sign up
+                return normalizedEmail
+                
+            case "login":
+                // Account exists and is verified - redirect to sign in
                 emailError = "This email is already registered. Please sign in."
                 return nil
-            } else {
-                // Email does not exist — safe to proceed with sign up
+                
+            case "resend-otp":
+                // Abandoned signup - proceed but OTP screen should call resend
                 return normalizedEmail
+                
+            default:
+                emailError = "Unexpected response from server. Please try again."
+                return nil
             }
+        } catch let error as NetworkError {
+            // Handle 422 validation errors
+            if case .httpError(422, let apiError) = error {
+                if let emailErrors = apiError.errors?["email"], let firstError = emailErrors.first {
+                    emailError = firstError
+                } else {
+                    emailError = apiError.message ?? "Invalid email address."
+                }
+            } else {
+                errorMessage = error.localizedDescription
+            }
+            return nil
         } catch {
-            // Network / server error — surface the message but still allow
-            // the user to continue so a transient failure doesn't block sign up
             errorMessage = error.localizedDescription
             return nil
         }

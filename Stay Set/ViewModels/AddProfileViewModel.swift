@@ -26,12 +26,7 @@ final class AddProfileViewModel: ObservableObject {
     }
 
     var isStep3Valid: Bool {
-        !draft.about.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        draft.about.count <= 100
-    }
-
-    var aboutCharacterCount: Int {
-        draft.about.count
+        !draft.about.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     func setProfileImage(_ image: UIImage?) {
