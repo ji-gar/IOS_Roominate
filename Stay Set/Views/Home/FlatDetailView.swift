@@ -59,9 +59,19 @@ struct FlatDetailView: View {
                 Text(listing.author.name)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(AppTheme.textPrimary)
-                Text(listing.author.role)
-                    .font(.system(size: 13))
-                    .foregroundStyle(AppTheme.textSecondary)
+                HStack(spacing: 4) {
+                    Text(listing.author.role)
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppTheme.textSecondary)
+                    if let createdAt = listing.createdAt, !createdAt.isEmpty {
+                        Text("•")
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.textSecondary)
+                        Text(DateFormatterHelper.relativeTimeString(from: createdAt))
+                            .font(.system(size: 13))
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                }
             }
             Spacer()
             Image(systemName: "link.circle.fill")

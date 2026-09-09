@@ -65,7 +65,7 @@ enum FlatmatePreferenceOption: String, CaseIterable, Identifiable {
 
 enum FoodPreferenceOption: String, CaseIterable, Identifiable {
     case veg = "Veg"
-    case nonVeg = "Non Veg"
+    case nonVeg = "Non-veg"
 
     var id: String { rawValue }
     var icon: String {
@@ -73,6 +73,11 @@ enum FoodPreferenceOption: String, CaseIterable, Identifiable {
         case .veg: return "leaf.fill"
         case .nonVeg: return "fork.knife"
         }
+    }
+    
+    // API value matches display value for consistency
+    var apiValue: String {
+        return rawValue
     }
 }
 
@@ -511,6 +516,7 @@ final class CreatePostViewModel: ObservableObject {
     }
 
     func prepareDraftForSubmit() {
+        syncAmenities()
         buildAutoTitle()
         if !draft.postType {
             // Seeker flow: auto-fill deposit with "0" if empty
@@ -548,7 +554,7 @@ final class CreatePostViewModel: ObservableObject {
         }
     }
 
-    private func syncAmenities() {
+    func syncAmenities() {
         var flat: [String] = []
         for items in selectedAmenities.values {
             flat.append(contentsOf: items.compactMap { id in

@@ -206,14 +206,22 @@ final class GooglePlacesService: ObservableObject {
 
         let encoded = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchQuery
         
-        // ✅ FIX: Include ALL result types for better coverage
-        // Don't restrict to types=(cities) - this was blocking localities, POIs, and societies
+        // ✅ FIX: For address mode, explicitly include all relevant types
+        // This ensures societies, buildings, and detailed addresses are included
         var urlString =
             "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=\(encoded)&components=country:in&key=\(apiKey)"
 
-        // Only restrict type for explicit city search mode
-        if case .cities = mode {
+        switch mode {
+        case .cities:
+            // Restrict to cities only
             urlString += "&types=(cities)"
+        case .address:
+            // Include all location types: establishments, geocodes, addresses
+            // This covers societies, buildings, streets, landmarks, and detailed addresses
+            urlString += "&types=establishment|geocode"
+        case .landmarks:
+            // Include POIs and establishments for landmarks
+            urlString += "&types=establishment|point_of_interest"
         }
 
         guard let url = URL(string: urlString) else { return [] }

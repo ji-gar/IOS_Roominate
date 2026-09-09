@@ -138,8 +138,8 @@ struct CreatePostPhotosView: View {
             Image(uiImage: item.image)
                 .resizable()
                 .scaledToFill()
-                .frame(height: 160)
                 .frame(maxWidth: .infinity)
+                .frame(height: 160)
                 .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: 14))
 
@@ -155,6 +155,7 @@ struct CreatePostPhotosView: View {
             }
             .padding(10)
         }
+        .frame(height: 160)
     }
 
     private func loadPhotos(_ items: [PhotosPickerItem]) {

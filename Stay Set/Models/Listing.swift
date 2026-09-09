@@ -29,6 +29,7 @@ struct FlatListing: Identifiable, Hashable {
     let amenities: String
     let isShortStay: Bool
     let isFeatured: Bool
+    let createdAt: String?
 
     // Detail
     let monthlyRent: String
@@ -59,6 +60,7 @@ struct FlatmateListing: Identifiable, Hashable {
     let isShortStay: Bool
     let isFeatured: Bool
     let tags: [String]
+    let createdAt: String?
 
     // Detail
     let maxBudgetMonthly: String

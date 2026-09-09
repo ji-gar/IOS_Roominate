@@ -8,9 +8,13 @@ struct CreatePostPropertyDetailsView: View {
     let onBack: () -> Void
     let onNext: () -> Void
 
-    private let propertyTypes = ["3BHK", "2BHK", "1BHK", "Other"]
+    private let propertyTypes = ["1RK", "1BHK", "2BHK", "3BHK", "Other"]
     private let spaceTypes = ["Shared Room", "Private Room"]
     private let furnishings = ["Full Furnished", "Semi Furnished", "Unfurnished"]
+    
+    private var pageTitle: String {
+        viewModel.editingPostId != nil ? "Edit Post" : "Create Post"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,7 +29,7 @@ struct CreatePostPropertyDetailsView: View {
                     PlacesSearchTextField(
                         selectedText: $viewModel.draft.city,
                         mode: .cities,
-                        placeholder: "Search city or area"
+                        placeholder: "Search City"
                     ) { details in
                         let city = details.city.isEmpty
                             ? IndianLocationsService.normalizedCityName(details.formattedAddress)
@@ -50,12 +54,9 @@ struct CreatePostPropertyDetailsView: View {
                             ForEach(propertyTypes, id: \.self) { type in
                                 PostOptionChip(
                                     title: type,
-                                    isSelected: viewModel.isMultiValueSelected(
-                                        type,
-                                        in: viewModel.draft.propertyType
-                                    )
+                                    isSelected: viewModel.draft.propertyType == type
                                 ) {
-                                    viewModel.toggleMultiValue(type, in: \.propertyType)
+                                    viewModel.draft.propertyType = type
                                 }
                                 .contentShape(Rectangle())
                             }
@@ -79,12 +80,9 @@ struct CreatePostPropertyDetailsView: View {
                             ForEach(furnishings, id: \.self) { item in
                                 PostOptionChip(
                                     title: item,
-                                    isSelected: viewModel.isMultiValueSelected(
-                                        item,
-                                        in: viewModel.draft.homeFurnishing
-                                    )
+                                    isSelected: viewModel.draft.homeFurnishing == item
                                 ) {
-                                    viewModel.toggleMultiValue(item, in: \.homeFurnishing)
+                                    viewModel.draft.homeFurnishing = item
                                 }
                                 .contentShape(Rectangle())
                             }
@@ -111,7 +109,7 @@ struct CreatePostPropertyDetailsView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .navigationTitle("Create Post")
+        .navigationTitle(pageTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -119,7 +117,7 @@ struct CreatePostPropertyDetailsView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Create Post")
+                        Text(pageTitle)
                             .font(.system(size: 16))
                     }
                     .foregroundStyle(AppTheme.primaryBlue)

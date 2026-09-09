@@ -93,13 +93,11 @@ final class OTPViewModel: ObservableObject {
         do {
             switch flowType {
             case .signUpVerification:
-                // For signup, verify OTP first, then login if password is provided
+                // For signup, verify OTP but DON'T authenticate yet
+                // Email should not be marked as registered until password is set
                 _ = try await authService.verifyOTP(email: email, otp: code)
-                if let password {
-                    _ = try await authService.login(email: email, password: password)
-                }
-                let isComplete = try await authService.resolveProfileCompletion()
-                return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
+                // Return the OTP code so it can be passed to SetPasswordView
+                return .needsSetPassword(otp: code)
 
             case .signIn:
                 // For sign-in, use the dedicated login OTP verification endpoint

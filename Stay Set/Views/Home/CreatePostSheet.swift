@@ -28,6 +28,7 @@ struct CreatePostFlowView: View {
     @StateObject private var viewModel: CreatePostViewModel
     @State private var path: [CreatePostRoute] = []
     @State private var hasInitializedEditPath = false
+    @State private var showSuccessAnimation = false
 
     private let offerFormStepCount = 7
     private let seekerFormStepCount = 4
@@ -51,25 +52,55 @@ struct CreatePostFlowView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            Group {
-                if viewModel.editingPostId != nil {
-                    CreatePostOverviewView(
-                        isSeekerFlow: isSeekerFlow,
-                        onStart: { path.append(.step1Intro) },
-                        onDismiss: onDismiss
-                    )
-                } else {
-                    CreatePostTypeSelectionView(
-                        onSelect: selectPostType,
-                        onDismiss: onDismiss
-                    )
+        ZStack {
+            NavigationStack(path: $path) {
+                Group {
+                    if viewModel.editingPostId != nil {
+                        CreatePostOverviewView(
+                            isSeekerFlow: isSeekerFlow,
+                            onStart: { path.append(.step1Intro) },
+                            onDismiss: onDismiss
+                        )
+                    } else {
+                        CreatePostTypeSelectionView(
+                            onSelect: selectPostType,
+                            onDismiss: onDismiss
+                        )
+                    }
+                }
+                .navigationDestination(for: CreatePostRoute.self) { route in
+                    destinationView(for: route)
                 }
             }
-            .navigationDestination(for: CreatePostRoute.self) { route in
-                destinationView(for: route)
+            
+            if showSuccessAnimation {
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                
+                VStack(spacing: 20) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 80, height: 80)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 40, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .scaleEffect(showSuccessAnimation ? 1 : 0.5)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.6), value: showSuccessAnimation)
+                    
+                    Text(viewModel.editingPostId != nil ? "Post Updated Successfully!" : "Post Created Successfully!")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .opacity(showSuccessAnimation ? 1 : 0)
+                        .animation(.easeIn(duration: 0.3).delay(0.2), value: showSuccessAnimation)
+                }
+                .transition(.scale.combined(with: .opacity))
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: showSuccessAnimation)
     }
 
     private func selectPostType(_ postType: Bool) {
@@ -229,15 +260,6 @@ struct CreatePostFlowView: View {
                 currentStep: 2,
                 totalSteps: offerFormStepCount,
                 onBack: { path.removeLast() },
-                onNext: { path.append(.location) }
-            )
-
-        case .location:
-            CreatePostLocationView(
-                viewModel: viewModel,
-                currentStep: 3,
-                totalSteps: offerFormStepCount,
-                onBack: { path.removeLast() },
                 onNext: { path.append(.step2Intro) }
             )
 
@@ -258,7 +280,7 @@ struct CreatePostFlowView: View {
         case .availability:
             CreatePostAvailabilityView(
                 viewModel: viewModel,
-                currentStep: 4,
+                currentStep: 3,
                 totalSteps: offerFormStepCount,
                 onBack: { path.removeLast() },
                 onNext: { path.append(.preferences) }
@@ -267,7 +289,7 @@ struct CreatePostFlowView: View {
         case .preferences:
             CreatePostPreferencesView(
                 viewModel: viewModel,
-                currentStep: 5,
+                currentStep: 4,
                 totalSteps: offerFormStepCount,
                 onBack: { path.removeLast() },
                 onNext: { path.append(.step3Intro) }
@@ -284,13 +306,13 @@ struct CreatePostFlowView: View {
                 tint: Color(red: 0.82, green: 0.38, blue: 0.22),
                 bgColor: Color(red: 0.99, green: 0.90, blue: 0.86),
                 onBack: { path.removeLast() },
-                onNext: { path.append(.description) }
+                onNext: { path.append(.location) }
             )
 
-        case .description:
-            CreatePostDescriptionView(
+        case .location:
+            CreatePostLocationView(
                 viewModel: viewModel,
-                currentStep: 6,
+                currentStep: 5,
                 totalSteps: offerFormStepCount,
                 onBack: { path.removeLast() },
                 onNext: { path.append(.photos) }
@@ -298,6 +320,15 @@ struct CreatePostFlowView: View {
 
         case .photos:
             CreatePostPhotosView(
+                viewModel: viewModel,
+                currentStep: 6,
+                totalSteps: offerFormStepCount,
+                onBack: { path.removeLast() },
+                onNext: { path.append(.description) }
+            )
+
+        case .description:
+            CreatePostDescriptionView(
                 viewModel: viewModel,
                 currentStep: 7,
                 totalSteps: offerFormStepCount,
@@ -320,7 +351,11 @@ struct CreatePostFlowView: View {
     private func submitPost() {
         Task {
             let ok = await viewModel.submit(postService: postService)
-            if ok { onSuccess() }
+            if ok {
+                showSuccessAnimation = true
+                try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
+                onSuccess()
+            }
         }
     }
 }

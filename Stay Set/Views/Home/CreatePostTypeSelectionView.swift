@@ -22,7 +22,7 @@ struct CreatePostTypeSelectionView: View {
                     )
 
                     postTypeCard(
-                        title: "I am looking for Stay and flat mate",
+                        title: "I'm looking for flat",
                         subtitle: "You don't have a flat yet, and want to find someone to stay with)",
                         imageName: HomeAssets.flatEmptyIllustration,
                         fallbackSystemImage: "house",

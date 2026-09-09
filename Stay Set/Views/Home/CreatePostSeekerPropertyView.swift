@@ -7,7 +7,7 @@ struct CreatePostSeekerPropertyView: View {
     let onBack: () -> Void
     let onNext: () -> Void
 
-    private let propertyTypes = ["1BHK", "2BHK", "3BHK", "Other"]
+    private let propertyTypes = ["1RK", "1BHK", "2BHK", "3BHK", "Other"]
     private let spaceTypes = ["Shared Room", "Private Room"]
     private let furnishings = ["Fully Furnished", "Semi Furnished", "Unfurnished"]
 
@@ -55,12 +55,9 @@ struct CreatePostSeekerPropertyView: View {
                             ForEach(propertyTypes, id: \.self) { type in
                                 PostOptionChip(
                                     title: type,
-                                    isSelected: viewModel.isMultiValueSelected(
-                                        type,
-                                        in: viewModel.draft.propertyType
-                                    )
+                                    isSelected: viewModel.draft.propertyType == type
                                 ) {
-                                    viewModel.toggleMultiValue(type, in: \.propertyType)
+                                    viewModel.draft.propertyType = type
                                 }
                             }
                         }
@@ -84,12 +81,9 @@ struct CreatePostSeekerPropertyView: View {
                             ForEach(furnishings, id: \.self) { item in
                                 PostOptionChip(
                                     title: item,
-                                    isSelected: viewModel.isMultiValueSelected(
-                                        item,
-                                        in: viewModel.draft.homeFurnishing
-                                    )
+                                    isSelected: viewModel.draft.homeFurnishing == item
                                 ) {
-                                    viewModel.toggleMultiValue(item, in: \.homeFurnishing)
+                                    viewModel.draft.homeFurnishing = item
                                 }
                             }
                         }

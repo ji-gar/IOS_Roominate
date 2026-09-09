@@ -274,8 +274,8 @@ final class HomeViewModel: ObservableObject {
         var query = PostQuery(
             city: mode == .search && !trimmedSearch.isEmpty ? trimmedSearch : nil,
             postType: postType,
-            sortBy: "monthly_rent",
-            sortOrder: "asc",
+            sortBy: "created_at",
+            sortOrder: "desc",
             perPage: perPage,
             page: page
         )

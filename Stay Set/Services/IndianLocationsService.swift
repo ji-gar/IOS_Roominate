@@ -251,7 +251,10 @@ enum IndianLocationsService {
             "Bodakdev", "SG Highway", "S.G. Highway", "Science City",
             "Gota", "Naranpura", "Ellisbridge", "Law Garden", "Memnagar",
             "Ambawadi", "Jodhpur Village", "Shilaj", "Shela", "Gift City",
-            "Vastral"
+            "Vastral", "Nikol", "Chandkheda", "Odhav", "Naroda", "Narol",
+            "Rakhial", "CTM", "Odhav GIDC", "Vatva", "Maninagar East",
+            "Isanpur", "Bapunagar", "Gomtipur", "New Maninagar", "Motera",
+            "Sabarmati", "Ranip", "Kali", "Bhat", "New Ranip", "Shahpur"
         ],
         "Mumbai": [
             "Andheri", "Andheri East", "Andheri West", "Bandra", "Bandra East", "Bandra West",

@@ -29,6 +29,10 @@ struct CreatePostSeekerPreviewView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Preview Post")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Sync amenities to ensure custom amenities added via "+" are included
+            viewModel.syncAmenities()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onBack) {
@@ -119,10 +123,10 @@ struct CreatePostSeekerPreviewView: View {
             DetailSectionTitle(title: "Flatmate Preference")
             InfoCardRow(
                 left: InfoCard(icon: "person", caption: "Gender", value: orDash(draft.flatmatePreference)),
-                right: InfoCard(icon: "fork.knife", caption: "Food", value: orDash(draft.foodPreference))
+                right: InfoCard(icon: "fork.knife", caption: "Food", value: formattedFoodPreference)
             )
             InfoCardRow(
-                left: InfoCard(icon: "nosign", caption: "Smoking", value: smokingDisplay),
+                left: InfoCard(icon: "nosign", caption: "Smoking", value: formattedSmokingPreference),
                 right: InfoCard(icon: "briefcase", caption: "Profession", value: orDash(draft.profession))
             )
         }
@@ -132,7 +136,7 @@ struct CreatePostSeekerPreviewView: View {
         VStack(spacing: 0) {
             Divider()
             PrimaryButton(
-                title: "Post Now",
+                title: viewModel.editingPostId != nil ? "Update Post" : "Post Now",
                 isEnabled: !viewModel.isSubmitting,
                 isLoading: viewModel.isSubmitting,
                 action: onPublish
@@ -155,18 +159,34 @@ struct CreatePostSeekerPreviewView: View {
         value.isEmpty ? "—" : value
     }
 
-    private var smokingDisplay: String {
-        let formatted = draft.smoking
+    private var formattedFoodPreference: String {
+        guard !draft.foodPreference.isEmpty else { return "—" }
+        return draft.foodPreference
             .split(separator: ",")
             .map { part in
-                switch part.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-                case "yes": return "Smoker"
-                case "no": return "Non Smoker"
-                default: return part.trimmingCharacters(in: .whitespacesAndNewlines)
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "veg": return "Veg"
+                case "non veg", "non_veg", "non-veg": return "Non-veg"
+                default: return trimmed
                 }
             }
             .joined(separator: ", ")
-        return formatted.isEmpty ? "—" : formatted
+    }
+
+    private var formattedSmokingPreference: String {
+        guard !draft.smoking.isEmpty else { return "—" }
+        return draft.smoking
+            .split(separator: ",")
+            .map { part in
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "yes": return "Smoker"
+                case "no": return "Non Smoker"
+                default: return trimmed
+                }
+            }
+            .joined(separator: ", ")
     }
 
     private func formattedRent(_ value: String, suffix: String = "") -> String {

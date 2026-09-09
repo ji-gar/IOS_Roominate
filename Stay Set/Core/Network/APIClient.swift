@@ -183,12 +183,73 @@ final class APIClient {
                 )
             ]
         )
-        _ = try await requestData(
+        
+        // Use longer timeout for upload requests (60 seconds instead of default)
+        let data = try await requestDataWithTimeout(
             path: path,
             method: .post,
             multipart: multipart,
-            requiresAuth: true
+            requiresAuth: true,
+            timeout: 60.0
         )
+        // Parse response to verify success
+        _ = data
+    }
+    
+    // Helper method to support custom timeout for uploads
+    private func requestDataWithTimeout(
+        path: String,
+        method: HTTPMethod,
+        queryItems: [URLQueryItem]? = nil,
+        body: Encodable? = nil,
+        multipart: MultipartFormData? = nil,
+        requiresAuth: Bool = false,
+        timeout: TimeInterval = 30.0
+    ) async throws -> Data {
+        var components = URLComponents(string: APIConstants.baseURL + path)
+        if let queryItems, !queryItems.isEmpty {
+            components?.queryItems = queryItems
+        }
+        guard let url = components?.url else {
+            throw NetworkError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = timeout
+
+        if requiresAuth {
+            guard let token = TokenStorage.shared.token else {
+                throw NetworkError.unauthorized
+            }
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        if let multipart {
+            let boundary = "Boundary-\(UUID().uuidString)"
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            request.httpBody = multipart.encoded(boundary: boundary)
+        } else if let body {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONEncoder().encode(AnyEncodable(body))
+        }
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NetworkError.invalidResponse
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let message = parseErrorMessage(from: data)
+            if httpResponse.statusCode == 401 {
+                throw NetworkError.httpError(statusCode: 401, message: message ?? "Unauthenticated.")
+            }
+            throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: message)
+        }
+
+        return data
     }
 }
 

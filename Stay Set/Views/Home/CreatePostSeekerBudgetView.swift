@@ -43,7 +43,8 @@ struct CreatePostSeekerBudgetView: View {
                             CreatePostDateField(
                                 placeholder: "DD/MM/YY",
                                 displayValue: viewModel.displayDate(for: viewModel.draft.availableFrom),
-                                date: $viewModel.availableFromDate
+                                date: $viewModel.availableFromDate,
+                                minimumDate: Date()
                             )
                         }
                     }

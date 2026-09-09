@@ -36,6 +36,10 @@ struct CreatePostPreviewView: View {
         .navigationBarBackButtonHidden(true)
         .navigationTitle("Preview")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Sync amenities to ensure custom amenities added via "+" are included
+            viewModel.syncAmenities()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onBack) {
@@ -171,10 +175,10 @@ struct CreatePostPreviewView: View {
             DetailSectionTitle(title: "Flatmate Preference")
             InfoCardRow(
                 left: InfoCard(icon: "person", caption: "Gender", value: orDash(draft.flatmatePreference)),
-                right: InfoCard(icon: "fork.knife", caption: "Food", value: orDash(draft.foodPreference))
+                right: InfoCard(icon: "fork.knife", caption: "Food", value: formattedFoodPreference)
             )
             InfoCardRow(
-                left: InfoCard(icon: "nosign", caption: "Smoking", value: smokingDisplay),
+                left: InfoCard(icon: "nosign", caption: "Smoking", value: formattedSmokingPreference),
                 right: InfoCard(icon: "briefcase", caption: "Profession", value: orDash(draft.profession))
             )
         }
@@ -185,7 +189,52 @@ struct CreatePostPreviewView: View {
     private var amenitiesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             DetailSectionTitle(title: "Amenities")
-            WrapChips(items: amenityLabels)
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4),
+                spacing: 10
+            ) {
+                ForEach(amenityItems, id: \.label) { amenity in
+                    VStack(spacing: 6) {
+                        Image(systemName: amenity.icon)
+                            .font(.system(size: 18))
+                            .foregroundStyle(AppTheme.primaryBlue)
+                            .frame(height: 20)
+                        
+                        Text(amenity.label)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(AppTheme.chipBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            
+            // Show custom amenities (those not in standard list) as text chips
+            if !customAmenityLabels.isEmpty {
+                FlexibleWrap(items: customAmenityLabels, spacing: 8, lineSpacing: 8) { item in
+                    TagChip(text: item)
+                }
+            }
+        }
+    }
+    
+    private var amenityItems: [(label: String, icon: String)] {
+        draft.amenities.compactMap { label in
+            // Try to find matching AmenityItem for icon
+            if let item = AmenityItem.all.first(where: { $0.label.lowercased() == label.lowercased() }) {
+                return (label: item.label, icon: item.icon)
+            }
+            return nil
+        }
+    }
+    
+    private var customAmenityLabels: [String] {
+        draft.amenities.filter { label in
+            !AmenityItem.all.contains(where: { $0.label.lowercased() == label.lowercased() })
         }
     }
 
@@ -245,7 +294,7 @@ struct CreatePostPreviewView: View {
         VStack(spacing: 0) {
             Divider()
             PrimaryButton(
-                title: "Publish Post",
+                title: viewModel.editingPostId != nil ? "Update Post" : "Publish Post",
                 isEnabled: !viewModel.isSubmitting,
                 isLoading: viewModel.isSubmitting,
                 action: onPublish
@@ -263,22 +312,34 @@ struct CreatePostPreviewView: View {
         value.isEmpty ? "—" : value
     }
 
-    private var smokingDisplay: String {
-        let formatted = draft.smoking
+    private var formattedFoodPreference: String {
+        guard !draft.foodPreference.isEmpty else { return "—" }
+        return draft.foodPreference
             .split(separator: ",")
             .map { part in
-                switch part.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-                case "yes": return "Smoker"
-                case "no": return "Non Smoker"
-                default: return part.trimmingCharacters(in: .whitespacesAndNewlines)
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "veg": return "Veg"
+                case "non veg", "non_veg", "non-veg": return "Non-veg"
+                default: return trimmed
                 }
             }
             .joined(separator: ", ")
-        return formatted.isEmpty ? "—" : formatted
     }
 
-    private var amenityLabels: [String] {
-        draft.amenities
+    private var formattedSmokingPreference: String {
+        guard !draft.smoking.isEmpty else { return "—" }
+        return draft.smoking
+            .split(separator: ",")
+            .map { part in
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "yes": return "Smoker"
+                case "no": return "Non Smoker"
+                default: return trimmed
+                }
+            }
+            .joined(separator: ", ")
     }
 
     private var locationLine: String {

@@ -15,7 +15,7 @@ struct CreatePostDescriptionView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
-                    Text("Write short description\nabout your place.")
+                    Text("Write short description\nabout your post")
                         .font(.system(size: 26, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .lineSpacing(3)
@@ -44,7 +44,7 @@ struct CreatePostDescriptionView: View {
 
                     // Description
                     VStack(alignment: .leading, spacing: 10) {
-                        CreatePostSectionLabel(title: "How would you describe it?", isRequired: false)
+                        CreatePostSectionLabel(title: "Describe your place", isRequired: false)
 
                         ZStack(alignment: .topLeading) {
                             if viewModel.draft.description.isEmpty {

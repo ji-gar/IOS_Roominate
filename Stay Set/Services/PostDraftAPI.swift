@@ -54,7 +54,7 @@ enum PostDraftAPI {
         mapCommaSeparated(value) { part in
             switch part.lowercased() {
             case "veg": return "veg"
-            case "non veg", "non_veg", "non-veg": return "non_veg"
+            case "non veg", "non_veg", "non-veg": return "non-veg"
             default: return part.lowercased().replacingOccurrences(of: " ", with: "_")
             }
         }

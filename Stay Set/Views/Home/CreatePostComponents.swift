@@ -3,13 +3,13 @@ import SwiftUI
 // MARK: - Shared Create Post Toolbar
 
 @ToolbarContentBuilder
-func createPostBackToolbar(action: @escaping () -> Void) -> some ToolbarContent {
+func createPostBackToolbar(action: @escaping () -> Void, title: String = "Create Post") -> some ToolbarContent {
     ToolbarItem(placement: .topBarLeading) {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 14, weight: .semibold))
-                Text("Create Post")
+                Text(title)
                     .font(.system(size: 16))
             }
             .foregroundStyle(AppTheme.primaryBlue)
@@ -403,7 +403,12 @@ struct CreatePostDateField: View {
                     .foregroundStyle(AppTheme.textPrimary)
                 Spacer()
                 Button("Update") {
-                    date = tempDate
+                    // Ensure selected date is not in the past if minimumDate is set
+                    if let minDate = minimumDate {
+                        date = max(tempDate, minDate)
+                    } else {
+                        date = tempDate
+                    }
                     showPicker = false
                 }
                 .font(.system(size: 16, weight: .semibold))

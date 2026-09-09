@@ -13,6 +13,47 @@ enum DateFormatterHelper {
         guard let date = parseAPIDate(apiValue) else { return apiValue }
         return utcDisplayDateFormatter.string(from: date)
     }
+    
+    /// Formats an API date string as relative time (e.g., "2 hours ago", "Yesterday", "3 days ago")
+    /// Similar to Instagram's time display format.
+    static func relativeTimeString(from apiValue: String?) -> String {
+        guard let apiValue, !apiValue.isEmpty else { return "" }
+        guard let date = parseAPIDate(apiValue) else { return "" }
+        
+        let now = Date()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .weekOfYear, .day, .hour, .minute, .second], from: date, to: now)
+        
+        if let year = components.year, year > 0 {
+            return year == 1 ? "1 year ago" : "\(year) years ago"
+        }
+        
+        if let month = components.month, month > 0 {
+            return month == 1 ? "1 month ago" : "\(month) months ago"
+        }
+        
+        if let week = components.weekOfYear, week > 0 {
+            return week == 1 ? "1 week ago" : "\(week) weeks ago"
+        }
+        
+        if let day = components.day, day > 0 {
+            if day == 1 {
+                return "Yesterday"
+            } else {
+                return "\(day) days ago"
+            }
+        }
+        
+        if let hour = components.hour, hour > 0 {
+            return hour == 1 ? "1 hour ago" : "\(hour) hours ago"
+        }
+        
+        if let minute = components.minute, minute > 0 {
+            return minute == 1 ? "1 minute ago" : "\(minute) minutes ago"
+        }
+        
+        return "Just now"
+    }
 
     /// Formats a date range from API strings as `dd/MM/yyyy - dd/MM/yyyy`.
     static func displayDateRange(from start: String?, to end: String?) -> String {

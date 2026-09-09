@@ -48,7 +48,15 @@ final class SetPasswordViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            _ = try await authService.setPassword(
+            // For signup flow, we need the OTP to complete registration
+            // This ensures email is only marked as registered after OTP is verified
+            guard let otp else {
+                errorMessage = "Invalid session. Please start the signup process again."
+                return false
+            }
+            
+            // Use combined endpoint to verify OTP and set password atomically
+            _ = try await authService.verifyOTPAndSetPassword(
                 email: email,
                 otp: otp,
                 password: password,

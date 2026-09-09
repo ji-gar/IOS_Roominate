@@ -61,7 +61,7 @@ struct RootView: View {
         case .addProfileStep1:
             AddProfileStep1View(
                 viewModel: profileViewModel,
-                onBack: { router.resetToOnboarding() },
+                onBack: { router.pop() },
                 onNext: { router.navigate(to: .addProfileStep2) }
             )
         default:
@@ -80,7 +80,7 @@ struct RootView: View {
                 onBack: { router.pop() },
                 onSignIn: { router.replaceLast(with: .signIn) },
                 onSuccess: { email in
-                    router.navigate(to: .setPassword(email: email, otp: nil))
+                    router.navigate(to: .signUpVerification(email: email, password: nil))
                 }
             )
         case .signIn:
@@ -109,9 +109,12 @@ struct RootView: View {
                         router.isAuthenticated = true
                         router.rootRoute = .home
                     case .authenticatedNeedsProfile:
-                        // After email OTP is verified, go to institution details
+                        // Returning user who hasn't completed profile
                         router.navigate(to: .institutionDetails(email: email))
-                    case .needsSetPassword, .failure:
+                    case .needsSetPassword(let otp):
+                        // New signup - OTP verified, now set password
+                        router.navigate(to: .setPassword(email: email, otp: otp))
+                    case .failure:
                         break
                     }
                 }
@@ -183,13 +186,8 @@ struct RootView: View {
                 otp: otp,
                 onBack: { router.pop() },
                 onSuccess: { password in
-                    if let password {
-                        router.navigate(to: .signUpVerification(email: email, password: password))
-                    } else {
-                        router.popToRoot()
-                        router.isAuthenticated = true
-                        router.rootRoute = .addProfileStep1
-                    }
+                    // After setting password, go to institution details
+                    router.navigate(to: .institutionDetails(email: email))
                 }
             )
         case .addProfileStep2:

@@ -92,12 +92,8 @@ final class SignUpViewModel: ObservableObject {
             }
         } catch let error as NetworkError {
             // Handle 422 validation errors
-            if case .httpError(422, let apiError) = error {
-                if let emailErrors = apiError.errors?["email"], let firstError = emailErrors.first {
-                    emailError = firstError
-                } else {
-                    emailError = apiError.message ?? "Invalid email address."
-                }
+            if case .httpError(422, let message) = error {
+                emailError = message ?? "Invalid email address."
             } else {
                 errorMessage = error.localizedDescription
             }

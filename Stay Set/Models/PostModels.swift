@@ -794,6 +794,7 @@ enum PostMapper {
             amenities: post.amenities?.joined(separator: ", ") ?? "",
             isShortStay: isShortStay,
             isFeatured: false,
+            createdAt: post.createdAt,
             monthlyRent: formattedCurrency(post.monthlyRent, suffix: " / month"),
             isAvailable: post.isHidden != true,
             propertyType: post.propertyType ?? "",
@@ -804,8 +805,8 @@ enum PostMapper {
             brokerage: "None",
             utilities: formattedCurrency(post.extraCost, fallback: "Included"),
             genderPreference: formattedPreference(post.flatmatePreference),
-            foodPreference: post.foodPreference ?? "",
-            smokingPreference: post.smoking ?? "",
+            foodPreference: formattedFoodPreference(post.foodPreference),
+            smokingPreference: formattedSmoking(post.smoking),
             occupation: formattedProfession(post.profession)
         )
     }
@@ -820,10 +821,10 @@ enum PostMapper {
             tags.append(formattedPreference(preference))
         }
         if let food = post.foodPreference, !food.isEmpty {
-            tags.append(food)
+            tags.append(formattedFoodPreference(food))
         }
         if let smoking = post.smoking, !smoking.isEmpty {
-            tags.append(smoking == "No" ? "No Smoking" : smoking)
+            tags.append(formattedSmoking(smoking))
         }
 
         let preferredAreas = preferredAreas(from: post)
@@ -840,6 +841,7 @@ enum PostMapper {
             isShortStay: isShortStay,
             isFeatured: false,
             tags: tags,
+            createdAt: post.createdAt,
             maxBudgetMonthly: formattedCurrency(post.monthlyRent, suffix: " / month"),
             isAvailable: post.isHidden != true,
             preferredAreas: preferredAreas,
@@ -850,8 +852,8 @@ enum PostMapper {
             moveInDate: DateFormatterHelper.displayDate(from: post.availableFrom),
             moveOutDate: DateFormatterHelper.displayDate(from: post.availableTo),
             genderPreference: formattedPreference(post.flatmatePreference),
-            foodPreference: post.foodPreference ?? "",
-            smokingPreference: post.smoking ?? "",
+            foodPreference: formattedFoodPreference(post.foodPreference),
+            smokingPreference: formattedSmoking(post.smoking),
             occupation: formattedProfession(post.profession),
             lifestyleNotes: post.amenities ?? [],
             aboutMe: post.description ?? ""
@@ -919,6 +921,36 @@ enum PostMapper {
     private static func formattedPreference(_ value: String?) -> String {
         guard let value, !value.isEmpty else { return "Any" }
         return value.capitalized
+    }
+
+    private static func formattedFoodPreference(_ value: String?) -> String {
+        guard let value, !value.isEmpty else { return "—" }
+        return value
+            .split(separator: ",")
+            .map { part in
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "veg": return "Veg"
+                case "non_veg", "non veg", "non-veg": return "Non-veg"
+                default: return trimmed.capitalized
+                }
+            }
+            .joined(separator: ", ")
+    }
+
+    private static func formattedSmoking(_ value: String?) -> String {
+        guard let value, !value.isEmpty else { return "—" }
+        return value
+            .split(separator: ",")
+            .map { part in
+                let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+                switch trimmed.lowercased() {
+                case "yes": return "Smoker"
+                case "no": return "Non Smoker"
+                default: return trimmed.capitalized
+                }
+            }
+            .joined(separator: ", ")
     }
 
     private static func formattedProfession(_ value: String?) -> String {

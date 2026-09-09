@@ -97,12 +97,30 @@ final class InstitutionVerificationViewModel: ObservableObject {
         documentType: String,
         imageData: Data
     ) async throws {
+        // Compress image more aggressively to prevent timeout issues
+        // Target max size: 1MB for upload reliability
+        let compressedData: Data
+        if let image = UIImage(data: imageData) {
+            // Start with 0.7 quality, reduce if still too large
+            var quality: CGFloat = 0.7
+            var tempData = image.jpegData(compressionQuality: quality) ?? imageData
+            
+            // Reduce quality further if image is larger than 1MB
+            while tempData.count > 1_000_000 && quality > 0.3 {
+                quality -= 0.1
+                tempData = image.jpegData(compressionQuality: quality) ?? tempData
+            }
+            compressedData = tempData
+        } else {
+            compressedData = imageData
+        }
+        
         let path = APIConstants.Auth.verifyInstitution
         try await APIClient.shared.uploadVerificationDocument(
             path: path,
             email: email,
             documentType: documentType,
-            imageData: imageData
+            imageData: compressedData
         )
     }
 }

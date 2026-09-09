@@ -342,7 +342,7 @@ struct EditPersonalInfoView: View {
             
             PhotosPicker(
                 selection: $selectedDocumentItem,
-                matching: .any(of: [.images, .item(conformingTo: .pdf)])
+                matching: .any(of: [.images, .pdfs])
             ) {
                 HStack {
                     Image(systemName: "doc.badge.plus")
