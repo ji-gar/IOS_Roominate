@@ -117,9 +117,11 @@ final class GooglePlacesService: ObservableObject {
         let key = APIConstants.googlePlacesAPIKey
         guard !key.isEmpty else { return nil }
 
-        let fields = "geometry,address_components,formatted_address"
+        // ✅ ENHANCED: Request more fields including name and types
+        let fields = "geometry,address_components,formatted_address,name,types"
+        let sessionToken = UUID().uuidString
         let urlString =
-            "https://maps.googleapis.com/maps/api/place/details/json?place_id=\(placeId)&fields=\(fields)&key=\(key)"
+            "https://maps.googleapis.com/maps/api/place/details/json?place_id=\(placeId)&fields=\(fields)&sessiontoken=\(sessionToken)&key=\(key)"
 
         guard let url = URL(string: urlString) else { return nil }
 
@@ -134,21 +136,44 @@ final class GooglePlacesService: ObservableObject {
                 longitude: result.geometry.location.lng
             )
 
+            // ✅ ENHANCED: Extract more specific address components
+            let streetNumber = firstComponent(in: components, types: ["street_number"])
+            let route = firstComponent(in: components, types: ["route"])
+            let premise = firstComponent(in: components, types: ["premise"])
+            let establishment = firstComponent(in: components, types: ["establishment"])
+            
+            // Area with priority order: sublocality_level_1 > sublocality_level_2 > neighborhood > sublocality
             let area = firstComponent(in: components, types: [
-                "sublocality_level_1", "sublocality", "neighborhood", "sublocality_level_2"
+                "sublocality_level_1", "sublocality_level_2", "neighborhood", "sublocality", "locality"
             ])
+            
             let city = firstComponent(in: components, types: [
                 "locality", "administrative_area_level_2"
             ])
+            
             let state = firstComponent(in: components, types: ["administrative_area_level_1"])
             let pincode = firstComponent(in: components, types: ["postal_code"])
-            let landmark = firstComponent(in: components, types: [
-                "premise", "route", "point_of_interest", "establishment"
-            ])
+            
+            // ✅ ENHANCED: Build landmark with priority logic
+            // Priority: establishment > premise > name > street address > formatted address
+            var landmark = ""
+            if !establishment.isEmpty {
+                landmark = establishment
+            } else if !premise.isEmpty {
+                landmark = premise
+            } else if let name = result.name, !name.isEmpty {
+                // Use the place name from Google (works great for societies, buildings)
+                landmark = name
+            } else if !streetNumber.isEmpty || !route.isEmpty {
+                // Build street address
+                landmark = [streetNumber, route].filter { !$0.isEmpty }.joined(separator: " ")
+            } else {
+                landmark = result.formattedAddress
+            }
 
             return PlaceDetails(
                 coordinate: coordinate,
-                landmark: landmark.isEmpty ? result.formattedAddress : landmark,
+                landmark: landmark,
                 area: area,
                 city: city,
                 state: state,
@@ -194,35 +219,50 @@ final class GooglePlacesService: ObservableObject {
         apiKey: String
     ) async -> [PlaceSuggestion] {
         let searchQuery: String
+        let types: String
+        
         switch mode {
         case .cities:
             searchQuery = query
+            types = "(cities)"
+            
         case .landmarks(let city):
             let normalizedCity = IndianLocationsService.normalizedCityName(city)
             searchQuery = normalizedCity.isEmpty ? query : "\(query) \(normalizedCity)"
+            types = "establishment|point_of_interest"
+            
         case .address:
             searchQuery = query
+            // ✅ ENHANCED: Include ALL relevant types for comprehensive address search
+            // This matches Google Maps behavior across all of India:
+            // - address: Full street addresses with numbers
+            // - establishment: Businesses, societies, buildings
+            // - premise: Specific buildings and complexes
+            // - sublocality: Neighborhoods and areas within cities
+            // - locality: Cities and towns
+            // - geocode: Generic geocodable addresses
+            types = "address|establishment|premise|sublocality|locality|geocode"
         }
 
-        let encoded = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? searchQuery
+        let encoded = searchQuery.addingPercentEncoding(
+            withAllowedCharacters: .urlQueryAllowed
+        ) ?? searchQuery
         
-        // ✅ FIX: For address mode, explicitly include all relevant types
-        // This ensures societies, buildings, and detailed addresses are included
-        var urlString =
-            "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=\(encoded)&components=country:in&key=\(apiKey)"
-
-        switch mode {
-        case .cities:
-            // Restrict to cities only
-            urlString += "&types=(cities)"
-        case .address:
-            // Include all location types: establishments, geocodes, addresses
-            // This covers societies, buildings, streets, landmarks, and detailed addresses
-            urlString += "&types=establishment|geocode"
-        case .landmarks:
-            // Include POIs and establishments for landmarks
-            urlString += "&types=establishment|point_of_interest"
-        }
+        // ✅ FIXED: Add session token for cost optimization
+        // Groups autocomplete + place details into one billable session
+        let sessionToken = UUID().uuidString
+        
+        var urlString = """
+https://maps.googleapis.com/maps/api/place/autocomplete/json?\
+input=\(encoded)\
+&components=country:in\
+&types=\(types)\
+&sessiontoken=\(sessionToken)\
+&key=\(apiKey)
+"""
+        
+        // Remove newlines from the URL string
+        urlString = urlString.replacingOccurrences(of: "\n", with: "")
 
         guard let url = URL(string: urlString) else { return [] }
 
@@ -308,11 +348,15 @@ private struct PlaceDetailsResponse: Decodable {
         let formattedAddress: String
         let geometry: Geometry
         let addressComponents: [AddressComponent]
+        let name: String?  // ✅ ADDED: Place name (building/society name from Google)
+        let types: [String]?  // ✅ ADDED: Place types for better categorization
 
         enum CodingKeys: String, CodingKey {
             case formattedAddress = "formatted_address"
             case geometry
             case addressComponents = "address_components"
+            case name
+            case types
         }
     }
 
