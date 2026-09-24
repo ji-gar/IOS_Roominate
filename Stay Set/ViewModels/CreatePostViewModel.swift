@@ -129,6 +129,10 @@ final class CreatePostViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     static let minimumPhotoCount = 5
+    
+    var pageTitle: String {
+        editingPostId != nil ? "Edit Post" : "Create Post"
+    }
 
     @Published var availableFromDate: Date? {
         didSet { draft.availableFrom = Self.apiDateString(availableFromDate) }

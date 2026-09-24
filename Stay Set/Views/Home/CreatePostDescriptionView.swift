@@ -109,7 +109,7 @@ struct CreatePostDescriptionView: View {
         }
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .navigationTitle("Create Post")
+        .navigationTitle(viewModel.pageTitle)
         .navigationBarTitleDisplayMode(.inline)
         .dismissKeyboardOnTap()
         .toolbar {

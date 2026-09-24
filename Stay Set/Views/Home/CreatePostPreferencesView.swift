@@ -120,7 +120,7 @@ struct CreatePostPreferencesView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .navigationTitle("Create Post")
+        .navigationTitle(viewModel.pageTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -128,7 +128,7 @@ struct CreatePostPreferencesView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Create Post")
+                        Text(viewModel.pageTitle)
                             .font(.system(size: 16))
                     }
                     .foregroundStyle(AppTheme.primaryBlue)

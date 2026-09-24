@@ -65,7 +65,7 @@ struct CreatePostPhotosView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .navigationTitle("Create Post")
+        .navigationTitle(viewModel.pageTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

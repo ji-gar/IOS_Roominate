@@ -117,7 +117,7 @@ struct CreatePostLocationView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
-        .navigationTitle("Create Post")
+        .navigationTitle(viewModel.pageTitle)
         .navigationBarTitleDisplayMode(.inline)
         .dismissKeyboardOnTap()
         .toolbar {

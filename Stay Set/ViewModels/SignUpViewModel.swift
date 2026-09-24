@@ -74,8 +74,14 @@ final class SignUpViewModel: ObservableObject {
             // Handle based on next_step
             switch data.nextStep {
             case "send-otp":
-                // New user - proceed with sign up
-                return normalizedEmail
+                // New user - send OTP and proceed with sign up
+                do {
+                    _ = try await authService.sendOTP(email: normalizedEmail)
+                    return normalizedEmail
+                } catch {
+                    errorMessage = "Failed to send OTP. Please try again."
+                    return nil
+                }
                 
             case "login":
                 // Account exists and is verified - redirect to sign in
@@ -83,8 +89,14 @@ final class SignUpViewModel: ObservableObject {
                 return nil
                 
             case "resend-otp":
-                // Abandoned signup - proceed but OTP screen should call resend
-                return normalizedEmail
+                // Abandoned signup - resend OTP and proceed
+                do {
+                    _ = try await authService.resendOTP(email: normalizedEmail)
+                    return normalizedEmail
+                } catch {
+                    errorMessage = "Failed to resend OTP. Please try again."
+                    return nil
+                }
                 
             default:
                 emailError = "Unexpected response from server. Please try again."

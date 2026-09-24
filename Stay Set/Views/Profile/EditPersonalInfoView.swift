@@ -277,14 +277,15 @@ struct EditPersonalInfoView: View {
 
             Menu {
                 ForEach(graduationYearOptions, id: \.self) { year in
-                    Button(String(year)) {
+                    Button(String(format: "%d", year)) {
                         graduationYear = year
                     }
                 }
             } label: {
                 HStack {
-                    Text(graduationYear.map(String.init) ?? "Select year")
+                    Text(graduationYear.map { String(format: "%d", $0) } ?? "Select year")
                         .font(.system(size: AppTheme.Profile.fieldInputSize))
+                        .monospacedDigit()
                         .foregroundStyle(
                             graduationYear == nil ? AppTheme.textSecondary : AppTheme.textPrimary
                         )
@@ -342,7 +343,7 @@ struct EditPersonalInfoView: View {
             
             PhotosPicker(
                 selection: $selectedDocumentItem,
-                matching: .any(of: [.images, .pdfs])
+                matching: .any(of: [.images, .not(.videos)])
             ) {
                 HStack {
                     Image(systemName: "doc.badge.plus")

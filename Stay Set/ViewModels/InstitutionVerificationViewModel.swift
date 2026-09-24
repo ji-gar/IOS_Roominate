@@ -97,18 +97,32 @@ final class InstitutionVerificationViewModel: ObservableObject {
         documentType: String,
         imageData: Data
     ) async throws {
-        // Compress image more aggressively to prevent timeout issues
-        // Target max size: 1MB for upload reliability
+        // Compress and resize image aggressively to prevent timeout issues
+        // Target max size: 500KB for reliable upload on slower connections
         let compressedData: Data
         if let image = UIImage(data: imageData) {
-            // Start with 0.7 quality, reduce if still too large
-            var quality: CGFloat = 0.7
-            var tempData = image.jpegData(compressionQuality: quality) ?? imageData
+            // First, resize image if it's too large (max 1600px on longest side)
+            let resized: UIImage
+            let maxDimension: CGFloat = 1600
+            if image.size.width > maxDimension || image.size.height > maxDimension {
+                let scale = min(maxDimension / image.size.width, maxDimension / image.size.height)
+                let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+                let renderer = UIGraphicsImageRenderer(size: newSize)
+                resized = renderer.image { _ in
+                    image.draw(in: CGRect(origin: .zero, size: newSize))
+                }
+            } else {
+                resized = image
+            }
             
-            // Reduce quality further if image is larger than 1MB
-            while tempData.count > 1_000_000 && quality > 0.3 {
+            // Then compress with adaptive quality to hit target file size
+            var quality: CGFloat = 0.7
+            var tempData = resized.jpegData(compressionQuality: quality) ?? imageData
+            
+            // Reduce quality further if image is larger than 500KB
+            while tempData.count > 500_000 && quality > 0.3 {
                 quality -= 0.1
-                tempData = image.jpegData(compressionQuality: quality) ?? tempData
+                tempData = resized.jpegData(compressionQuality: quality) ?? tempData
             }
             compressedData = tempData
         } else {

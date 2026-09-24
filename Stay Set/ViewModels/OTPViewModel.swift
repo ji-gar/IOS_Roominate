@@ -86,28 +86,28 @@ final class OTPViewModel: ObservableObject {
     func verify() async -> OTPResult {
         guard isComplete else { return .failure }
 
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
+        switch flowType {
+        case .signUpVerification:
+            // For signup with separate OTP/password screens:
+            // Skip verification here - the combined verify-otp-set-password 
+            // endpoint will validate both OTP and password together
+            // This prevents the "already verified" error
+            return .needsSetPassword(otp: code)
 
-        do {
-            switch flowType {
-            case .signUpVerification:
-                // For signup, verify OTP but DON'T authenticate yet
-                // Email should not be marked as registered until password is set
-                _ = try await authService.verifyOTP(email: email, otp: code)
-                // Return the OTP code so it can be passed to SetPasswordView
-                return .needsSetPassword(otp: code)
-
-            case .signIn:
-                // For sign-in, use the dedicated login OTP verification endpoint
+        case .signIn:
+            // For sign-in, verify the OTP immediately
+            isLoading = true
+            errorMessage = nil
+            defer { isLoading = false }
+            
+            do {
                 _ = try await authService.verifyLoginOTP(email: email, otp: code)
                 let isComplete = try await authService.resolveProfileCompletion()
                 return isComplete ? .authenticatedComplete : .authenticatedNeedsProfile
+            } catch {
+                errorMessage = error.localizedDescription
+                return .failure
             }
-        } catch {
-            errorMessage = error.localizedDescription
-            return .failure
         }
     }
 

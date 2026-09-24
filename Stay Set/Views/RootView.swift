@@ -80,7 +80,7 @@ struct RootView: View {
                 onBack: { router.pop() },
                 onSignIn: { router.replaceLast(with: .signIn) },
                 onSuccess: { email in
-                    router.navigate(to: .signUpVerification(email: email, password: nil))
+                    router.navigate(to: .signUpVerification(email: email, password: ""))
                 }
             )
         case .signIn:
