@@ -227,6 +227,19 @@ enum IndianLocationsService {
         ("Sun South Park", "Ahmedabad", "Bopal"),
         ("Goyal Orchid Harmony", "Ahmedabad", "Shela"),
         ("Shivalik Heights", "Ahmedabad", "Ambli"),
+        ("Adani Shantigram", "Ahmedabad", "SG Highway"),
+        ("Goyal Orchid Whitefield", "Ahmedabad", "Makarba"),
+        ("Safal Parisar", "Ahmedabad", "Bopal"),
+        ("Sindhu Bhavan", "Ahmedabad", "SG Highway"),
+        ("Shivalik Legacy", "Ahmedabad", "Bodakdev"),
+        ("Orchid Harmony", "Ahmedabad", "Shela"),
+        ("Goyal Riviera Greens", "Ahmedabad", "Makarba"),
+        ("Sun Westbank", "Ahmedabad", "Ashram Road"),
+        ("Safal Parisar 2", "Ahmedabad", "Bopal"),
+        ("Shilp Valley", "Ahmedabad", "Ambli"),
+        ("Satyamev Eminence", "Ahmedabad", "Science City"),
+        ("Goyal Orchid Avenue", "Ahmedabad", "Shela"),
+        ("Shyamal Row Houses", "Ahmedabad", "Satellite"),
         
         // Kolkata
         ("PS Srijan Tech Park", "Kolkata", "Salt Lake"),
@@ -381,27 +394,68 @@ enum IndianLocationsService {
     static func matchingAddresses(for query: String, limit: Int = 8) -> [PlaceSuggestion] {
         var results: [PlaceSuggestion] = []
         var seen = Set<String>()
+        
+        let lowercasedQuery = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Priority 1: Search societies first (highest priority for rental app)
-        for suggestion in matchingSocieties(for: query, limit: limit) {
-            let key = suggestion.mainText.lowercased()
-            guard seen.insert(key).inserted else { continue }
-            results.append(suggestion)
-        }
+        // ✅ FIX: Prioritize cities first if query clearly matches a city name
+        // This prevents "Ahmeda" from showing only Mumbai societies
+        let cityMatches = matchingCities(for: query, limit: limit)
+        let hasStrongCityMatch = cityMatches.first?.mainText.lowercased().hasPrefix(lowercasedQuery) ?? false
+        
+        if hasStrongCityMatch {
+            // Strong city match - prioritize cities, then landmarks, then societies
+            
+            // Priority 1: Cities
+            for suggestion in cityMatches {
+                let key = suggestion.mainText.lowercased()
+                guard seen.insert(key).inserted else { continue }
+                results.append(suggestion)
+            }
+            
+            // Priority 2: Landmarks in that city
+            for suggestion in matchingLandmarksAcrossCities(for: query, limit: limit) {
+                let key = "\(suggestion.mainText.lowercased())-\(suggestion.secondaryText.lowercased())"
+                guard seen.insert(key).inserted else { continue }
+                results.append(suggestion)
+                if results.count >= limit { break }
+            }
+            
+            // Priority 3: Societies (only if still room)
+            if results.count < limit {
+                for suggestion in matchingSocieties(for: query, limit: limit - results.count) {
+                    let key = suggestion.mainText.lowercased()
+                    guard seen.insert(key).inserted else { continue }
+                    results.append(suggestion)
+                    if results.count >= limit { break }
+                }
+            }
+        } else {
+            // No strong city match - prioritize societies (for specific building searches)
+            
+            // Priority 1: Societies
+            for suggestion in matchingSocieties(for: query, limit: limit) {
+                let key = suggestion.mainText.lowercased()
+                guard seen.insert(key).inserted else { continue }
+                results.append(suggestion)
+            }
 
-        // Priority 2: Cities
-        for suggestion in matchingCities(for: query, limit: limit) {
-            let key = suggestion.mainText.lowercased()
-            guard seen.insert(key).inserted else { continue }
-            results.append(suggestion)
-        }
+            // Priority 2: Cities
+            for suggestion in cityMatches {
+                let key = suggestion.mainText.lowercased()
+                guard seen.insert(key).inserted else { continue }
+                results.append(suggestion)
+                if results.count >= limit { break }
+            }
 
-        // Priority 3: Landmarks/localities
-        for suggestion in matchingLandmarksAcrossCities(for: query, limit: limit) {
-            let key = "\(suggestion.mainText.lowercased())-\(suggestion.secondaryText.lowercased())"
-            guard seen.insert(key).inserted else { continue }
-            results.append(suggestion)
-            if results.count >= limit { break }
+            // Priority 3: Landmarks/localities
+            if results.count < limit {
+                for suggestion in matchingLandmarksAcrossCities(for: query, limit: limit - results.count) {
+                    let key = "\(suggestion.mainText.lowercased())-\(suggestion.secondaryText.lowercased())"
+                    guard seen.insert(key).inserted else { continue }
+                    results.append(suggestion)
+                    if results.count >= limit { break }
+                }
+            }
         }
 
         return Array(results.prefix(limit))
@@ -413,28 +467,36 @@ enum IndianLocationsService {
 
         let lowercasedQuery = normalized.lowercased()
         
-        // Fuzzy matching for societies with typo tolerance
+        // ✅ FIX: Stricter matching - prioritize exact matches, remove fuzzy matching
         let matches = societies.filter { society in
             let societyName = society.name.lowercased()
+            let cityName = society.city.lowercased()
+            let localityName = society.locality.lowercased()
             
-            // Exact prefix match (highest priority)
+            // Exact prefix match in society name (highest priority)
             if societyName.hasPrefix(lowercasedQuery) {
                 return true
             }
             
-            // Contains match
+            // Contains match in society name
             if societyName.contains(lowercasedQuery) {
                 return true
             }
             
-            // Simple fuzzy match: check if most characters are present
-            let queryChars = Set(lowercasedQuery.filter { !$0.isWhitespace })
-            let nameChars = Set(societyName.filter { !$0.isWhitespace })
-            let matchingChars = queryChars.intersection(nameChars)
+            // Prefix match in city (so "Ahmeda" doesn't match Mumbai societies)
+            if cityName.hasPrefix(lowercasedQuery) {
+                return true
+            }
             
-            // If 80% of query characters are in the name, consider it a match
-            return queryChars.count > 0 && 
-                   Double(matchingChars.count) / Double(queryChars.count) >= 0.8
+            // Contains match in locality
+            if localityName.contains(lowercasedQuery) {
+                return true
+            }
+            
+            // ✅ REMOVED: Fuzzy character matching - it was causing false positives
+            // "Ahmeda" was matching "Mahindra" with 83% character overlap
+            
+            return false
         }
 
         return Array(matches.prefix(limit)).map { society in

@@ -17,11 +17,15 @@ enum APIConstants {
     }
     /// Set `GOOGLE_PLACES_API_KEY` in the target Info.plist for live Google suggestions.
     static let googlePlacesAPIKey: String = {
+        // Try to get from Info.plist first
         if let key = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_PLACES_API_KEY") as? String,
            !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return key
         }
-        return ""
+        
+        // ✅ TEMPORARY: Fallback to hardcoded key until Info.plist is configured
+        // TODO: Move this to Info.plist or build settings for production
+        return "AIzaSyDWrtq3Yt6CpMZ8nmcoipVjpggjJ25_TAk"
     }()
 
     enum Auth {

@@ -8,19 +8,12 @@ struct PlaceSuggestion: Identifiable, Equatable {
     let secondaryText: String
     
     var entityType: EntityType {
-        if id.hasPrefix("local-society-") {
-            return .society
-        } else if id.hasPrefix("local-landmark-") {
-            return .landmark
-        } else if id.hasPrefix("local-city-") {
+        // All results come from Google Places API
+        // Infer type from the response structure
+        if secondaryText.isEmpty {
             return .city
-        } else {
-            // Remote results - try to infer from secondary text
-            if secondaryText.isEmpty {
-                return .city
-            }
-            return .locality
         }
+        return .locality
     }
 
     var fullText: String {
@@ -92,32 +85,36 @@ final class GooglePlacesService: ObservableObject {
             isLoading = true
             defer { isLoading = false }
 
-            let localResults = localSuggestions(for: trimmed, mode: mode)
             let key = APIConstants.googlePlacesAPIKey
 
+            // ✅ DEBUG: Log API key status
+            print("🔑 Google Places API Key present: \(!key.isEmpty)")
+            print("🔍 Searching for: '\(trimmed)'")
+
             guard !key.isEmpty else {
-                suggestions = localResults
+                // No API key - can't search
+                print("❌ No Google Places API key configured!")
+                suggestions = []
                 return
             }
 
+            // ✅ Use ONLY Google Places API (no local data)
             let remoteResults = await fetchRemoteSuggestions(query: trimmed, mode: mode, apiKey: key)
+            
+            print("✅ Got \(remoteResults.count) results from Google")
             
             // Stale-response guard: only update if this is still the latest search
             guard !Task.isCancelled, currentSeq >= sequenceNumber else { return }
 
-            suggestions = merge(localResults, remoteResults)
+            suggestions = remoteResults
         }
     }
 
     func fetchPlaceDetails(placeId: String) async -> PlaceDetails? {
-        if placeId.hasPrefix("local-") {
-            return nil
-        }
-
         let key = APIConstants.googlePlacesAPIKey
         guard !key.isEmpty else { return nil }
 
-        // ✅ ENHANCED: Request more fields including name and types
+        // ✅ Request comprehensive fields from Google
         let fields = "geometry,address_components,formatted_address,name,types"
         let sessionToken = UUID().uuidString
         let urlString =
@@ -136,13 +133,12 @@ final class GooglePlacesService: ObservableObject {
                 longitude: result.geometry.location.lng
             )
 
-            // ✅ ENHANCED: Extract more specific address components
+            // Extract address components
             let streetNumber = firstComponent(in: components, types: ["street_number"])
             let route = firstComponent(in: components, types: ["route"])
             let premise = firstComponent(in: components, types: ["premise"])
             let establishment = firstComponent(in: components, types: ["establishment"])
             
-            // Area with priority order: sublocality_level_1 > sublocality_level_2 > neighborhood > sublocality
             let area = firstComponent(in: components, types: [
                 "sublocality_level_1", "sublocality_level_2", "neighborhood", "sublocality", "locality"
             ])
@@ -154,18 +150,15 @@ final class GooglePlacesService: ObservableObject {
             let state = firstComponent(in: components, types: ["administrative_area_level_1"])
             let pincode = firstComponent(in: components, types: ["postal_code"])
             
-            // ✅ ENHANCED: Build landmark with priority logic
-            // Priority: establishment > premise > name > street address > formatted address
+            // Build landmark with priority logic
             var landmark = ""
             if !establishment.isEmpty {
                 landmark = establishment
             } else if !premise.isEmpty {
                 landmark = premise
             } else if let name = result.name, !name.isEmpty {
-                // Use the place name from Google (works great for societies, buildings)
                 landmark = name
             } else if !streetNumber.isEmpty || !route.isEmpty {
-                // Build street address
                 landmark = [streetNumber, route].filter { !$0.isEmpty }.joined(separator: " ")
             } else {
                 landmark = result.formattedAddress
@@ -181,6 +174,7 @@ final class GooglePlacesService: ObservableObject {
                 formattedAddress: result.formattedAddress
             )
         } catch {
+            print("❌ Place Details Error: \(error)")
             return nil
         }
     }
@@ -191,26 +185,13 @@ final class GooglePlacesService: ObservableObject {
     }
 
     func resolveSuggestion(_ suggestion: PlaceSuggestion, mode: PlacesSearchMode) async -> PlaceDetails {
-        if suggestion.id.hasPrefix("local-") || APIConstants.googlePlacesAPIKey.isEmpty {
-            return await GeocodingService.placeDetails(from: suggestion, mode: mode)
-        }
-
+        // ✅ Always use Google Places API for place details
         if let details = await fetchPlaceDetails(placeId: suggestion.id) {
             return details
         }
 
+        // Fallback: Try geocoding the text if Google fails
         return await GeocodingService.placeDetails(from: suggestion, mode: mode)
-    }
-
-    private func localSuggestions(for query: String, mode: PlacesSearchMode) -> [PlaceSuggestion] {
-        switch mode {
-        case .cities:
-            return IndianLocationsService.matchingCities(for: query)
-        case .landmarks(let city):
-            return IndianLocationsService.matchingLandmarks(for: query, city: city)
-        case .address:
-            return IndianLocationsService.matchingAddresses(for: query)
-        }
     }
 
     private func fetchRemoteSuggestions(
@@ -219,57 +200,79 @@ final class GooglePlacesService: ObservableObject {
         apiKey: String
     ) async -> [PlaceSuggestion] {
         let searchQuery: String
-        let types: String
         
         switch mode {
         case .cities:
             searchQuery = query
-            types = "(cities)"
             
         case .landmarks(let city):
-            let normalizedCity = IndianLocationsService.normalizedCityName(city)
-            searchQuery = normalizedCity.isEmpty ? query : "\(query) \(normalizedCity)"
-            types = "establishment|point_of_interest"
+            // For landmarks, append city for better context
+            searchQuery = city.isEmpty ? query : "\(query), \(city)"
             
         case .address:
             searchQuery = query
-            // ✅ ENHANCED: Include ALL relevant types for comprehensive address search
-            // This matches Google Maps behavior across all of India:
-            // - address: Full street addresses with numbers
-            // - establishment: Businesses, societies, buildings
-            // - premise: Specific buildings and complexes
-            // - sublocality: Neighborhoods and areas within cities
-            // - locality: Cities and towns
-            // - geocode: Generic geocodable addresses
-            types = "address|establishment|premise|sublocality|locality|geocode"
         }
 
         let encoded = searchQuery.addingPercentEncoding(
             withAllowedCharacters: .urlQueryAllowed
         ) ?? searchQuery
         
-        // ✅ FIXED: Add session token for cost optimization
-        // Groups autocomplete + place details into one billable session
+        // ✅ Session token for cost optimization
         let sessionToken = UUID().uuidString
         
+        // ✅ Build URL based on mode
         var urlString = """
 https://maps.googleapis.com/maps/api/place/autocomplete/json?\
 input=\(encoded)\
 &components=country:in\
-&types=\(types)\
 &sessiontoken=\(sessionToken)\
 &key=\(apiKey)
 """
         
+        // Add type restrictions based on mode
+        switch mode {
+        case .cities:
+            urlString += "&types=(cities)"
+        case .landmarks:
+            urlString += "&types=establishment|point_of_interest"
+        case .address:
+            // ✅ No type restriction for address mode - let Google return best matches
+            // This gives the most comprehensive results like Google Maps
+            break
+        }
+        
         // Remove newlines from the URL string
         urlString = urlString.replacingOccurrences(of: "\n", with: "")
 
-        guard let url = URL(string: urlString) else { return [] }
+        print("🌐 Google Places API URL: \(urlString)")
+
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL: \(urlString)")
+            return []
+        }
 
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(AutocompleteResponse.self, from: data)
-            return response.predictions.map { prediction in
+            let (data, response) = try await URLSession.shared.data(from: url)
+            
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📡 HTTP Status: \(httpResponse.statusCode)")
+            }
+            
+            // Try to decode the response
+            let apiResponse = try JSONDecoder().decode(AutocompleteResponse.self, from: data)
+            
+            print("📊 API Status: \(apiResponse.status)")
+            print("📍 Predictions count: \(apiResponse.predictions.count)")
+            
+            if apiResponse.status != "OK" && apiResponse.status != "ZERO_RESULTS" {
+                // Print raw response for debugging
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("⚠️ API Response: \(jsonString)")
+                }
+            }
+            
+            return apiResponse.predictions.map { prediction in
                 PlaceSuggestion(
                     id: prediction.placeId,
                     mainText: prediction.structuredFormatting.mainText,
@@ -277,33 +280,9 @@ input=\(encoded)\
                 )
             }
         } catch {
+            print("❌ Google Places API Error: \(error)")
             return []
         }
-    }
-
-    private func merge(_ local: [PlaceSuggestion], _ remote: [PlaceSuggestion]) -> [PlaceSuggestion] {
-        var seen = Set<String>()
-        var merged: [PlaceSuggestion] = []
-
-        // Priority ranking: Society → Landmark → Locality → City
-        // Local results come first (they include societies and are more relevant)
-        for suggestion in local {
-            let key = suggestion.mainText.lowercased()
-            guard !seen.contains(key) else { continue }
-            seen.insert(key)
-            merged.append(suggestion)
-        }
-        
-        // Then add remote results that aren't duplicates
-        for suggestion in remote {
-            let key = suggestion.mainText.lowercased()
-            guard !seen.contains(key) else { continue }
-            seen.insert(key)
-            merged.append(suggestion)
-        }
-
-        // Limit to 10 results for better UX
-        return Array(merged.prefix(10))
     }
 
     private func firstComponent(in components: [AddressComponent], types: [String]) -> String {

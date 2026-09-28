@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		63AA988F30656EE0004B7FCC /* info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 63AA988E30656EE0004B7FCC /* info.plist */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		637C756E2FCC473B0025AF73 /* Stay Set.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stay Set.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		63AA988E30656EE0004B7FCC /* info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		637C75652FCC473B0025AF73 = {
 			isa = PBXGroup;
 			children = (
+				63AA988E30656EE0004B7FCC /* info.plist */,
 				637C75702FCC473B0025AF73 /* Stay Set */,
 				637C756F2FCC473B0025AF73 /* Products */,
 			);
@@ -112,6 +118,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63AA988F30656EE0004B7FCC /* info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
