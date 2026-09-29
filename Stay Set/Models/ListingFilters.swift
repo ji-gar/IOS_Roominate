@@ -92,12 +92,12 @@ struct ListingFilters: Equatable {
 
     enum Amenity: String, CaseIterable, Identifiable {
         case sofa = "Sofa"
-        case tv = "TV"
+        case tv = "Tv"
         case kitchen = "Kitchen"
-        case ac = "AC"
-        case wifi = "WiFi"
+        case ac = "Ac"
+        case wifi = "Wifi"
         case parking = "Parking"
-        case washer = "Washer"
+        case washer = "Washing"
         case gym = "Gym"
         case geyser = "Geyser"
         case lift = "Lift"
@@ -105,7 +105,7 @@ struct ListingFilters: Equatable {
         case power = "Power"
 
         var id: String { rawValue }
-        var apiValue: String { rawValue.lowercased() }
+        var apiValue: String { rawValue }
 
         var systemImage: String {
             switch self {
