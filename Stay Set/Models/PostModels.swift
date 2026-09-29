@@ -624,7 +624,11 @@ struct PostQuery {
             items.append(.init(name: "moved_in_to", value: movedInTo))
         }
         if let amenities, !amenities.isEmpty {
-            items.append(.init(name: "amenities", value: amenities))
+            // Split comma-separated amenities and add each as a separate query parameter
+            let amenityList = amenities.split(separator: ",").map { String($0) }
+            for amenity in amenityList {
+                items.append(.init(name: "amenities[]", value: amenity))
+            }
         }
         if let availableOnly {
             items.append(.init(name: "available_only", value: availableOnly ? "true" : "false"))

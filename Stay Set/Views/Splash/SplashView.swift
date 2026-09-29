@@ -5,26 +5,32 @@ struct SplashView: View {
     let onFinished: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
+        GeometryReader { geometry in
+            ZStack {
+                Color.white.ignoresSafeArea()
 
-            VStack(spacing: 16) {
-                Image("SplashLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 120, height: 120)
+                VStack(spacing: 24) {
+                    Image("SplashLogo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: min(geometry.size.width * 0.5, 300))
+                        .padding(.horizontal, 40)
 
-                Text(Strings.Splash.title)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppTheme.primaryBlue)
+                    Text(Strings.Splash.title)
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppTheme.primaryBlue)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-        }
-        .onAppear {
-            viewModel.start()
-        }
-        .onChange(of: viewModel.isActive) { _, isActive in
-            if isActive {
-                onFinished()
+            .onAppear {
+                viewModel.start()
+            }
+            .onChange(of: viewModel.isActive) { _, isActive in
+                if isActive {
+                    onFinished()
+                }
             }
         }
     }

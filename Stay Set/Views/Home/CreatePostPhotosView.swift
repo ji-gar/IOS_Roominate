@@ -134,28 +134,30 @@ struct CreatePostPhotosView: View {
     }
 
     private func filledSlot(_ item: DraftImage) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Image(uiImage: item.image)
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity)
-                .frame(height: 160)
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+        GeometryReader { geometry in
+            ZStack(alignment: .topTrailing) {
+                Image(uiImage: item.image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: 160)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
 
-            Button {
-                viewModel.removeImage(item.id)
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(6)
-                    .background(Color.black.opacity(0.55))
-                    .clipShape(Circle())
+                Button {
+                    viewModel.removeImage(item.id)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.55))
+                        .clipShape(Circle())
+                }
+                .padding(10)
             }
-            .padding(10)
         }
         .frame(height: 160)
+        .clipped()
     }
 
     private func loadPhotos(_ items: [PhotosPickerItem]) {

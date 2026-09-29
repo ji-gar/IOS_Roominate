@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		633A3825306BE67F00AA2F81 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 633A3824306BE67F00AA2F81 /* GoogleMaps */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		637C756E2FCC473B0025AF73 /* Stay Set.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stay Set.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				633A3825306BE67F00AA2F81 /* GoogleMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "Stay Set";
 			packageProductDependencies = (
+				633A3824306BE67F00AA2F81 /* GoogleMaps */,
 			);
 			productName = Roominate;
 			productReference = 637C756E2FCC473B0025AF73 /* Stay Set.app */;
@@ -96,6 +102,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				63016DD1302A27E3002C7E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				633A3823306BE67F00AA2F81 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 637C756F2FCC473B0025AF73 /* Products */;
@@ -261,6 +268,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Stay Set";
+				INFOPLIST_KEY_GMSApiKey = AIzaSyDWrtq3Yt6CpMZ8nmcoipVjpggjJ25_TAk;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show nearby properties and help you find roommates in your area.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Roominate uses your location to help you pin your stay on the map.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Roominate needs access to your photo library to set your profile picture.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -303,6 +312,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Stay Set";
+				INFOPLIST_KEY_GMSApiKey = AIzaSyDWrtq3Yt6CpMZ8nmcoipVjpggjJ25_TAk;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location to show nearby properties and help you find roommates in your area.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Roominate uses your location to help you pin your stay on the map.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Roominate needs access to your photo library to set your profile picture.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -365,7 +376,23 @@
 				minimumVersion = 12.17.0;
 			};
 		};
+		633A3823306BE67F00AA2F81 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		633A3824306BE67F00AA2F81 /* GoogleMaps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 633A3823306BE67F00AA2F81 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */;
+			productName = GoogleMaps;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 637C75662FCC473B0025AF73 /* Project object */;
 }
