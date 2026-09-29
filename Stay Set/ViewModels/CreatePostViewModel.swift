@@ -11,14 +11,18 @@ struct AmenityItem: Identifiable, Hashable {
     let icon: String
 
     static let all: [AmenityItem] = [
-        AmenityItem(id: "wifi",     label: "Wifi",     icon: "wifi"),
-        AmenityItem(id: "tv",       label: "Tv",        icon: "tv"),
-        AmenityItem(id: "washing",  label: "Washing",   icon: "washer"),
-        AmenityItem(id: "fridge",   label: "Fridge",    icon: "refrigerator"),
-        AmenityItem(id: "ro_water", label: "RO Water",  icon: "drop.fill"),
+        AmenityItem(id: "wifi",     label: "WiFi",      icon: "wifi"),
+        AmenityItem(id: "tv",       label: "TV",        icon: "tv"),
+        AmenityItem(id: "washer",   label: "Washing Machine",    icon: "washer"),
+        AmenityItem(id: "kitchen",  label: "Modular Kitchen",   icon: "fork.knife"),
+        AmenityItem(id: "ac",       label: "AC",        icon: "snowflake"),
         AmenityItem(id: "parking",  label: "Parking",   icon: "p.circle.fill"),
-        AmenityItem(id: "maid",     label: "Maid",      icon: "hands.sparkles.fill"),
-        AmenityItem(id: "ac",       label: "Ac",        icon: "snowflake"),
+        AmenityItem(id: "sofa",     label: "Sofa",      icon: "sofa.fill"),
+        AmenityItem(id: "gym",      label: "Gym",       icon: "dumbbell.fill"),
+        AmenityItem(id: "geyser",   label: "Geyser",    icon: "flame.fill"),
+        AmenityItem(id: "lift",     label: "Lift",      icon: "arrow.up.arrow.down"),
+        AmenityItem(id: "security", label: "Security",  icon: "shield.fill"),
+        AmenityItem(id: "power",    label: "Power Backup", icon: "bolt.fill"),
     ]
 }
 

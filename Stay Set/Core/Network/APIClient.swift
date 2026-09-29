@@ -106,6 +106,16 @@ final class APIClient {
             throw NetworkError.invalidURL
         }
 
+        #if DEBUG
+        if let queryItems = components?.queryItems?.filter({ $0.name.contains("amenities") }),
+           !queryItems.isEmpty {
+            print("[APIClient] Amenities filter query items: \(queryItems)")
+            if let fullURL = components?.url?.absoluteString {
+                print("[APIClient] Full URL: \(fullURL)")
+            }
+        }
+        #endif
+
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -139,6 +149,17 @@ final class APIClient {
             }
             throw NetworkError.httpError(statusCode: httpResponse.statusCode, message: message)
         }
+
+        #if DEBUG
+        if let queryItems = components?.queryItems?.filter({ $0.name.contains("amenities") }),
+           !queryItems.isEmpty {
+            if let jsonObject = try? JSONSerialization.jsonObject(with: data),
+               let jsonData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("[APIClient] Response (first 500 chars): \(String(jsonString.prefix(500)))")
+            }
+        }
+        #endif
 
         return data
     }
