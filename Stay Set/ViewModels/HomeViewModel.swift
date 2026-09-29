@@ -18,6 +18,7 @@ final class HomeViewModel: ObservableObject {
     private let postService: PostServiceProtocol
     private let userService: UserServiceProtocol
     private var cachedCurrentUser: PostUser?
+    private var userCurrentCity: String?
     private var flatCurrentPage = 1
     private var flatmateCurrentPage = 1
     private var flatLastPage = 1
@@ -30,11 +31,11 @@ final class HomeViewModel: ObservableObject {
     }
 
     var filteredFlats: [FlatListing] {
-        flatListings
+        sortByLocationPriority(flatListings)
     }
 
     var filteredFlatmates: [FlatmateListing] {
-        flatmateListings
+        sortByLocationPriority(flatmateListings)
     }
 
     var hasMoreFlats: Bool {
@@ -218,6 +219,12 @@ final class HomeViewModel: ObservableObject {
     private func loadCurrentPostUser() async -> PostUser? {
         if let cachedCurrentUser { return cachedCurrentUser }
         guard let profile = try? await userService.fetchProfile() else { return nil }
+        
+        // Store user's current city for location-based sorting
+        if let city = profile.currentCity, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            userCurrentCity = city
+        }
+        
         let userId = profile.resolvedUserId ?? TokenStorage.shared.userId
         guard userId > 0 else { return nil }
         let user = PostUser(
@@ -286,7 +293,41 @@ final class HomeViewModel: ObservableObject {
 
         return query
     }
+    
+    // MARK: - Location-Based Sorting
+    
+    /// Sorts posts by location priority: posts from the user's city appear first,
+    /// sorted by recency. Then posts from other cities, also sorted by recency.
+    private func sortByLocationPriority<T: PostListing>(_ listings: [T]) -> [T] {
+        guard let userCity = userCurrentCity?.lowercased().trimmingCharacters(in: .whitespacesAndNewlines),
+              !userCity.isEmpty else {
+            // No user city available, return posts as-is (already sorted by recency from API)
+            return listings
+        }
+        
+        // Partition listings into user's city and other cities
+        let userCityPosts = listings.filter { listing in
+            listing.city.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) == userCity
+        }
+        
+        let otherCityPosts = listings.filter { listing in
+            listing.city.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) != userCity
+        }
+        
+        // Both groups are already sorted by recency from the API (created_at desc)
+        // Simply concatenate: user's city posts first, then others
+        return userCityPosts + otherCityPosts
+    }
 }
+
+// MARK: - Protocol for Location-Based Sorting
+
+private protocol PostListing {
+    var city: String { get }
+}
+
+extension FlatListing: PostListing {}
+extension FlatmateListing: PostListing {}
 
 private struct FetchedPostsPage {
     let posts: [Post]

@@ -58,6 +58,7 @@ struct CreatePostFlowView: View {
                     if viewModel.editingPostId != nil {
                         CreatePostOverviewView(
                             isSeekerFlow: isSeekerFlow,
+                            isEditing: true,
                             onStart: { path.append(.step1Intro) },
                             onDismiss: onDismiss
                         )

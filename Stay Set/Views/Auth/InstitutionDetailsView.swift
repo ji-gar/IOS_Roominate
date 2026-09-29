@@ -179,7 +179,7 @@ struct InstitutionDetailsView: View {
     private var graduationYearPicker: some View {
         Menu {
             ForEach(viewModel.availableYears, id: \.self) { year in
-                Button(String(format: "%d", year)) {
+                Button(formatYear(year)) {
                     viewModel.graduationYear = year
                 }
             }
@@ -188,7 +188,7 @@ struct InstitutionDetailsView: View {
                 Image(systemName: "calendar")
                     .foregroundStyle(AppTheme.textSecondary)
                 Text(
-                    viewModel.graduationYear.map { String(format: "%d", $0) }
+                    viewModel.graduationYear.map { formatYear($0) }
                     ?? Strings.InstitutionDetails.graduationYearPlaceholder
                 )
                 .font(.system(size: 16))
@@ -211,6 +211,14 @@ struct InstitutionDetailsView: View {
                     .stroke(AppTheme.fieldBorder, lineWidth: 1)
             )
         }
+    }
+    
+    private func formatYear(_ year: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .none
+        formatter.groupingSeparator = ""
+        formatter.usesGroupingSeparator = false
+        return formatter.string(from: NSNumber(value: year)) ?? "\(year)"
     }
 
     @ViewBuilder

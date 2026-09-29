@@ -180,9 +180,5 @@ struct FlatmateDetailView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        FlatmateDetailView(listing: MockListings.flatmates[0])
-            .environmentObject(SavedPostsStore())
-    }
-}
+// Preview removed - using live data only in production
+

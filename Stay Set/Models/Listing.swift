@@ -22,6 +22,7 @@ struct FlatListing: Identifiable, Hashable {
     let imageURLs: [String]
     let title: String
     let location: String
+    let city: String
     let lookingFor: String
     let deposit: String
     let rent: String
@@ -53,6 +54,7 @@ struct FlatmateListing: Identifiable, Hashable {
     let author: ListingAuthor
     let title: String
     let location: String
+    let city: String
     let lookingFor: String
     let maxBudget: String
     let fromDate: String

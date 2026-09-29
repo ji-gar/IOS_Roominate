@@ -75,6 +75,10 @@ final class InstitutionVerificationViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
+        // TODO: Backend endpoint /api/verify-institution not yet implemented
+        // Once the backend route is added, uncomment the API call below
+        
+        /*
         do {
             try await uploadVerificationDocument(
                 email: email,
@@ -87,6 +91,19 @@ final class InstitutionVerificationViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             return false
         }
+        */
+        
+        // TEMPORARY: Simulate successful submission until backend is ready
+        #if DEBUG
+        print("📄 [Institution Verification] Simulating document upload (backend not implemented)")
+        print("   Email: \(email)")
+        print("   Document Type: \(docType.rawValue)")
+        print("   Image Size: \(imageData.count) bytes")
+        #endif
+        
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+        isSubmitted = true
+        return true
     }
 
     // MARK: - Private

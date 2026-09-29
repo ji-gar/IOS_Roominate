@@ -40,6 +40,7 @@ enum APIConstants {
         static let forgotPassword = "/forgot-password"
         static let resetPassword = "/reset-password"
         /// Submit institution verification document for admin review.
+        /// TODO: Backend endpoint not yet implemented - see InstitutionVerificationViewModel
         static let verifyInstitution = "/verify-institution"
         /// Check if email domain is from accepted institute and return next step for signup flow.
         static let checkInstituteEmail = "/check-institute-email"

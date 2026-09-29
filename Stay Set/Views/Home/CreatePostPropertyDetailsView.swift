@@ -8,7 +8,7 @@ struct CreatePostPropertyDetailsView: View {
     let onBack: () -> Void
     let onNext: () -> Void
 
-    private let propertyTypes = ["1RK", "1BHK", "2BHK", "3BHK", "Other"]
+    private let propertyTypes = ["1RK", "1BRK", "1BHK", "2BHK", "3BHK", "Other"]
     private let spaceTypes = ["Shared Room", "Private Room"]
     private let furnishings = ["Full Furnished", "Semi Furnished", "Unfurnished"]
     

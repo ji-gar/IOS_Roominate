@@ -2,15 +2,18 @@ import SwiftUI
 
 struct CreatePostOverviewView: View {
     let isSeekerFlow: Bool
+    let isEditing: Bool
     let onStart: () -> Void
     let onDismiss: () -> Void
 
     init(
         isSeekerFlow: Bool = false,
+        isEditing: Bool = false,
         onStart: @escaping () -> Void,
         onDismiss: @escaping () -> Void
     ) {
         self.isSeekerFlow = isSeekerFlow
+        self.isEditing = isEditing
         self.onStart = onStart
         self.onDismiss = onDismiss
     }
@@ -32,7 +35,7 @@ struct CreatePostOverviewView: View {
             bottomBar
         }
         .background(Color.white.ignoresSafeArea())
-        .navigationTitle("Create Post")
+        .navigationTitle(isEditing ? "Edit Post" : "Create Post")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -166,7 +169,11 @@ struct CreatePostOverviewView: View {
     private var bottomBar: some View {
         VStack(spacing: 0) {
             Divider()
-            PrimaryButton(title: isSeekerFlow ? "Get Started" : "Create Post", isEnabled: true, action: onStart)
+            PrimaryButton(
+                title: isEditing ? "Edit Post" : (isSeekerFlow ? "Get Started" : "Create Post"),
+                isEnabled: true,
+                action: onStart
+            )
                 .padding(.horizontal, 20)
                 .padding(.top, 14)
                 .padding(.bottom, 20)
