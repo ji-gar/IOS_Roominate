@@ -25,7 +25,7 @@ enum APIConstants {
         
         // ✅ TEMPORARY: Fallback to hardcoded key until Info.plist is configured
         // TODO: Move this to Info.plist or build settings for production
-        return "AIzaSyDWrtq3Yt6CpMZ8nmcoipVjpggjJ25_TAk"
+        return "AIzaSyBI5Z3UPFP5WJ78PNSMaMDr8uizQxOLjD4"
     }()
 
     enum Auth {
